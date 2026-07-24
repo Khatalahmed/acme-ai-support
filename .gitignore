@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.json.key
+data/processed/adapters/
+*.gguf
+merged_model*/
+.ipynb_checkpoints/
+*.zip
+data/chroma/
