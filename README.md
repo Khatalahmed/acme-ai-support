@@ -70,26 +70,24 @@ point of RAG over fine-tuning for facts.
 
 ## 🏗️ Architecture
 
-```
-                        ┌───────────────────────────────┐
-   "My PNR ACX123       │   FastAPI  ·  POST /v1/chat   │
-    was delayed…"  ────▶│   ROUTER — intent detection   │
-                        └───┬───────────┬───────────┬───┘
-                    policy Q│    action │(PNR)      │greeting
-                            ▼           ▼           ▼
-                    ┌─────────────┐ ┌──────────────┐ (deterministic
-                    │ RAG         │ │ Tool calling │  reply, ~5s,
-                    │ Chroma      │ │ get_status   │  no LLM)
-                    │ 28 chunks · │ │ cancel_ticket│
-                    │ 5 policies  │ │ (mock DB)    │
-                    └──────┬──────┘ └──────┬───────┘
-                           └───────┬───────┘
-                                   ▼
-                    ┌──────────────────────────────────┐
-                    │ 🧠 Fine-tuned Qwen3-4B (QLoRA)   │
-                    │ Q5_K_M GGUF · Ollama · local CPU  │
-                    │ → 4-part AER response (on-brand)  │
-                    └──────────────────────────────────┘
+```mermaid
+flowchart TD
+    U([🧑 "My PNR ACX123 was delayed…"]) --> R{🧭 Router<br/>intent detection}
+
+    R -->|policy question| RAG[🔎 RAG<br/>Chroma · 28 chunks · 5 policies]
+    R -->|action + PNR| TOOL[🛠️ Tool calling<br/>get_flight_status · cancel_ticket<br/><i>Python validates & executes</i>]
+    R -->|greeting| DET[⚡ Deterministic reply<br/>~5s · no LLM]
+
+    RAG --> LLM
+    TOOL --> LLM
+
+    LLM[🧠 Fine-tuned Qwen3-4B · QLoRA<br/>Q5_K_M GGUF · Ollama · local CPU]
+    LLM --> OUT([💬 4-part AER response · on-brand])
+
+    subgraph note [ ]
+        direction LR
+        n1[/"tone ← fine-tune  ·  facts ← RAG  ·  actions ← tools"/]
+    end
 ```
 
 ---
@@ -160,8 +158,12 @@ uvicorn src.api.main:app --port 8000
 
 ## 🧰 Stack
 
-`Qwen3-4B-Instruct` · `Unsloth QLoRA` · `llama.cpp GGUF/Q5_K_M` · `Ollama` · `ChromaDB` ·
-`MiniLM` · `Gemini` (synthetic data + judge) · `FastAPI`
+| Category | Technologies |
+|---|---|
+| 🧠 **Model & fine-tuning** | Qwen3-4B-Instruct · Unsloth QLoRA · llama.cpp GGUF/Q5_K_M · Ollama |
+| 🔎 **RAG** | ChromaDB · MiniLM embeddings |
+| 🛠️ **Serving & tools** | FastAPI · mock backend (flight status / cancel) |
+| 📊 **Data & eval** | Gemini (synthetic data + LLM-judge) |
 
 ## 🗺️ Roadmap
 
