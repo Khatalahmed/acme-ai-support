@@ -1,98 +1,176 @@
-# ACME Airlines Support AI
+<div align="center">
 
-A hybrid customer-support AI for a fictional airline (ACME Bharat Airlines), built end-to-end:
-a **fine-tuned local LLM** for brand tone, **RAG** for policy facts, and **tool calling** for live
-actions — served through one FastAPI endpoint, with an **LLM-as-judge eval harness** to prove it works.
+# ✈️ ACME Airlines Support AI
 
-> **Why hybrid?** Fine-tuning teaches the model *how to speak* (tone, structure), but it also
-> invents facts. RAG pins answers to real policy documents. Tools handle live data (flight
-> status, cancellations). Each layer fixes the failure mode of the previous one — and this
-> repo demonstrates that failure → fix chain deliberately.
+**A hybrid customer-support agent that speaks on-brand, cites real policy, and takes live action.**
 
-## Architecture
+*Fine-tuned local LLM for tone · RAG for facts · tool calling for actions — in one FastAPI endpoint.*
+
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![Qwen3-4B](https://img.shields.io/badge/Qwen3--4B-QLoRA_fine--tuned-FF6A00)
+![Ollama](https://img.shields.io/badge/Served-Ollama_(local_CPU)-000000?logo=ollama&logoColor=white)
+![RAG](https://img.shields.io/badge/RAG-ChromaDB-5A2D82)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
+![Evals](https://img.shields.io/badge/Evals-LLM--as--Judge-2E7D32)
+
+</div>
+
+---
+
+## 🎯 The one idea
+
+> Fine-tuning teaches a model **how to speak**. It does **not** teach it what's true — it will invent
+> policies with total confidence. RAG pins answers to real documents. Tools handle live data.
+> **Each layer fixes the exact failure mode of the one before it** — and this repo builds that
+> failure → fix chain on purpose, then *measures* it.
+
+---
+
+## 🔥 See it in action — the same question, before vs. after RAG
+
+**Customer:** *"My flight was delayed 5 hours. What compensation do I get?"*
+
+<table>
+<tr>
+<th>🚫 Fine-tuned model alone</th>
+<th>✅ Fine-tuned model + RAG</th>
+</tr>
+<tr>
+<td valign="top">
+
+Perfect tone… **wrong facts.**
+
+> "…you are entitled to a **full refund** under
+> our delay policy #4…"
+
+*Invented "policy #4." No such thing.
+Confident. Wrong. Un-shippable.*
+
+</td>
+<td valign="top">
+
+Same tone… **grounded in canon.**
+
+> "…as per ACME Bharat Airlines policy, a delay
+> of 4–6 hours entitles you to a **₹3,000 travel
+> voucher**…"
+> `📄 source: delay-compensation-policy.md`
+
+*Exact policy value. Cited. Shippable.*
+
+</td>
+</tr>
+</table>
+
+**Live-update proof:** edited the refund window `7 → 5 business days` in the policy doc, rebuilt the
+index, re-asked — the bot answered **"5 business days"** with **zero retraining**. That's the whole
+point of RAG over fine-tuning for facts.
+
+---
+
+## 🏗️ Architecture
 
 ```
-                      ┌──────────────────────────────┐
-User complaint ──────>│  FastAPI  POST /v1/chat      │
-                      │  Router (intent detection)   │
-                      └──────┬───────────┬───────────┘
-                     policy Q│           │action (PNR)
-                             v           v
-                      ┌────────────┐  ┌──────────────────┐
-                      │ RAG        │  │ Tool calling      │
-                      │ Chroma     │  │ get_flight_status │
-                      │ 28 chunks  │  │ cancel_ticket     │
-                      │ 5 policies │  │ (mock backend)    │
-                      └─────┬──────┘  └────────┬─────────┘
-                            └────────┬─────────┘
-                                     v
-                      ┌──────────────────────────────┐
-                      │ Fine-tuned Qwen3-4B (QLoRA)  │
-                      │ served locally via Ollama     │
-                      │ (Q5_K_M GGUF, CPU)            │
-                      └──────────────────────────────┘
+                        ┌───────────────────────────────┐
+   "My PNR ACX123       │   FastAPI  ·  POST /v1/chat   │
+    was delayed…"  ────▶│   ROUTER — intent detection   │
+                        └───┬───────────┬───────────┬───┘
+                    policy Q│    action │(PNR)      │greeting
+                            ▼           ▼           ▼
+                    ┌─────────────┐ ┌──────────────┐ (deterministic
+                    │ RAG         │ │ Tool calling │  reply, ~5s,
+                    │ Chroma      │ │ get_status   │  no LLM)
+                    │ 28 chunks · │ │ cancel_ticket│
+                    │ 5 policies  │ │ (mock DB)    │
+                    └──────┬──────┘ └──────┬───────┘
+                           └───────┬───────┘
+                                   ▼
+                    ┌──────────────────────────────────┐
+                    │ 🧠 Fine-tuned Qwen3-4B (QLoRA)   │
+                    │ Q5_K_M GGUF · Ollama · local CPU  │
+                    │ → 4-part AER response (on-brand)  │
+                    └──────────────────────────────────┘
 ```
 
-## The pipeline (what was actually built)
+---
 
-| Stage | What | Key detail |
-|---|---|---|
-| 1. Prompting bot | Baseline Gemini bot with persona config | Shows tone control + knowledge gaps |
-| 2. Synthetic data | 240 complaint→response pairs, 12 scenario buckets | AER 4-part response template, ShareGPT JSONL, resilience stack (pacing / 429 backoff / fallback model / resume) |
-| 3. Fine-tune | **QLoRA on Colab T4**: Qwen3-4B-Instruct 4-bit, r=16, all 7 modules, 33M trainable params (0.81%) | Learns the AER response format from 216 examples |
-| 4. Quantize + serve | Merge 16-bit → GGUF f16 → **Q5_K_M (2.7 GB)** → Ollama on Windows CPU | Fully local inference, no API cost |
-| 5. RAG | 5 policy docs → structure-aware chunking → Chroma + MiniLM embeddings | Without RAG the tuned model invents policies; with RAG it cites canon (Rs 3,000 voucher, 7-day refunds) |
-| 6. Tool calling | Router prompt → JSON decision → Python validates & executes → responder grounds the reply | The model never executes anything — code does |
-| 7. Hybrid API | FastAPI `/v1/chat` routing RAG / tools / clarify + output cleaning + trace logging | The capstone: all layers in one endpoint |
-| 8. Eval harness | Held-out test set → local model outputs → **Gemini LLM-judge** scoring 5 AER criteria | `--calibrate` mode sanity-checks the judge on gold answers first |
+## 🛠️ Built in 8 stages (the full LLM lifecycle)
 
-## Eval harness
+| # | Stage | The interesting part |
+|:-:|---|---|
+| 1 | **Prompting baseline** | Gemini + persona config — exposes tone control *and* hallucination |
+| 2 | **Synthetic data** | 240 pairs · 12 scenario buckets · AER 4-part template · resilience stack (pacing + 429 backoff + fallback model + resume) survived two live 429 bursts |
+| 3 | **QLoRA fine-tune** | Qwen3-4B-Instruct 4-bit on a **free Colab T4** · r=16 · 7 modules · **33M trainable (0.81%)** |
+| 4 | **Quantize + serve** | merge 16-bit → GGUF f16 → **Q5_K_M (2.7 GB)** → **Ollama on Windows CPU** · zero API cost |
+| 5 | **RAG layer** | structure-aware chunking → Chroma + MiniLM · turns "invents policy" into "cites canon" |
+| 6 | **Tool calling** | router → JSON → **Python validates & executes** → responder grounds the reply · *the model never runs code* |
+| 7 | **Hybrid API** | FastAPI `/v1/chat` routes RAG / tool / clarify · output cleaning · trace logging |
+| 8 | **Eval harness** | held-out set → local outputs → **Gemini LLM-as-judge** on 5 AER criteria, calibrated on gold answers first |
 
-Five binary criteria per response, scored by an LLM judge (`src/evals/judge.py`):
+---
 
-- **empathy** — opens with a sincere acknowledgement
-- **options** — offers 2–3 concrete options
-- **policy_note** — contains a policy-safe statement
-- **next_step** — ends with exactly one clarifying question
-- **no_invented_customer_data** — no fabricated PNRs/names/case numbers
+## 📊 The eval harness
 
-The judge is calibrated on gold reference answers before scoring the model
-(a judge that can't score the answer key ~100% can't be trusted to grade the student).
-Includes free-tier survival: request pacing, 429/503 retry with exponential backoff, resume files.
+Every response scored **1/0** on five criteria by an LLM judge (`src/evals/judge.py`):
 
-## Honest limitations (kept on purpose — they motivate the roadmap)
+| Criterion | Passes if the reply… |
+|---|---|
+| 🫱 **empathy** | opens with a sincere acknowledgement |
+| 🔀 **options** | offers 2–3 concrete options (refund / rebook / voucher / escalate) |
+| 📚 **policy_note** | states a policy-safe line ("as per ACME policy…") |
+| ➡️ **next_step** | ends with exactly one clarifying question |
+| 🛡️ **no_invented_data** | fabricates **no** PNRs, names, or case numbers |
 
-- The 4B model sometimes **blends retrieved facts with invented policy details** on the tool
-  path → next: reflection agent + stricter grounding
-- Occasional **garbage leading tokens** from the quantized model → filtered at the app layer
-- One response asked a customer for "bank details" → motivates an **output guardrail blocklist**
-- CPU latency: deterministic clarify path ~5 s vs LLM paths 36–86 s → quantifies why
-  deterministic routing matters
+**Trust the ruler before you measure:** the judge is first `--calibrate`d against the *gold*
+reference answers (it should score them ~100%). A judge that can't grade the answer key can't
+grade the student. Free-tier survival built in: request pacing + **429/503 retry with exponential
+backoff** + resume files.
 
-## Run it
+---
+
+## ⚖️ Honest limitations *(kept on purpose — they are the roadmap)*
+
+- 🧩 The 4B model sometimes **blends retrieved facts with invented policy** on the tool path → *reflection agent + stricter grounding next*
+- 🔒 One cancel reply asked a customer for **"bank details"** → *motivates an output-guardrail blocklist*
+- 🌀 Occasional **garbage leading tokens** from the quantized model → filtered at the app layer
+- ⏱️ CPU latency: deterministic clarify **~5 s** vs LLM paths **36–86 s** → *quantifies why deterministic routing matters*
+
+> A project that documents its own failure modes is more credible than one that claims perfection.
+
+---
+
+## ▶️ Run it
 
 ```bash
-# 1. Environment
+# 1 · environment
 python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 2. Local model (needs Ollama + the GGUF built in stage 4)
+# 2 · local model  (needs Ollama + the Q5_K_M GGUF from stage 4)
 ollama create acme-support -f data/processed/Modelfile
 
-# 3. Build the RAG index
+# 3 · build the RAG index
 python src/rag/build_index.py
 
-# 4. Serve
+# 4 · serve  → Swagger UI at http://localhost:8000/docs
 uvicorn src.api.main:app --port 8000
-# Swagger UI: http://localhost:8000/docs
 ```
 
-## Stack
+---
 
-Qwen3-4B-Instruct · Unsloth QLoRA · llama.cpp GGUF/Q5_K_M · Ollama · ChromaDB ·
-MiniLM embeddings · Gemini (synthetic data + judge) · FastAPI · Windows CPU serving
+## 🧰 Stack
 
-## Roadmap
+`Qwen3-4B-Instruct` · `Unsloth QLoRA` · `llama.cpp GGUF/Q5_K_M` · `Ollama` · `ChromaDB` ·
+`MiniLM` · `Gemini` (synthetic data + judge) · `FastAPI`
 
-Eval harness (in progress) → output guardrails → ACME MCP server → LangGraph reflection
-agent → feedback-to-DPO loop.
+## 🗺️ Roadmap
+
+Eval harness *(in progress)* → output guardrails → **ACME MCP server** → **LangGraph reflection agent** → feedback-to-DPO loop
+
+<div align="center">
+
+---
+
+*Built as a hands-on study of the full LLM lifecycle: data → fine-tune → quantize → serve → RAG → tools → API → eval.*
+
+</div>
