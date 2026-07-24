@@ -72,23 +72,20 @@ point of RAG over fine-tuning for facts.
 
 ```mermaid
 flowchart TD
-    U([🧑 "My PNR ACX123 was delayed…"]) --> R{🧭 Router<br/>intent detection}
+    U(["🧑 Customer: PNR ACX123 was delayed…"]) --> R{"🧭 Router: intent detection"}
 
-    R -->|policy question| RAG[🔎 RAG<br/>Chroma · 28 chunks · 5 policies]
-    R -->|action + PNR| TOOL[🛠️ Tool calling<br/>get_flight_status · cancel_ticket<br/><i>Python validates & executes</i>]
-    R -->|greeting| DET[⚡ Deterministic reply<br/>~5s · no LLM]
+    R -->|policy question| RAG["🔎 RAG<br/>Chroma · 28 chunks · 5 policies"]
+    R -->|action + PNR| TOOL["🛠️ Tool calling<br/>get_flight_status · cancel_ticket<br/>Python validates and executes"]
+    R -->|greeting| DET["⚡ Deterministic reply · ~5s · no LLM"]
 
     RAG --> LLM
     TOOL --> LLM
 
-    LLM[🧠 Fine-tuned Qwen3-4B · QLoRA<br/>Q5_K_M GGUF · Ollama · local CPU]
-    LLM --> OUT([💬 4-part AER response · on-brand])
-
-    subgraph note [ ]
-        direction LR
-        n1[/"tone ← fine-tune  ·  facts ← RAG  ·  actions ← tools"/]
-    end
+    LLM["🧠 Fine-tuned Qwen3-4B · QLoRA<br/>Q5_K_M GGUF · Ollama · local CPU"]
+    LLM --> OUT(["💬 4-part AER response · on-brand"])
 ```
+
+> **tone ← fine-tune · facts ← RAG · actions ← tools** — each layer fixes the previous one's failure mode.
 
 ---
 
