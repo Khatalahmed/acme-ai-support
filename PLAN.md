@@ -4,7 +4,7 @@
 > authorised confirmation; routing is benchmarked (LLM vs Jev, trialled in shadow mode); and
 > every decision is traced, costed and gated in CI.
 
-**Status:** Phase 0 done · Phase A next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
+**Status:** Phases 0 and A done · Phase B next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
 
 ## Where we are (start of plan)
 
@@ -67,7 +67,8 @@ Langfuse: traces · cost · latency · datasets     GitHub Actions: 2 gates
       idempotent too. `tool_bot.py` is now read-only for cancellations
 - [x] **A5 Audit log** — every proposed / declined / expired / executed / failed action and every denied
       access, with router and confidence; append-only (`audit_log` table)
-- [ ] **A6 CI gate 1** — pytest on every push and PR; no model calls, no cost
+- [x] **A6 CI gate 1** — pytest on every push and PR; no model calls, no cost
+      (`.github/workflows/tests.yml`; first run: 76 passed in 2.4 s on ubuntu, no `.env`, no index)
 
 **Done when:** tests prove an injected cancel, another user's booking, an expired confirmation, a replayed
 "yes" and a double-click cannot cancel or refund.
