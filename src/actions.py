@@ -3,13 +3,16 @@
 Callers never touch backend.py directly. This module enforces, for everyone:
   - ownership:     a user only sees/changes their own bookings; someone else's PNR
                    looks exactly like a PNR that doesn't exist (no enumeration)
-  - confirmation:  irreversible actions are PROPOSED, stored server-side as pending, and run
-                   only when the same user confirms in the same session
+  - entitlement:   disruption options come from policy.py (code), never from a model, and are
+                   re-computed at execution time (the last seat may have gone)
+  - confirmation:  changes are PROPOSED, stored server-side as pending, and run only when the
+                   same user confirms in the same session
   - expiry:        a pending action dies after CONFIRM_TTL
   - idempotency:   pending -> executing is one conditional UPDATE, so a double-clicked or
                    replayed "yes" executes at most once
-  - audit:         every proposal, decision, execution and denied access is logged
+  - audit:         every proposal, decision, execution, escalation and denied access is logged
 
+Actions:  cancel_ticket (voluntary cancel) · resolve_disruption (apply one policy option)
 Pending-action lifecycle:
     pending -> executing -> executed | failed
     pending -> declined | expired | superseded
@@ -27,8 +30,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src" / "tools"))
 import backend  # noqa: E402  (same module object the API imports)
+import policy  # noqa: E402
 
 CONFIRM_TTL = timedelta(minutes=5)
+VERB = {"cancel_ticket": "cancel", "resolve_disruption": "resolve"}  # audit event prefixes
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS pending_actions (
@@ -40,7 +45,8 @@ CREATE TABLE IF NOT EXISTS pending_actions (
     status     TEXT NOT NULL,
     created_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,
-    result     TEXT
+    result     TEXT,
+    params     TEXT
 );
 CREATE TABLE IF NOT EXISTS audit_log (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,6 +57,16 @@ CREATE TABLE IF NOT EXISTS audit_log (
     action_id  TEXT,
     pnr        TEXT,
     detail     TEXT
+);
+CREATE TABLE IF NOT EXISTS escalations (
+    ref        TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    pnr        TEXT,
+    reason     TEXT NOT NULL,
+    summary    TEXT NOT NULL,
+    status     TEXT NOT NULL,
+    created_at TEXT NOT NULL
 );
 """
 
@@ -68,6 +84,9 @@ def _db():
     conn.row_factory = sqlite3.Row
     try:
         conn.executescript(SCHEMA)
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(pending_actions)")}
+        if "params" not in columns:  # databases created before disruption actions existed
+            conn.execute("ALTER TABLE pending_actions ADD COLUMN params TEXT")
         yield conn
     finally:
         conn.close()  # sqlite3's own `with` commits but never closes
@@ -96,8 +115,19 @@ def audit_trail(user_id=None, pnr=None):
 
 def _owned_booking(user_id, pnr):
     """The booking if it exists AND belongs to user_id, else None - same answer either way."""
-    booking = backend.FLIGHTS.get(pnr.upper())
+    booking = backend.BOOKINGS.get(pnr.upper())
     return booking if booking and booking["owner"] == user_id else None
+
+
+def _denied(user_id, session_id, pnr, tool):
+    audit("access_denied", user_id, session_id, pnr=pnr, tool=tool)
+    return {"ok": False, "reason": "not_found", "error": f"No booking found for PNR {pnr}"}
+
+
+def _entitlements(booking):
+    flight_no = booking["flight"]
+    return policy.entitlements(booking, backend.FLIGHTS[flight_no],
+                               backend.find_alternatives(flight_no))
 
 
 # ---------------------------------------------------------------- read tools
@@ -105,23 +135,44 @@ def _owned_booking(user_id, pnr):
 def flight_status(user_id, session_id, pnr):
     pnr = pnr.upper()
     if not _owned_booking(user_id, pnr):
-        audit("access_denied", user_id, session_id, pnr=pnr, tool="get_flight_status")
-        return {"ok": False, "reason": "not_found", "error": f"No booking found for PNR {pnr}"}
+        return _denied(user_id, session_id, pnr, "get_flight_status")
     return backend.get_flight_status(pnr)
 
 
-# ---------------------------------------------------------------- irreversible: cancel
-
-def propose_cancel(user_id, session_id, pnr, **context):
-    """Store a pending cancellation; nothing is cancelled here. context: router, confidence."""
+def disruption_options(user_id, session_id, pnr):
+    """What the passenger is owed for this booking, computed by policy.py."""
     pnr = pnr.upper()
     booking = _owned_booking(user_id, pnr)
     if not booking:
-        audit("access_denied", user_id, session_id, pnr=pnr, tool="cancel_ticket")
-        return {"ok": False, "reason": "not_found", "error": f"No booking found for PNR {pnr}"}
-    if booking["status"] == "Cancelled by passenger":
-        return {"ok": False, "reason": "already_cancelled",
-                "error": f"Booking {pnr} is already cancelled"}
+        return _denied(user_id, session_id, pnr, "disruption_options")
+    return {"ok": True, "pnr": pnr, "booking": backend.get_flight_status(pnr),
+            **_entitlements(booking)}
+
+
+# ---------------------------------------------------------------- proposing changes
+
+def _validate(action, booking, params):
+    """None if the action is allowed right now, else a failure reason. Runs at proposal AND
+    again at execution, because the world can change in between."""
+    if booking["status"] == "cancelled":
+        return "already_cancelled"
+    if action == "cancel_ticket":
+        return None
+    if action == "resolve_disruption":
+        offered = {o["id"] for o in _entitlements(booking)["options"]}
+        return None if params.get("option_id") in offered else "option_unavailable"
+    return "unknown_action"
+
+
+def propose(user_id, session_id, pnr, action, params=None, **context):
+    """Store a pending change; nothing is changed here. context: router, confidence."""
+    pnr, params = pnr.upper(), params or {}
+    booking = _owned_booking(user_id, pnr)
+    if not booking:
+        return _denied(user_id, session_id, pnr, action)
+    reason = _validate(action, booking, params)
+    if reason:
+        return {"ok": False, "reason": reason, "pnr": pnr}
 
     action_id, created = f"act_{uuid.uuid4().hex[:12]}", now()
     expires = created + CONFIRM_TTL
@@ -133,13 +184,23 @@ def propose_cancel(user_id, session_id, pnr, **context):
                      "WHERE user_id = ? AND session_id = ? AND status = 'pending'",
                      (user_id, session_id))
         conn.execute("INSERT INTO pending_actions (action_id, user_id, session_id, action, pnr, "
-                     "status, created_at, expires_at) VALUES (?, ?, ?, 'cancel_ticket', ?, "
-                     "'pending', ?, ?)",
-                     (action_id, user_id, session_id, pnr, created.isoformat(), expires.isoformat()))
+                     "status, created_at, expires_at, params) VALUES (?, ?, ?, ?, ?, 'pending', "
+                     "?, ?, ?)",
+                     (action_id, user_id, session_id, action, pnr, created.isoformat(),
+                      expires.isoformat(), json.dumps(params)))
         conn.execute("COMMIT")
-    audit("cancel_proposed", user_id, session_id, action_id, pnr, **context)
-    return {"ok": True, "action_id": action_id, "action": "cancel_ticket", "pnr": pnr,
+    audit(f"{VERB[action]}_proposed", user_id, session_id, action_id, pnr, **params, **context)
+    return {"ok": True, "action_id": action_id, "action": action, "pnr": pnr, "params": params,
             "expires_at": expires.isoformat(), "booking": backend.get_flight_status(pnr)}
+
+
+def propose_cancel(user_id, session_id, pnr, **context):
+    return propose(user_id, session_id, pnr, "cancel_ticket", **context)
+
+
+def propose_option(user_id, session_id, pnr, option_id, **context):
+    return propose(user_id, session_id, pnr, "resolve_disruption", {"option_id": option_id},
+                   **context)
 
 
 def pending_action(user_id, session_id):
@@ -148,7 +209,11 @@ def pending_action(user_id, session_id):
         row = conn.execute("SELECT * FROM pending_actions WHERE user_id = ? AND session_id = ? "
                            "AND status = 'pending' ORDER BY created_at DESC LIMIT 1",
                            (user_id, session_id)).fetchone()
-    return dict(row) if row else None
+    if not row:
+        return None
+    action = dict(row)
+    action["params"] = json.loads(action["params"] or "{}")
+    return action
 
 
 def _transition(action_id, from_status, to_status, result=None):
@@ -161,34 +226,54 @@ def _transition(action_id, from_status, to_status, result=None):
         return cur.rowcount == 1
 
 
+# ---------------------------------------------------------------- executing
+
+def _execute(action, pnr, params, booking):
+    if action == "cancel_ticket":
+        return backend.cancel_ticket(pnr)
+    option = next(o for o in _entitlements(booking)["options"] if o["id"] == params["option_id"])
+    if option["kind"] == "rebook":
+        return backend.rebook(pnr, option["flight"], voucher=option["voucher"])
+    if option["kind"] == "refund":
+        return backend.refund(pnr, option["amount"])
+    if option["kind"] == "voucher":
+        return backend.issue_voucher(pnr, option["amount"])
+    raise ValueError(f"unknown option kind {option['kind']!r}")
+
+
 def confirm(user_id, session_id):
     """Run the caller's pending action. Every check happens here, at execution time."""
     action = pending_action(user_id, session_id)
     if not action:
         return {"ok": False, "reason": "nothing_pending"}
-    aid, pnr = action["action_id"], action["pnr"]
+    aid, pnr, kind, params = action["action_id"], action["pnr"], action["action"], action["params"]
+    verb = VERB[kind]
 
     if now() >= datetime.fromisoformat(action["expires_at"]):
         if _transition(aid, "pending", "expired"):
-            audit("cancel_expired", user_id, session_id, aid, pnr)
-        return {"ok": False, "reason": "expired", "pnr": pnr}
+            audit(f"{verb}_expired", user_id, session_id, aid, pnr)
+        return {"ok": False, "reason": "expired", "pnr": pnr, "action": kind}
 
     # Claim it. If two "yes" requests race, exactly one gets rowcount == 1.
     if not _transition(aid, "pending", "executing"):
         return {"ok": False, "reason": "nothing_pending"}
 
-    # Re-read: the booking may have changed since we asked (cancelled elsewhere, owner changed).
+    # Re-read and re-validate: the booking, the seats or the ownership may have changed.
     booking = _owned_booking(user_id, pnr)
-    if not booking or booking["status"] == "Cancelled by passenger":
-        reason = "not_found" if not booking else "already_cancelled"
+    reason = "not_found" if not booking else _validate(kind, booking, params)
+    if reason:
         _transition(aid, "executing", "failed", {"reason": reason})
-        audit("cancel_failed", user_id, session_id, aid, pnr, reason=reason)
-        return {"ok": False, "reason": reason, "pnr": pnr}
+        audit(f"{verb}_failed", user_id, session_id, aid, pnr, reason=reason)
+        return {"ok": False, "reason": reason, "pnr": pnr, "action": kind}
 
-    result = backend.cancel_ticket(pnr)
-    _transition(aid, "executing", "executed", result)
-    audit("cancel_executed", user_id, session_id, aid, pnr, result=result)
-    return {"ok": True, "action_id": aid, "pnr": pnr, "result": result}
+    result = _execute(kind, pnr, params, booking)
+    status = "executed" if result.get("ok") else "failed"
+    _transition(aid, "executing", status, result)
+    audit(f"{verb}_{status}", user_id, session_id, aid, pnr, result=result)
+    if not result.get("ok"):
+        return {"ok": False, "reason": "backend_rejected", "pnr": pnr, "action": kind,
+                "result": result}
+    return {"ok": True, "action_id": aid, "action": kind, "pnr": pnr, "result": result}
 
 
 def decline(user_id, session_id):
@@ -200,5 +285,28 @@ def decline(user_id, session_id):
     expired = now() >= datetime.fromisoformat(action["expires_at"])
     status = "expired" if expired else "declined"
     if _transition(aid, "pending", status):
-        audit(f"cancel_{status}", user_id, session_id, aid, pnr)
+        audit(f"{VERB[action['action']]}_{status}", user_id, session_id, aid, pnr)
     return {"ok": True, "pnr": pnr, "status": status}
+
+
+# ---------------------------------------------------------------- human handoff
+
+def escalate(user_id, session_id, pnr, reason, summary):
+    """Hand the case to a human agent. Not irreversible for the passenger, so no confirmation."""
+    if pnr and not _owned_booking(user_id, pnr):
+        pnr = None  # never attach someone else's booking to a ticket
+    ref = f"ESC-{uuid.uuid4().hex[:6].upper()}"
+    with _db() as conn:
+        conn.execute("INSERT INTO escalations (ref, user_id, session_id, pnr, reason, summary, "
+                     "status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'open', ?)",
+                     (ref, user_id, session_id, pnr, reason, summary, now().isoformat()))
+    audit("escalated", user_id, session_id, pnr=pnr, ref=ref, reason=reason)
+    return {"ok": True, "ref": ref, "reason": reason}
+
+
+def escalations(user_id=None):
+    with _db() as conn:
+        sql, args = "SELECT * FROM escalations", []
+        if user_id:
+            sql, args = sql + " WHERE user_id = ?", [user_id]
+        return [dict(r) for r in conn.execute(sql + " ORDER BY created_at", args)]

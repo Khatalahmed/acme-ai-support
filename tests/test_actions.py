@@ -27,7 +27,7 @@ def test_cannot_propose_cancelling_someone_elses_booking():
     out = actions.propose_cancel(ASHA, "s1", "ACX789")
     assert out == {"ok": False, "reason": "not_found", "error": "No booking found for PNR ACX789"}
     assert actions.pending_action(ASHA, "s1") is None
-    assert backend.FLIGHTS["ACX789"]["status"] == "Cancelled by airline"
+    assert backend.BOOKINGS["ACX789"]["status"] == "confirmed"
 
 
 # ---------------------------------------------------------------- confirmation
@@ -35,7 +35,7 @@ def test_cannot_propose_cancelling_someone_elses_booking():
 def test_proposing_does_not_cancel():
     out = actions.propose_cancel(ASHA, "s1", "ACX456", router="jev", confidence=0.96)
     assert out["ok"] and out["action_id"].startswith("act_")
-    assert backend.FLIGHTS["ACX456"]["status"] == "On time"
+    assert backend.BOOKINGS["ACX456"]["status"] == "confirmed"
     assert events() == ["cancel_proposed"]
 
 
@@ -52,14 +52,14 @@ def test_confirm_only_in_same_session_and_user():
     actions.propose_cancel(ASHA, "s1", "ACX456")
     assert actions.confirm(ASHA, "other-session")["reason"] == "nothing_pending"
     assert actions.confirm(RAVI, "s1")["reason"] == "nothing_pending"
-    assert backend.FLIGHTS["ACX456"]["status"] == "On time"
+    assert backend.BOOKINGS["ACX456"]["status"] == "confirmed"
 
 
 def test_decline_closes_without_cancelling():
     actions.propose_cancel(ASHA, "s1", "ACX456")
     assert actions.decline(ASHA, "s1") == {"ok": True, "pnr": "ACX456", "status": "declined"}
     assert actions.confirm(ASHA, "s1")["reason"] == "nothing_pending"
-    assert backend.FLIGHTS["ACX456"]["status"] == "On time"
+    assert backend.BOOKINGS["ACX456"]["status"] == "confirmed"
     assert events() == ["cancel_proposed", "cancel_declined"]
 
 
@@ -67,7 +67,7 @@ def test_newer_request_supersedes_older():
     actions.propose_cancel(ASHA, "s1", "ACX123")
     actions.propose_cancel(ASHA, "s1", "ACX456")               # changed their mind
     assert actions.confirm(ASHA, "s1")["pnr"] == "ACX456"
-    assert backend.FLIGHTS["ACX123"]["status"] == "Delayed by 5 hours"
+    assert backend.BOOKINGS["ACX123"]["status"] == "confirmed"
 
 
 # ---------------------------------------------------------------- expiry
@@ -75,8 +75,9 @@ def test_newer_request_supersedes_older():
 def test_confirmation_expires(clock):
     actions.propose_cancel(ASHA, "s1", "ACX456")
     clock.advance(minutes=5, seconds=1)
-    assert actions.confirm(ASHA, "s1") == {"ok": False, "reason": "expired", "pnr": "ACX456"}
-    assert backend.FLIGHTS["ACX456"]["status"] == "On time"
+    assert actions.confirm(ASHA, "s1") == {"ok": False, "reason": "expired", "pnr": "ACX456",
+                                           "action": "cancel_ticket"}
+    assert backend.BOOKINGS["ACX456"]["status"] == "confirmed"
     assert actions.confirm(ASHA, "s1")["reason"] == "nothing_pending"  # expired stays expired
     assert events() == ["cancel_proposed", "cancel_expired"]
 

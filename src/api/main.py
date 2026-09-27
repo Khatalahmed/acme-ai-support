@@ -145,24 +145,30 @@ def answer_pending(user_id, req):
     """The customer is replying to our "are you sure?". Returns a response, or None to route."""
     if affirmative(req.message):
         out = actions.confirm(user_id, req.session_id)
+        pnr = out.get("pnr")
         if out["ok"]:
-            reply, sources = phrase_result("cancel_ticket", out["pnr"], out["result"],
-                                           f"Please cancel my booking {out['pnr']}.")
-            return "tool:cancel_ticket", reply, sources
+            question = (f"Please cancel my booking {pnr}." if out["action"] == "cancel_ticket"
+                        else f"Please apply the option I chose for booking {pnr}.")
+            reply, sources = phrase_result(out["action"], pnr, out["result"], question)
+            return f"tool:{out['action']}", reply, sources
         replies = {
-            "expired": (f"That confirmation expired, so booking {out.get('pnr')} has NOT been "
-                        "cancelled. If you still want to cancel, just ask again."),
-            "already_cancelled": f"Booking {out.get('pnr')} is already cancelled.",
-            "not_found": not_found(out.get("pnr")),
+            "expired": (f"That confirmation expired, so nothing has been changed on booking "
+                        f"{pnr}. If you still want to go ahead, just ask again."),
+            "already_cancelled": f"Booking {pnr} is already cancelled.",
+            "option_unavailable": (f"Sorry - that option for booking {pnr} is no longer "
+                                   "available (for example, the last seat was taken). Nothing "
+                                   "has been changed. Would you like to see the current options?"),
+            "backend_rejected": (f"Sorry - I couldn't complete that for booking {pnr}, and "
+                                 "nothing has been changed. Would you like to see your options?"),
+            "not_found": not_found(pnr),
             "nothing_pending": "There's nothing waiting for your confirmation right now.",
         }
         return f"confirm:{out['reason']}", replies[out["reason"]], []
 
     declined = actions.decline(user_id, req.session_id)
     if declines(req.message):
-        pnr = declined.get("pnr")
         return ("confirm:declined",
-                f"No problem - I have not cancelled booking {pnr}. "
+                f"No problem - I haven't made any changes to booking {declined.get('pnr')}. "
                 "Is there anything else I can help you with?", [])
     return None  # moved on to something else: pending closed, handle the message normally
 

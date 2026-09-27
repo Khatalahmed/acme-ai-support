@@ -28,10 +28,11 @@ import backend  # noqa: E402  (same module object actions and the API use)
 def fresh_state(tmp_path, monkeypatch):
     """Every test gets its own database file and a pristine copy of the mock bookings."""
     monkeypatch.setenv("ACME_DB_PATH", str(tmp_path / "acme.db"))
-    saved = copy.deepcopy(backend.FLIGHTS)
+    saved = copy.deepcopy((backend.FLIGHTS, backend.BOOKINGS))
     yield
-    backend.FLIGHTS.clear()
-    backend.FLIGHTS.update(saved)
+    for live, snapshot in zip((backend.FLIGHTS, backend.BOOKINGS), saved):
+        live.clear()
+        live.update(snapshot)
 
 
 @pytest.fixture
