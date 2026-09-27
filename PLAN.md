@@ -4,7 +4,7 @@
 > authorised confirmation; routing is benchmarked (LLM vs Jev, trialled in shadow mode); and
 > every decision is traced, costed and gated in CI.
 
-**Status:** Phases 0 and A done · Phase B next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
+**Status:** Phases 0, A and B done · Phase C next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
 
 ## Where we are (start of plan)
 
@@ -75,21 +75,31 @@ Langfuse: traces · cost · latency · datasets     GitHub Actions: 2 gates
 
 ## Phase B — Disruption recovery agent (days 4–9)
 
-- [ ] **B1 Mock airline data** — flights (times, status, seats), bookings (fare class, refundability, owner),
-      disruptions, alternatives with availability
-- [ ] **B2 Tools** — `get_booking`, `get_flight_status`, `find_alternatives`, `rebook`, `refund`,
-      `issue_voucher`, `escalate_to_human`; every write tool goes through A4
-- [ ] **B3 LangGraph agent** — route → load booking → check disruption → retrieve policy → eligible options →
-      present 2–4 → passenger picks → pending action → confirm (own node) → execute (own node);
-      state persisted with the SQLite checkpointer
-- [ ] **B4 Three-way decision** — simple → handle; ambiguous → clarify; outside policy / high-risk → human
-      queue with summary. Risk signals (`angry`, `demands_exception`, …) are extra questions in the
-      **same** Jev routing call — no added latency
-- [ ] **B5 Policy in code** — eligibility computed from the policy rules, never by the LLM
-- [ ] **B6 MCP server** — exposes the same tool layer with the same checks
+- [x] **B1 Mock airline data** — flights and bookings separated; one day of operations with a case for
+      every policy tier, full flights, weather and technical causes (`src/tools/backend.py`)
+- [x] **B2 Tools** — `disruption_options`, `rebook`, `refund`, `issue_voucher`, `escalate`; every write
+      goes through the A4 lifecycle; options re-computed at execution (last-seat race fails safely)
+- [x] **B3 LangGraph agent** — assess → escalate | explain | present → await_choice (interrupt, own node)
+      → propose. The agent only proposes; the "yes" reuses the A3 server-side confirmation (one
+      mechanism, not two). SQLite checkpointer: paused conversations survive a restart (`src/agent.py`)
+- [x] **B4 Three-way decision** — simple → options; nothing to choose → explain; angry / demands an
+      exception → human queue with summary. Risk signals are extra questions in the same Jev call
+      (or JSON fields from the LLM router); also applied to high-risk cancel requests
+- [x] **B5 Policy in code** — `src/policy.py`, pure functions citing policy sections; the "2–4 h" /
+      "4–6 h" boundary overlap resolved explicitly (4 h and 6 h → 4–6 h tier)
+- [x] **B6 MCP server** — `src/mcp_server.py` (MCP SDK 2.x); no confirm tool exists — every change asks
+      the human via elicitation, then runs through actions.py
 
 **Done when:** scripted run passes — cancelled flight → options → pick rebook → confirm → rebooked + audit
-trail — and the escalation path works.
+trail — and the escalation path works. ✅ Tests (140) and live runs with both routers.
+
+**Found in live runs (fixed):** LLM-phrased confirmations re-offered vouchers/refunds after a disruption
+was resolved → completed changes now get exact code-written receipts. "Refund my non-refundable ticket or
+I'll sue" was routed to cancel → high-risk change requests escalate. The LLM intro mentioned options
+despite the prompt → output guardrail replaces it.
+
+**Known limits:** the choice parser handles numbers, ordinals, flight numbers and "refund"/"voucher", not
+free-form times ("the 8:30 one"). MCP approval trusts the client app to show the question to a person.
 
 ## Phase C — Measurement (days 10–14)
 
@@ -151,3 +161,8 @@ retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 | 2026-09-27 | Confirmation state server-side (replaces client-sent `confirm_cancel`); safety in tool layer |
 | 2026-09-27 | Benchmark (150) built after agent intents are final; gate 2 weekly, not nightly |
 | 2026-09-27 | README rewritten last |
+| 2026-09-28 | Policy boundary: exactly 4 h and 6 h delays fall in the 4–6 h tier (policy text overlaps) |
+| 2026-09-28 | Agent proposes only; confirmation stays the single server-side mechanism from Phase A |
+| 2026-09-28 | Completed changes get code-written receipts, never LLM phrasing |
+| 2026-09-28 | Disruption questions without a PNR are answered by RAG (general policy) |
+| 2026-09-28 | MCP: no confirm tool; human approval via elicitation (MCP SDK 2.x `MCPServer`) |
