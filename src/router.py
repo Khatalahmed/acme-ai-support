@@ -108,7 +108,7 @@ def route_jev(message, timeout=10.0):
         url,
         headers={"Authorization": f"Bearer {os.environ[env]}"},
         json={
-            "model": os.environ.get("JEV_MODEL", default_model),
+            "model": os.environ.get("JEV_MODEL") or default_model,  # blank in .env = default
             "state": {"customer_message": message},
             "questions": {"intent": JEV_INTENT},
         },
@@ -132,7 +132,7 @@ def route_jev(message, timeout=10.0):
 
 def route(message):
     """The configured router. Jev falls back to the LLM when unsure or unreachable."""
-    if os.environ.get("ROUTER_BACKEND", "llm").strip().lower() != "jev":
+    if (os.environ.get("ROUTER_BACKEND") or "llm").strip().lower() != "jev":
         return route_llm(message)
     try:
         decision = route_jev(message)
@@ -140,6 +140,6 @@ def route(message):
         print(f"[router] Jev failed ({e!r}) - falling back to LLM router")
         return {**route_llm(message), "router": "jev->llm"}
     if decision["confidence"] is not None and \
-            decision["confidence"] < float(os.environ.get("JEV_MIN_CONFIDENCE", "0.6")):
+            decision["confidence"] < float(os.environ.get("JEV_MIN_CONFIDENCE") or "0.6"):
         return {**route_llm(message), "router": "jev->llm"}
     return decision

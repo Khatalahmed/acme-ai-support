@@ -1,20 +1,30 @@
-"""Day 9: mock airline backend - the 'real systems' the LLM never touches directly."""
+"""Day 9: mock airline backend - the 'real systems' the LLM never touches directly.
 
+Nothing outside src/actions.py should call these functions: the tool layer there adds
+ownership checks, confirmation, expiry and the audit trail around them.
+"""
+
+# owner = the user_id that may see and change the booking (see src/auth.py)
 FLIGHTS = {
-    "ACX123": {"route": "Pune -> Delhi", "scheduled": "14:30",
+    "ACX123": {"owner": "asha", "route": "Pune -> Delhi", "scheduled": "14:30",
                "status": "Delayed by 5 hours", "fare": 6500, "refundable": True},
-    "ACX456": {"route": "Mumbai -> Kolkata", "scheduled": "09:15",
+    "ACX456": {"owner": "asha", "route": "Mumbai -> Kolkata", "scheduled": "09:15",
                "status": "On time", "fare": 4800, "refundable": False},
-    "ACX789": {"route": "Hyderabad -> Bengaluru", "scheduled": "18:00",
+    "ACX789": {"owner": "ravi", "route": "Hyderabad -> Bengaluru", "scheduled": "18:00",
                "status": "Cancelled by airline", "fare": 3200, "refundable": True},
 }
+
+
+def _public(pnr, booking):
+    """Booking fields safe to show the customer (no internal owner id)."""
+    return {"pnr": pnr, **{k: v for k, v in booking.items() if k != "owner"}}
 
 
 def get_flight_status(pnr: str) -> dict:
     booking = FLIGHTS.get(pnr.upper())
     if not booking:
         return {"ok": False, "error": f"No booking found for PNR {pnr.upper()}"}
-    return {"ok": True, "pnr": pnr.upper(), **booking}
+    return {"ok": True, **_public(pnr.upper(), booking)}
 
 
 def cancel_ticket(pnr: str) -> dict:

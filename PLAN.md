@@ -53,18 +53,20 @@ Langfuse: traces · cost · latency · datasets     GitHub Actions: 2 gates
 
 ## Phase A — Foundation and safety (days 1–3)
 
-- [ ] **A1 Tests in the repo** — PNR, yes/no, cancel-flow and Jev-router tests in `tests/`, fully offline
-      (model calls faked; RAG index opened lazily)
-- [ ] **A2 Mock users + ownership** — bookings have owners; each request carries a user token;
-      another user's PNR gets the same reply as a non-existent one
-- [ ] **A3 Server-side pending actions** — SQLite: `action_id, user_id, session_id, pnr, action,
+- [x] **A1 Tests in the repo** — PNR, yes/no, cancel-flow and Jev-router tests in `tests/`, fully offline
+      (model calls faked; RAG index opened lazily). 76 tests, ~3 s; mutation-checked (removing the
+      ownership check or the compare-and-set claim makes tests fail)
+- [x] **A2 Mock users + ownership** — bookings have owners; each request carries a user token;
+      another user's PNR gets the same reply as a non-existent one (`src/auth.py`, `src/actions.py`)
+- [x] **A3 Server-side pending actions** — SQLite: `action_id, user_id, session_id, pnr, action,
       created_at, expires_at (+5 min), status`; "yes" confirms only the caller's newest pending action in
       that session; `confirm_cancel` removed from the API
-- [ ] **A4 Execution checks** — pending exists → not expired → owned by caller → re-read booking →
-      still allowed → idempotency key → execute. Legacy stage scripts (`tool_bot.py`) go through the
-      tool layer or become read-only
-- [ ] **A5 Audit log** — every proposed / confirmed / declined / expired / executed action, with router,
-      confidence and outcome; append-only
+- [x] **A4 Execution checks** — pending exists → not expired → owned by caller → re-read booking →
+      still allowed → claim → execute. Idempotency: the pending action is the idempotency key, claimed
+      with one conditional UPDATE (pending → executing), so only one "yes" can win; the backend is
+      idempotent too. `tool_bot.py` is now read-only for cancellations
+- [x] **A5 Audit log** — every proposed / declined / expired / executed / failed action and every denied
+      access, with router and confidence; append-only (`audit_log` table)
 - [ ] **A6 CI gate 1** — pytest on every push and PR; no model calls, no cost
 
 **Done when:** tests prove an injected cancel, another user's booking, an expired confirmation, a replayed

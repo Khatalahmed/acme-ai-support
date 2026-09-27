@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
-BACKEND = os.environ.get("LLM_BACKEND", "ollama").strip().lower()
+BACKEND = (os.environ.get("LLM_BACKEND") or "ollama").strip().lower()  # blank in .env = default
 
 # acme-support has this persona baked into its Modelfile; any other model needs it sent.
 PERSONA = (
@@ -34,7 +34,7 @@ if BACKEND == "azure":
 elif BACKEND == "ollama":
     import ollama
 
-    MODEL = os.environ.get("OLLAMA_MODEL", "acme-support")
+    MODEL = os.environ.get("OLLAMA_MODEL") or "acme-support"
 else:
     raise ValueError(f"LLM_BACKEND must be 'ollama' or 'azure', got {BACKEND!r}")
 

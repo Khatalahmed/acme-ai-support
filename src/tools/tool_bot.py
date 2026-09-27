@@ -86,6 +86,13 @@ def main():
         print(f"\n[bot] '{pnr}' is not a valid PNR format. Could you re-check it?")
         return
 
+    if tool == "cancel_ticket":
+        # Read-only demo: irreversible actions need an authenticated user and a confirmed,
+        # unexpired pending action - that path lives in src/actions.py (via the API).
+        print(f"\n[bot] Router chose cancel_ticket('{pnr}'). This demo is read-only: "
+              "cancellations go through the API, which asks the customer to confirm.")
+        return
+
     print(f"[2] EXECUTING {tool}('{pnr}') in Python (not in the model)...")
     result = TOOL_REGISTRY[tool](pnr)
     print(f"    backend result: {json.dumps(result)}")
