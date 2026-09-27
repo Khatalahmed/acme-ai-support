@@ -137,18 +137,17 @@ backoff** + resume files.
 ## ▶️ Run it
 
 ```bash
-# 1 · environment
-python -m venv .venv && .venv\Scripts\activate
-pip install -r requirements.txt
+# 1 · environment  (uv creates .venv from pyproject.toml + uv.lock)
+uv sync
 
 # 2 · local model  (needs Ollama + the Q5_K_M GGUF from stage 4)
 ollama create acme-support -f data/processed/Modelfile
 
 # 3 · build the RAG index
-python src/rag/build_index.py
+uv run python src/rag/build_index.py
 
 # 4 · serve  → Swagger UI at http://localhost:8000/docs
-uvicorn src.api.main:app --port 8000
+uv run uvicorn src.api.main:app --port 8000
 ```
 
 ---

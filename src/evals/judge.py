@@ -12,8 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 from dotenv import load_dotenv
-from google import genai
-from google.genai import errors
+from openai import APIStatusError, OpenAI
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 IN_PATH = ROOT / "data" / "evals" / "outputs.jsonl"
@@ -44,20 +43,21 @@ Output ONLY this JSON, nothing else:
 def judge_one(client, model, complaint, response, max_retries=5):
     # Some errors are only temporary. We wait and try again for these:
     #   429 = we sent requests too fast (rate limit on our side).
-    #   503 = the model is busy on Google's side (high demand).
+    #   503 = the model is busy on Azure's side (high demand).
     # For any other error we stop, because a retry will not help.
     RETRY_CODES = {429, 503}
     delay = 15
     for attempt in range(max_retries):
         try:
-            resp = client.models.generate_content(
+            resp = client.chat.completions.create(
                 model=model,
-                contents=JUDGE_PROMPT.format(complaint=complaint, response=response))
-            text = resp.text.strip()
+                messages=[{"role": "user", "content": JUDGE_PROMPT.format(
+                    complaint=complaint, response=response)}])
+            text = resp.choices[0].message.content.strip()
             # Keep only the JSON part: from the first { to the last }.
             return json.loads(text[text.find("{"):text.rfind("}") + 1])
-        except errors.APIError as e:
-            code = getattr(e, "code", None)
+        except APIStatusError as e:
+            code = e.status_code
             if code in RETRY_CODES and attempt < max_retries - 1:
                 print(f"    temporary error {code} - waiting {delay}s then retry")
                 time.sleep(delay)
@@ -73,8 +73,12 @@ def main():
     args = p.parse_args()
 
     load_dotenv(ROOT / ".env")
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    judge_model = os.environ.get("VERTEX_MODEL", "gemini-2.5-flash")
+    # Azure OpenAI v1 API: plain OpenAI client pointed at <endpoint>/openai/v1/, no api-version.
+    client = OpenAI(
+        base_url=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/") + "/openai/v1/",
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
+    )
+    judge_model = os.environ["AZURE_OPENAI_DEPLOYMENT"]
     field = "reference" if args.calibrate else "response"
     scores_path = ROOT / "data" / "evals" / f"scores_{field}.jsonl"
 

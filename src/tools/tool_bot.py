@@ -3,11 +3,13 @@
 import argparse
 import json
 import re
+import sys
+from pathlib import Path
 
-import ollama
 from backend import get_flight_status, cancel_ticket
 
-MODEL = "acme-support"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import llm_backend
 
 TOOL_REGISTRY = {
     "get_flight_status": get_flight_status,
@@ -55,8 +57,7 @@ def valid_pnr(pnr):
 
 
 def chat(prompt):
-    resp = ollama.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
-    return resp["message"]["content"].strip()
+    return llm_backend.chat([{"role": "user", "content": prompt}]).strip()
 
 
 def main():

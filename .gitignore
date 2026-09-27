@@ -9,3 +9,12 @@ merged_model*/
 .ipynb_checkpoints/
 *.zip
 data/chroma/
+
+# local secrets and runtime state - this repo is public
+.env.*
+!.env.example
+data/audit/
+*.db
+*.sqlite
+*.sqlite3
+.pytest_cache/

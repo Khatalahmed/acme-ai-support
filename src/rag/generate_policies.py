@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from google import genai
+from openai import OpenAI
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "data" / "policies"
@@ -76,16 +76,22 @@ Output ONLY the markdown document, nothing else.
 
 def main():
     load_dotenv(ROOT / ".env")
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    
-    model = os.environ.get("VERTEX_MODEL", "gemini-3.5-flash")
+    # Azure OpenAI v1 API: plain OpenAI client pointed at <endpoint>/openai/v1/, no api-version.
+    client = OpenAI(
+        base_url=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/") + "/openai/v1/",
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
+    )
+    model = os.environ["AZURE_OPENAI_DEPLOYMENT"]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for filename, (title, facts) in POLICIES.items():
         prompt = PROMPT.format(title=title, facts="\n".join(f"- {f}" for f in facts))
-        resp = client.models.generate_content(model=model, contents=prompt)
-        (OUT_DIR / filename).write_text(resp.text.strip(), encoding="utf-8")
-        print(f"wrote {filename} ({len(resp.text)} chars)")
+        resp = client.chat.completions.create(
+            model=model, messages=[{"role": "user", "content": prompt}]
+        )
+        text = resp.choices[0].message.content.strip()
+        (OUT_DIR / filename).write_text(text, encoding="utf-8")
+        print(f"wrote {filename} ({len(text)} chars)")
 
     print(f"\nCanon complete -> {OUT_DIR}")
 

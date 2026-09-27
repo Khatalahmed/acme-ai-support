@@ -21,6 +21,10 @@ def cancel_ticket(pnr: str) -> dict:
     booking = FLIGHTS.get(pnr.upper())
     if not booking:
         return {"ok": False, "error": f"No booking found for PNR {pnr.upper()}"}
+    if booking["status"] == "Cancelled by passenger":
+        # Idempotent: a retry or a double-clicked YES must not refund twice.
+        return {"ok": True, "pnr": pnr.upper(), "cancelled": True, "already_cancelled": True,
+                "refund_amount": 0, "note": "Booking was already cancelled; no further refund"}
     if booking["refundable"] or booking["status"] == "Cancelled by airline":
         refund = booking["fare"]
         note = "Refund to original payment method within 7 business days"

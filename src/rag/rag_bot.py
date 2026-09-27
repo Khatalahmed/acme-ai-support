@@ -2,15 +2,17 @@
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
 import chromadb
-import ollama
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(ROOT / "src"))
+from llm_backend import chat
+
 DB_DIR = ROOT / "data" / "chroma"
 
-MODEL = "acme-support"
 TOP_K = 3
 
 RAG_SYSTEM = (
@@ -49,12 +51,11 @@ def ask(question, use_rag):
         ]
         sources = [f"{m['source']} [{m['section']}]" for m in metas]
     else:
-        # no system message -> Ollama falls back to the Modelfile's baked-in persona
+        # no system message -> the Modelfile's baked-in persona (or llm_backend.PERSONA)
         messages = [{"role": "user", "content": question}]
         sources = []
 
-    resp = ollama.chat(model=MODEL, messages=messages)
-    return clean(resp["message"]["content"]), sources
+    return clean(chat(messages)), sources
 
 
 def main():

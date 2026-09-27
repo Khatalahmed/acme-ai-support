@@ -39,12 +39,11 @@ What exists on this machine and why we chose it:
 Setup already performed:
 ```powershell
 cd "D:\Gen_AI_Notes\1. GenAI_Khaja_Notes\LLM\Projects\acme-ai-support"
-python -m venv .venv
-.venv\Scripts\pip install -r requirements.txt
+uv sync
 ```
 Config lives in `.env` (GCP project + model name) and `config/bot.yaml` (persona).
 
-**Definition of Done:** `.venv\Scripts\python src\prompting_bot.py --demo` prints two model responses.
+**Definition of Done:** `uv run python src\prompting_bot.py --demo` prints two model responses.
 
 ---
 
@@ -57,7 +56,7 @@ Config lives in `.env` (GCP project + model name) and `config/bot.yaml` (persona
 > *A system prompt controls behavior and tone. It cannot give the bot knowledge it never had.*
 
 **Do this:**
-1. Run the demo: `.venv\Scripts\python src\prompting_bot.py --demo`
+1. Run the demo: `uv run python src\prompting_bot.py --demo`
 2. Observe Test A (dirty flight complaint): the bot is polite, empathetic, on-brand. ✅ Prompting controls *tone*.
 3. Observe Test B ("What is ACME's exact compensation for a 4-hour delay?"): the bot either
    invents a plausible policy or gives a vague dodge. ❌ Prompting cannot supply *knowledge*.
