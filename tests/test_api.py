@@ -74,6 +74,26 @@ def test_cancel_asks_first_then_yes_cancels(client, router_says):
     assert events() == ["cancel_proposed", "cancel_executed"]
 
 
+def test_cancel_receipt_is_exact(client, router_says):
+    router_says["cancel ACX456"] = CANCEL_456
+    say(client, "cancel ACX456")
+    assert say(client, "yes").json()["reply"] == (
+        "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will "
+        "be issued instead. Is there anything else I can help you with?")
+
+
+@pytest.mark.parametrize("risk", [{"angry": 0.9, "demands_exception": 0.0},
+                                  {"angry": 0.0, "demands_exception": 0.9}])
+def test_high_risk_cancel_goes_to_a_human(client, router_says, risk):
+    """Seen live: 'refund my non-refundable ticket or I'll sue' was routed to cancel."""
+    msg = "refund ACX456 in full or I'll sue"
+    router_says[msg] = {**CANCEL_456, "risk": risk}
+    r = say(client, msg).json()
+    assert r["route"] == "escalated" and r["pending_action"] is None
+    assert backend.BOOKINGS["ACX456"]["status"] == "confirmed"
+    assert events() == ["escalated"]
+
+
 def test_no_keeps_booking(client, router_says):
     router_says["cancel ACX456"] = CANCEL_456
     say(client, "cancel ACX456")

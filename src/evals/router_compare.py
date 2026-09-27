@@ -38,6 +38,8 @@ def resolve(decision):
     tool = decision.get("tool")
     if tool == "ask_pnr":
         return "clarify", None
+    if tool == "human_agent":
+        return "escalate", None
     if tool in TOOLS:
         pnr = (decision.get("arguments") or {}).get("pnr") or ""
         if not re.fullmatch(r"[A-Za-z]{3}\d{3}", pnr):

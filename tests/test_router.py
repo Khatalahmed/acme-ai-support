@@ -81,6 +81,32 @@ def test_llm_router_normalises_pnr(monkeypatch):
         ("tool:get_flight_status", "ACX789")
 
 
+def test_jev_risk_and_human_intent(jev_on, monkeypatch):
+    def post(url, headers, json, timeout):
+        assert set(json["questions"]) == {"intent", "angry", "demands_exception"}  # one call
+        body = {"answers": {"intent": {"choice": "human_agent", "confidence": 0.9},
+                            "angry": {"type": "noul", "noul": 0.85},
+                            "demands_exception": {"type": "noul", "noul": 0.1}}}
+        return httpx.Response(200, json=body, request=httpx.Request("POST", url))
+    monkeypatch.setattr(router.httpx, "post", post)
+    d = router.route("get me your manager right now")
+    assert d["tool"] == "human_agent" and d["risk"] == {"angry": 0.85, "demands_exception": 0.1}
+
+
+@pytest.mark.parametrize("output, expected", [
+    ('{"tool": "disruption_help", "arguments": {"pnr": "ACX789"}, "angry": true}',
+     {"tool": "disruption_help", "arguments": {"pnr": "ACX789"}}),
+    ('{"tool": "disruption_help", "demands_exception": true}', {"tool": None}),  # no PNR -> RAG
+    ('{"tool": "cancel_ticket"}', {"tool": "ask_pnr"}),
+    ('{"tool": "human_agent"}', {"tool": "human_agent"}),
+])
+def test_llm_router_new_intents(monkeypatch, output, expected):
+    monkeypatch.setattr(router, "chat", lambda messages: output)
+    d = router.route_llm("x")
+    assert {k: v for k, v in d.items() if k in ("tool", "arguments")} == expected
+    assert set(d["risk"]) == {"angry", "demands_exception"}
+
+
 @pytest.mark.parametrize("model_output", ["no json here", "{broken json", ""])
 def test_llm_router_garbage_means_no_tool(monkeypatch, model_output):
     monkeypatch.setattr(router, "chat", lambda messages: model_output)

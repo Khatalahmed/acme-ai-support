@@ -24,9 +24,10 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import actions  # the safety boundary: every booking read/write goes through here
+import agent  # disruption-recovery agent (LangGraph); proposes changes via actions
 from auth import user_from_token
 from llm_backend import chat as llm_chat
-from router import TOOLS
+from router import TOOLS, find_pnr
 from router import route as route_message  # LLM or Jev, picked by ROUTER_BACKEND
 
 TOP_K = 3
@@ -136,6 +137,37 @@ def phrase_result(tool, pnr, result, question):
     return reply, [f"backend:{tool}({pnr})"] + [m["source"] for m in metas]
 
 
+def receipt(action, pnr, result):
+    """Exact, code-written confirmation of a completed change - never LLM-phrased.
+
+    A receipt is a record: an LLM here drifted into re-offering options the passenger had
+    already used (seen in a live run), so completed changes are stated by code, not a model.
+    """
+    if action == "cancel_ticket":
+        money = (f"A refund of Rs {result['refund_amount']:,} will go back to your original "
+                 "payment method within 7 business days." if result["refund_amount"]
+                 else result["note"] + ".")
+        text = f"Done - booking {pnr} is cancelled. {money}"
+    elif "rebooked_from" in result:
+        extra = (f" A Rs {result['voucher_amount']:,} travel voucher has been added to your "
+                 "booking." if result["voucher_amount"] else "")
+        text = (f"Done - booking {pnr} is now on {result['flight']} ({result['route']}), "
+                f"departing {result['departure']}.{extra}")
+    elif "refund_amount" in result:
+        text = (f"Done - a full refund of Rs {result['refund_amount']:,} for booking {pnr} will "
+                "go back to your original payment method within 7 business days. The booking "
+                "is now cancelled.")
+    else:
+        text = (f"Done - a Rs {result['voucher_amount']:,} travel voucher has been added to "
+                f"booking {pnr}. You keep your current flight.")
+    return text + " Is there anything else I can help you with?"
+
+
+def high_risk(decision):
+    risk = decision.get("risk") or {}
+    return max(risk.get("angry", 0), risk.get("demands_exception", 0)) >= agent.RISK_THRESHOLD
+
+
 def not_found(pnr):
     # Identical for "doesn't exist" and "not yours", so PNRs can't be probed.
     return f"I couldn't find a booking with PNR {pnr} on your account. Could you re-check it?"
@@ -147,10 +179,8 @@ def answer_pending(user_id, req):
         out = actions.confirm(user_id, req.session_id)
         pnr = out.get("pnr")
         if out["ok"]:
-            question = (f"Please cancel my booking {pnr}." if out["action"] == "cancel_ticket"
-                        else f"Please apply the option I chose for booking {pnr}.")
-            reply, sources = phrase_result(out["action"], pnr, out["result"], question)
-            return f"tool:{out['action']}", reply, sources
+            return (f"tool:{out['action']}", receipt(out["action"], pnr, out["result"]),
+                    [f"backend:{out['action']}({pnr})"])
         replies = {
             "expired": (f"That confirmation expired, so nothing has been changed on booking "
                         f"{pnr}. If you still want to go ahead, just ask again."),
@@ -178,6 +208,7 @@ def chat(req: ChatRequest, user_id: str = Depends(current_user)):
     t0 = time.time()
     pending = None
 
+    # 1. Answering our "are you sure?" (server-side pending action)
     if actions.pending_action(user_id, req.session_id):
         answered = answer_pending(user_id, req)
         if answered:
@@ -185,16 +216,48 @@ def chat(req: ChatRequest, user_id: str = Depends(current_user)):
             decision = {"router": "confirmation", "confidence": None}
             return respond(t0, user_id, decision, route, reply, sources, pending)
 
+    # 2. Picking one of the options the disruption agent offered
+    if agent.waiting(user_id, req.session_id):
+        out = agent.resume(user_id, req.session_id, req.message)
+        if out["outcome"] != "moved_on":
+            decision = {"router": "agent", "confidence": None}
+            return respond(t0, user_id, decision, f"agent:{out['outcome']}", out["reply"],
+                           [], out["pending"])
+
+    # 3. A new request
     decision = route_message(req.message)
     tool = decision.get("tool")
 
     if tool == "ask_pnr":
         route, reply, sources = "clarify", CLARIFY_PNR, []
 
+    elif tool == "human_agent":
+        ticket = actions.escalate(user_id, req.session_id, find_pnr(req.message),
+                                  "requested_human", f"Customer asked for a person: {req.message!r}")
+        route, sources = "escalated", []
+        reply = (f"Of course - I've passed your conversation to a member of our team "
+                 f"(reference {ticket['ref']}). They will get back to you directly.")
+
     elif tool in TOOLS:
         pnr = (decision.get("arguments") or {}).get("pnr", "")
         if not valid_pnr(pnr):
             route, reply, sources = "clarify", f"'{pnr}' does not look like a valid PNR. Could you re-check it?", []
+        elif tool == "cancel_ticket" and high_risk(decision):
+            # Angry, or demanding an exception: a cancel "yes" wouldn't give them what they
+            # want and can't be undone - a person should handle it.
+            risk = decision["risk"]
+            reason = "demands_exception" if risk.get("demands_exception", 0) >= \
+                agent.RISK_THRESHOLD else "angry"
+            ticket = actions.escalate(user_id, req.session_id, pnr, reason,
+                                      f"High-risk cancel request: {req.message!r}")
+            route, sources = "escalated", []
+            reply = (f"I'm sorry this has been so frustrating. I haven't changed anything on "
+                     f"booking {pnr.upper()}; I've passed your case to a senior member of our "
+                     f"team (reference {ticket['ref']}), who will contact you directly.")
+        elif tool == "disruption_help":
+            out = agent.start(user_id, req.session_id, pnr, req.message, decision.get("risk"))
+            route, reply, sources, pending = (f"agent:{out['outcome']}", out["reply"], [],
+                                              out["pending"])
         elif tool == "cancel_ticket":
             proposal = actions.propose_cancel(user_id, req.session_id, pnr,
                                               router=decision["router"],
