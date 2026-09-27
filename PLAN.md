@@ -4,7 +4,7 @@
 > authorised confirmation; routing is benchmarked (LLM vs Jev, trialled in shadow mode); and
 > every decision is traced, costed and gated in CI.
 
-**Status:** Phase 0 in progress · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
+**Status:** Phase 0 done · Phase A next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
 
 ## Where we are (start of plan)
 
@@ -43,10 +43,11 @@ Langfuse: traces · cost · latency · datasets     GitHub Actions: 2 gates
 
 ## Phase 0 — Setup (½ day)
 
-- [ ] Connect this folder to GitHub (`Khatalahmed/acme-ai-support`, **public**) and open a PR from a new branch
-- [ ] `.gitignore` covers `.env`, audit logs and SQLite databases before the first push
-- [ ] `pytest` as a dev dependency
-- [ ] This plan committed
+- [x] Connect this folder to GitHub (`Khatalahmed/acme-ai-support`, **public**) and open a PR from a new branch
+      — [PR #1](https://github.com/Khatalahmed/acme-ai-support/pull/1), branch `azure-jev-safety`
+- [x] `.gitignore` covers `.env`, audit logs and SQLite databases before the first push
+- [x] `pytest` as a dev dependency
+- [x] This plan committed
 
 **Done when:** branch pushed, PR open, `uv run pytest` runs.
 
