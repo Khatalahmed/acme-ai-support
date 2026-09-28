@@ -16,10 +16,10 @@ concurrency:        # a new push cancels the still-running check for the same br
 
 jobs:
   pytest:
-    runs-on: ubuntu-latest
+    # Pinned image (ubuntu-latest moves to Ubuntu 26 on 2026-10-19); the Python version comes
+    # from .python-version, the same file uv uses locally - one source of truth.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      UV_PYTHON: "3.13"
     steps:
       - uses: actions/checkout@v4
 
