@@ -18,3 +18,5 @@ data/audit/
 *.sqlite
 *.sqlite3
 .pytest_cache/
+# local quality-gate runs (CI keeps its own as workflow artifacts)
+data/evals/results/gate-*/

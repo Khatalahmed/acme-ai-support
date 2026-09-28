@@ -4,7 +4,7 @@
 > authorised confirmation; routing is benchmarked (LLM vs Jev, trialled in shadow mode); and
 > every decision is traced, costed and gated in CI.
 
-**Status:** Phases 0, A and B done · Phase C next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
+**Status:** Phases 0, A, B and C done · Phase D next · **Scope:** frozen (see bottom) · **README:** rewritten last, in Phase D
 
 ## Where we are (start of plan)
 
@@ -169,9 +169,14 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       system prompt, and the closing question is code. **Final (3 runs, REPLY_REASONING_EFFORT=low):
       60/60 conversations, 18/18 actions, 0 unwanted, escalation 9/9, reply checks 27/27; status
       reply p50 10.5 s → 4.4 s, explanations 12.1 s → 5.6 s**
-- [ ] **C6 CI gate 2** — **weekly + manual + release** (not nightly: it would use ~45k of Langfuse Hobby's
-      50k units/month). Thresholds: wrongful cancellations = 0, confirmation bypasses = 0,
-      accuracy ≥ target, p95 latency ≤ target. Secrets via GitHub Secrets; never on PRs
+- [x] **C6 CI gate 2** — `.github/workflows/ai-quality-gate.yml` (weekly Mon 03:30 UTC + manual +
+      `v*` tags; never on PRs) runs `src/evals/gate.py`: tool eval, RAG eval, production router on
+      178 messages, against the versioned limits in `data/evals/gate.json` (critical: 0 unwanted
+      actions, 100% action + escalation recall, 100% grounded numbers, 100% refusals on unanswerable;
+      quality floors below measured values for noise). Tracing off (Langfuse quota). Results to the
+      run summary page + 90-day artifact. Gate logic has its own 13 tests. **Local run with the
+      production configuration: PASSED 13/13 in ~3.2 min.** Activation needs the repo secrets and
+      the workflow on `main` (GitHub only runs scheduled/manual workflows from the default branch)
 
 **Metrics (reported separately, never just "accuracy")**
 overall + per-intent accuracy · wrongful cancellation rate · wrongful refund rate · escalation

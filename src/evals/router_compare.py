@@ -146,6 +146,7 @@ def main():
     p.add_argument("--runs", type=int, default=1)
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--trace", action="store_true", help="keep Langfuse tracing on")
+    p.add_argument("--out", help="write the summary JSON here (used by src/evals/gate.py)")
     args = p.parse_args()
 
     routers = list(args.routers)
@@ -196,7 +197,7 @@ def main():
     with open(out, "w", encoding="utf-8") as f:
         for r in all_rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
-    (RESULTS_DIR / f"summary-{stamp}.json").write_text(
+    (Path(args.out) if args.out else RESULTS_DIR / f"summary-{stamp}.json").write_text(
         json.dumps(summaries, indent=2), encoding="utf-8")
 
     print("\n" + "=" * 78)

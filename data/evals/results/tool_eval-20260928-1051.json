@@ -1,0 +1,137 @@
+[
+ {
+  "label": "REPLY_REASONING_EFFORT=low",
+  "passed": 6,
+  "n": 6,
+  "unwanted": 0,
+  "action_recall": null,
+  "esc_precision": null,
+  "esc_recall": null,
+  "reply_checks": 1.0,
+  "p50_by_route": {
+   "tool:get_flight_status": 4684.0
+  },
+  "results": [
+   {
+    "id": "status-delayed",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's the status of ACX123?",
+      "route": "tool:get_flight_status",
+      "reply": "Hello — I see your booking PNR ACX123 for flight AC101 from Pune to Delhi on 2026-10-02 at 14:30 is delayed by 5 hours. The fare is Rs 6,500 and refundable. Under ACME’s delay policy for 4–6 hour delays, passengers are entitled to choose either a Rs 3,000 travel voucher for future travel or free rebooking onto the next available ACME flight to the same destination, subject to seat availability.\n\nIs there anything else I can help you with?",
+      "ms": 4912
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-on-time",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "Hello — thank you for checking. PNR ACX456 is for flight AC205 from Mumbai to Kolkata departing 2026-10-02 at 09:15 and the status is On time. Fare is Rs 4,800 and the fare type is non-refundable.\n\nIs there anything else I can help you with?",
+      "ms": 3385
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-cancelled",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's happening with ACX789?",
+      "route": "tool:get_flight_status",
+      "reply": "Thanks for checking. Your booking PNR ACX789 for flight AC310 from Hyderabad to Bengaluru on 2026-10-02 at 18:00, fare Rs 3,200 (refundable), has been cancelled by the airline. Per ACME policy, passengers are provided a full refund to the original form of payment or free rebooking on the next available ACME flight with fare differences waived.\n\nIs there anything else I can help you with?",
+      "ms": 3856
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-delayed",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's the status of ACX123?",
+      "route": "tool:get_flight_status",
+      "reply": "Hello — I see your booking PNR ACX123 for flight AC101 from Pune to Delhi, scheduled 2026-10-02 14:30. The flight is delayed by 5 hours; fare is Rs 6,500 and refundable. Under ACME’s policy for 4–6 hour delays, passengers are entitled to either a Rs 3,000 travel voucher for future travel or free rebooking onto the next available ACME flight to the same destination (subject to seat availability) with modification fees waived.\n\nIs there anything else I can help you with?",
+      "ms": 4832
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-on-time",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "Hello — I have your booking details. PNR ACX456 is for flight AC205 from Mumbai to Kolkata departing 2026-10-02 at 09:15 and the flight status is On time. Fare is Rs 4,800 and fare type is non-refundable.\n\nIs there anything else I can help you with?",
+      "ms": 4536
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-cancelled",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's happening with ACX789?",
+      "route": "tool:get_flight_status",
+      "reply": "Hello — I see your booking PNR ACX789 for flight AC310 from Hyderabad to Bengaluru on 2026-10-02 at 18:00. The flight status is cancelled by the airline and the fare is refundable (Rs 3,200). Per ACME policy, airline-initiated cancellations are eligible for a full refund to the original form of payment or free rebooking on the next available ACME flight with fare differences and change fees waived.\n\nIs there anything else I can help you with?",
+      "ms": 5074
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   }
+  ]
+ }
+]

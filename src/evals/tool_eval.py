@@ -144,6 +144,7 @@ def main():
                    help="REPLY_REASONING_EFFORT values to compare (default = model default)")
     p.add_argument("--only", nargs="*", help="scenario ids to run")
     p.add_argument("--trace", action="store_true")
+    p.add_argument("--out", help="write the results JSON here (used by src/evals/gate.py)")
     args = p.parse_args()
 
     scenarios = [json.loads(l) for l in open(SCENARIOS, encoding="utf-8") if l.strip()]
@@ -165,7 +166,7 @@ def main():
             summaries.append({**report(results, args.runs, f"REPLY_REASONING_EFFORT={effort}"),
                               "results": results})
 
-    out = ROOT / "data" / "evals" / "results" / f"tool_eval-{time.strftime('%Y%m%d-%H%M')}.json"
+    out = Path(args.out) if args.out else ROOT / "data" / "evals" / "results" / f"tool_eval-{time.strftime('%Y%m%d-%H%M')}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(summaries, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"\nfull transcripts -> {out}")

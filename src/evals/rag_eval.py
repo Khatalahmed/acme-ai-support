@@ -202,6 +202,7 @@ def main():
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--k", type=int, help="sections given to the LLM (default: the API's TOP_K)")
     p.add_argument("--trace", action="store_true")
+    p.add_argument("--out", help="write the results JSON here (used by src/evals/gate.py)")
     args = p.parse_args()
     if args.k:
         api.TOP_K = args.k
@@ -217,7 +218,7 @@ def main():
 
     out_dir = ROOT / "data" / "evals" / "results"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out = out_dir / f"rag_eval-{time.strftime('%Y%m%d-%H%M')}.json"
+    out = Path(args.out) if args.out else out_dir / f"rag_eval-{time.strftime('%Y%m%d-%H%M')}.json"
     out.write_text(json.dumps({"retrieval": [{k: r[k] for k in ("id", "rank", "retrieved")}
                                              for r in retrieval],
                                "answers": summaries}, indent=1, ensure_ascii=False),
