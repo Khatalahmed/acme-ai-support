@@ -1,7 +1,7 @@
 """Shadow routing: run the OTHER router on real traffic, silently, and record where they disagree.
 
     request -> primary router -> decision -> customer            (never waits for the shadow)
-                        \-> background thread: shadow router -> compare outcomes
+                        +-> background thread: shadow router -> compare outcomes
                               -> shadow_log (SQLite): every comparison
                               -> Langfuse, when on: router_agreement score on the trace, and each
                                  disagreement added to the "router-disagreements" dataset

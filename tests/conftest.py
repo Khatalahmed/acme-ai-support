@@ -57,6 +57,13 @@ class FakePolicies:
 
 
 @pytest.fixture(autouse=True)
+def fresh_rate_limit():
+    """Each test starts with an empty limiter (it's in-memory and shared across requests)."""
+    import ratelimit
+    ratelimit.reset()
+
+
+@pytest.fixture(autouse=True)
 def no_real_index(monkeypatch):
     from src.api import main
     monkeypatch.setattr(main, "_policies", lambda: FakePolicies())

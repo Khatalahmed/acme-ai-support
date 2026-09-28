@@ -10,6 +10,7 @@ expiry, idempotent execution and the audit log. A cancel request only PROPOSES; 
 message in the same session answers it, and only a clear yes cancels.
 """
 
+import copy
 import json
 import os
 import re
@@ -20,7 +21,7 @@ from pathlib import Path
 
 import chromadb
 from langfuse import get_client, observe, propagate_attributes
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
@@ -29,6 +30,8 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import actions  # the safety boundary: every booking read/write goes through here
 import agent  # disruption-recovery agent (LangGraph); proposes changes via actions
+import backend  # the mock airline (read here only to snapshot/reset it in demo mode)
+import ratelimit  # abuse controls for the public demo
 import shadow  # shadow routing: the other router's opinion, recorded, never used
 from auth import user_from_token
 from llm_backend import chat as llm_chat
@@ -309,8 +312,44 @@ def bookings(user_id: str = Depends(current_user)):
             for b in actions.my_bookings(user_id)]
 
 
+def rate_limited(request: Request):
+    """Abuse control for the public demo: every chat message can spend real API credit."""
+    blocked = ratelimit.check(ratelimit.client_ip(request))
+    if blocked:
+        reason, retry_after = blocked
+        raise HTTPException(429, f"Demo limit: {reason}. Please try again later.",
+                            headers={"Retry-After": str(retry_after)})
+
+
+# The mock airline as it was at startup - what a demo reset restores.
+_DEMO_SNAPSHOT = copy.deepcopy((backend.FLIGHTS, backend.BOOKINGS))
+
+
+def demo_mode():
+    return (os.environ.get("DEMO_MODE") or "").strip().lower() in ("1", "true", "yes")
+
+
+@app.get("/v1/demo")
+def demo_info():
+    """Tells the page whether demo controls (reset) are available."""
+    return {"demo_mode": demo_mode()}
+
+
+@app.post("/v1/demo/reset")
+def demo_reset(user_id: str = Depends(current_user), _: None = Depends(rate_limited)):
+    """Restore the mock airline so every visitor gets a working demo. Off unless DEMO_MODE."""
+    if not demo_mode():
+        raise HTTPException(404, "Not Found")
+    for live, saved in zip((backend.FLIGHTS, backend.BOOKINGS), copy.deepcopy(_DEMO_SNAPSHOT)):
+        live.clear()
+        live.update(saved)
+    actions.audit("demo_reset", user_id)
+    return {"ok": True}
+
+
 @app.post("/v1/chat")
-def chat(req: ChatRequest, user_id: str = Depends(current_user)):
+def chat(req: ChatRequest, user_id: str = Depends(current_user),
+         _: None = Depends(rate_limited)):
     """One Langfuse trace per request, tagged with user and session (off when tracing is off)."""
     with propagate_attributes(user_id=user_id, session_id=req.session_id, trace_name="chat"):
         with get_client().start_as_current_observation(

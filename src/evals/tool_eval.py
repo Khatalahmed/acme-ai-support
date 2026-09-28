@@ -31,6 +31,9 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 if "--trace" not in sys.argv:
     os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 os.environ["ROUTER_SHADOW"] = "off"            # the second opinion isn't what we're measuring
+# One "visitor" sends every eval message: the public-demo limits would otherwise block the run.
+os.environ["RATE_LIMIT_PER_IP"] = "1000000"
+os.environ["DAILY_REQUEST_CAP"] = "1000000"
 for p in (ROOT, ROOT / "src", ROOT / "src" / "tools"):
     sys.path.insert(0, str(p))
 

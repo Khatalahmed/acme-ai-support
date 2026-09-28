@@ -128,6 +128,7 @@
     </div>
 
     <button type="button" id="new-chat">New conversation</button>
+    <button type="button" id="reset-demo" hidden>Reset demo data</button>
   </aside>
 
   <main>
@@ -276,6 +277,21 @@
   });
   userSel.addEventListener("change", newConversation);
   $("new-chat").addEventListener("click", newConversation);
+
+  // Public demo only: visitors share one mock airline, so let anyone restore it.
+  const resetBtn = $("reset-demo");
+  fetch("/v1/demo").then((r) => r.json()).then((d) => { resetBtn.hidden = !d.demo_mode; })
+                   .catch(() => {});
+  resetBtn.addEventListener("click", async () => {
+    resetBtn.disabled = true;
+    try {
+      const res = await fetch("/v1/demo/reset", { method: "POST", headers: headers() });
+      if (!res.ok) throw new Error(res.status);
+      newConversation();
+    } catch { addError("Couldn't reset the demo data."); }
+    finally { resetBtn.disabled = false; }
+  });
+
   newConversation();
 }
 </script>
