@@ -23,6 +23,7 @@ RUN uv sync --locked --no-dev --no-install-project
 
 COPY --chown=app src ./src
 COPY --chown=app data/policies ./data/policies
+COPY --chown=app data/insights ./data/insights
 
 # Build the RAG index into the image (as the app user, so the embedding model is cached in
 # its home directory) - the container starts ready, with no download on the first request.

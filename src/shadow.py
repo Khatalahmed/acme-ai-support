@@ -26,6 +26,7 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from langfuse import get_client, observe
 
 import actions
+import llm_backend
 import router
 
 DATASET = "router-disagreements"
@@ -107,6 +108,7 @@ def _fmt(o):
 def _run(shadow, message, decision, user_id, session_id, trace_id, known=None):
     """Compare the served decision with the shadow's. `known`: a shadow decision that already
     exists (Jev's unsure answer) - then no router is called."""
+    llm_backend.calls.set(None)        # the shadow's model calls aren't the customer's request
     try:
         t0, error, shadow_out = time.perf_counter(), None, None
         try:

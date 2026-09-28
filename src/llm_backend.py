@@ -7,7 +7,9 @@ Set in .env:
 Every call is recorded in Langfuse as a "generation" (model, tokens, cost) when tracing is on.
 """
 
+import contextvars
 import os
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -52,6 +54,23 @@ else:
     raise ValueError(f"LLM_BACKEND must be 'ollama' or 'azure', got {BACKEND!r}")
 
 
+# Per-request record of model calls, for the chat page's "How I decided" panel and /insights.
+# The API sets a fresh list per request; shadow mode's background calls set None so they never
+# land in a customer's request.
+calls = contextvars.ContextVar("llm_calls", default=None)
+
+
+def _record(name, started, usage):
+    log = calls.get()
+    if log is None:
+        return
+    details = getattr(usage, "completion_tokens_details", None)
+    log.append({"name": name, "ms": round((time.perf_counter() - started) * 1000),
+                "input_tokens": getattr(usage, "prompt_tokens", None),
+                "output_tokens": getattr(usage, "completion_tokens", None),
+                "reasoning_tokens": getattr(details, "reasoning_tokens", None)})
+
+
 def chat(messages, name="llm", persona=False, reasoning_effort=None):
     """Send a chat-format message list, return the reply text. `name` labels the trace step.
 
@@ -67,9 +86,14 @@ def chat(messages, name="llm", persona=False, reasoning_effort=None):
         # reasoning_effort (minimal | low | medium | high): how much hidden "thinking" a
         # reasoning model does before answering - traced at up to 94% of a call's cost (C1)
         extra = {"reasoning_effort": reasoning_effort} if reasoning_effort else {}
+        started = time.perf_counter()
         resp = _client.chat.completions.create(model=MODEL, messages=messages, name=name, **extra)
+        _record(name, started, resp.usage)
         return resp.choices[0].message.content
-    return _ollama_chat(messages, name)
+    started = time.perf_counter()
+    reply, usage = _ollama_chat(messages, name)
+    _record(name, started, usage)
+    return reply
 
 
 @observe(as_type="generation")
@@ -79,4 +103,6 @@ def _ollama_chat(messages, name):
         name=name, model=MODEL,
         usage_details={"input": resp.get("prompt_eval_count") or 0,
                        "output": resp.get("eval_count") or 0})
-    return resp["message"]["content"]
+    usage = type("Usage", (), {"prompt_tokens": resp.get("prompt_eval_count"),
+                               "completion_tokens": resp.get("eval_count")})
+    return resp["message"]["content"], usage

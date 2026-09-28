@@ -11,7 +11,7 @@ def sent(monkeypatch):
     captured = []
     monkeypatch.setattr(llm_backend, "MODEL", "some-general-model")
     monkeypatch.setattr(llm_backend, "_ollama_chat",
-                        lambda messages, name: captured.append(messages) or "ok")
+                        lambda messages, name: (captured.append(messages) or "ok", None))
     return captured
 
 
@@ -41,3 +41,15 @@ def test_fine_tuned_model_never_gets_it(monkeypatch, sent):
     monkeypatch.setattr(llm_backend, "MODEL", "acme-support")   # persona baked into Modelfile
     llm_backend.chat([{"role": "user", "content": "x"}], persona=True)
     assert roles(sent[0]) == ["user"]
+
+
+def test_calls_are_recorded_only_when_a_request_asks(sent):
+    """The API collects each request's model calls for the "How I decided" panel."""
+    llm_backend.chat([{"role": "user", "content": "x"}], name="not.recorded")
+    token = llm_backend.calls.set([])
+    try:
+        llm_backend.chat([{"role": "user", "content": "x"}], name="rag.answer")
+        log = llm_backend.calls.get()
+    finally:
+        llm_backend.calls.reset(token)
+    assert [c["name"] for c in log] == ["rag.answer"] and log[0]["ms"] >= 0

@@ -31,6 +31,9 @@ sys.path.insert(0, str(ROOT / "src"))
 import actions  # the safety boundary: every booking read/write goes through here
 import agent  # disruption-recovery agent (LangGraph); proposes changes via actions
 import backend  # the mock airline (read here only to snapshot/reset it in demo mode)
+import decision_trace  # the "How I decided" panel, built from what actually happened
+import insights  # numbers-only request metrics for the public /insights page
+import llm_backend
 import ratelimit  # abuse controls for the public demo
 import shadow  # shadow routing: the other router's opinion, recorded, never used
 from auth import user_from_token
@@ -312,6 +315,22 @@ def chat_page():
     return FileResponse(WEB / "index.html")
 
 
+@app.get("/insights", include_in_schema=False)
+def insights_page():
+    """Public page: measured evaluation results plus live, numbers-only traffic stats."""
+    return FileResponse(WEB / "insights.html")
+
+
+MEASURED = ROOT / "data" / "insights" / "measured.json"
+
+
+@app.get("/v1/insights")
+def insights_data():
+    """Aggregates only - no messages, users or sessions are stored or returned (public)."""
+    measured = json.loads(MEASURED.read_text(encoding="utf-8")) if MEASURED.exists() else None
+    return {"live": insights.summary(), "measured": measured}
+
+
 @app.get("/v1/bookings")
 def bookings(user_id: str = Depends(current_user)):
     """The signed-in user's own bookings, for the demo page's sidebar."""
@@ -361,7 +380,11 @@ def chat(req: ChatRequest, user_id: str = Depends(current_user),
     with propagate_attributes(user_id=user_id, session_id=req.session_id, trace_name="chat"):
         with get_client().start_as_current_observation(
                 name="POST /v1/chat", input={"message": req.message}) as root:
-            out = handle(req, user_id)
+            token = llm_backend.calls.set([])   # this request's model calls, for its trace
+            try:
+                out = handle(req, user_id)
+            finally:
+                llm_backend.calls.reset(token)
             root.update(output=out, metadata={"route": out["route"], "router": out["router"]})
             return out
 
@@ -387,7 +410,9 @@ def handle(req, user_id):
                            [], out["pending"])
 
     # 3. A new request
+    started = time.perf_counter()
     decision = route_message(req.message)
+    decision = {**decision, "router_ms": round((time.perf_counter() - started) * 1000)}
     # Second opinion on a background thread; its answer is only recorded (see src/shadow.py).
     shadow.maybe_run(req.message, decision, user_id, req.session_id,
                      get_client().get_current_trace_id())
@@ -469,5 +494,8 @@ def respond(t0, user_id, decision, route, reply, sources, pending):
     latency_ms = round((time.time() - t0) * 1000)
     print(f"[trace] user={user_id} router={decision['router']} confidence={decision['confidence']} "
           f"route={route} latency_ms={latency_ms} sources={sources}")
+    calls = llm_backend.calls.get() or []
+    insights.record(route, decision, latency_ms, calls)
     return {"reply": reply, "route": route, "router": decision["router"],
-            "sources": sources, "pending_action": pending, "latency_ms": latency_ms}
+            "sources": sources, "pending_action": pending, "latency_ms": latency_ms,
+            "trace": decision_trace.build(route, decision, sources, pending, calls)}
