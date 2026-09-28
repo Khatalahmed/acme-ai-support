@@ -492,8 +492,10 @@
       bubble.append(box);
     }
     const chips = el("div", "chips");
-    chips.append(el("span", "chip", family(data.route)), el("span", "chip", seconds(data.latency_ms)));
     const t = data.trace;
+    // a refused request shares the "clarify" route; the trace knows the difference
+    chips.append(el("span", "chip", t && t.refused ? "Refused: not your booking" : family(data.route)),
+                 el("span", "chip", seconds(data.latency_ms)));
     if (t && t.router === "jev" && t.confidence != null)
       chips.append(el("span", "chip", `Jev ${Math.round(t.confidence * 100)}%`));
     else if (t && t.router === "jev->llm") chips.append(el("span", "chip", "LLM fallback"));

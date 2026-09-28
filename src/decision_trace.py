@@ -103,4 +103,4 @@ def build(route, decision, sources, pending, calls, refused=False):
     return {"router": decision.get("router"), "confidence": decision.get("confidence"),
             "risk": _risk(decision), "steps": steps, "safety": safety,
             "policy": [s for s in sources if not s.startswith("backend:")],
-            "model_calls": len(calls)}
+            "model_calls": len(calls), "refused": refused}

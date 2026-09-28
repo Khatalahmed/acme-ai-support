@@ -60,6 +60,8 @@ def test_someone_elses_booking_trace_says_refused(client):
     assert t["steps"][1]["detail"] == ("Ownership check: that booking isn't on your account, "
                                        "so nothing was read or changed")
     assert "The refused request is recorded in the audit log" in t["safety"]
+    assert t["refused"] is True
+    assert say(client, "What is the baggage allowance?")["trace"]["refused"] is False
 
 
 def test_status_trace_names_the_backend_call(client):
