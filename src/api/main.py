@@ -18,6 +18,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import chromadb
+from langfuse import get_client, observe, propagate_attributes
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
@@ -96,15 +97,16 @@ def _policies():
     return chromadb.PersistentClient(path=str(ROOT / "data" / "chroma")).get_collection("acme_policies")
 
 
+@observe(name="rag.retrieve", as_type="retriever")
 def retrieve(question, k=TOP_K):
     res = _policies().query(query_texts=[question], n_results=k)
     return res["documents"][0], res["metadatas"][0]
 
 
-def llm(prompt, system=None):
+def llm(prompt, system=None, name="api.llm"):
     messages = ([{"role": "system", "content": system}] if system else [])
     messages.append({"role": "user", "content": prompt})
-    return llm_chat(messages)
+    return llm_chat(messages, name=name)
 
 
 def clean(text):
@@ -138,7 +140,8 @@ def phrase_result(tool, pnr, result, question):
     """Let the LLM phrase a verified backend result, grounded in retrieved policy."""
     docs, metas = retrieve(question)
     reply = clean(llm(TOOL_RESPONSE_PROMPT.format(
-        question=question, result=json.dumps(result), context="\n\n---\n\n".join(docs))))
+        question=question, result=json.dumps(result), context="\n\n---\n\n".join(docs)),
+        name="tool.reply"))
     return reply, [f"backend:{tool}({pnr})"] + [m["source"] for m in metas]
 
 
@@ -210,6 +213,16 @@ def answer_pending(user_id, req):
 
 @app.post("/v1/chat")
 def chat(req: ChatRequest, user_id: str = Depends(current_user)):
+    """One Langfuse trace per request, tagged with user and session (off when tracing is off)."""
+    with propagate_attributes(user_id=user_id, session_id=req.session_id, trace_name="chat"):
+        with get_client().start_as_current_observation(
+                name="POST /v1/chat", input={"message": req.message}) as root:
+            out = handle(req, user_id)
+            root.update(output=out, metadata={"route": out["route"], "router": out["router"]})
+            return out
+
+
+def handle(req, user_id):
     t0 = time.time()
     pending = None
 
@@ -289,7 +302,8 @@ def chat(req: ChatRequest, user_id: str = Depends(current_user)):
     else:  # policy / general -> RAG
         docs, metas = retrieve(req.message)
         reply = clean(llm(RAG_PROMPT.format(
-            context="\n\n---\n\n".join(docs), question=req.message), system=RAG_SYSTEM))
+            context="\n\n---\n\n".join(docs), question=req.message), system=RAG_SYSTEM,
+            name="rag.answer"))
         route = "rag"
         sources = [f"{m['source']} [{m['section']}]" for m in metas]
 

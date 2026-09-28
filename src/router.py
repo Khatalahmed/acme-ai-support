@@ -20,8 +20,11 @@ import os
 import re
 
 import httpx
+from langfuse import get_client, observe
 
 from llm_backend import chat
+
+JEV_USD_PER_TOKEN = 0.042 / 1_000_000   # list price, input tokens; output is free
 
 # Same request/response shape on both; only URL, key and model name differ.
 JEV_PROVIDERS = {
@@ -117,8 +120,10 @@ def extract_json(text):
         return {"tool": None}
 
 
+@observe(name="router.llm")
 def route_llm(message):
-    raw = extract_json(chat([{"role": "user", "content": ROUTER_PROMPT.format(question=message)}]))
+    raw = extract_json(chat([{"role": "user", "content": ROUTER_PROMPT.format(question=message)}],
+                            name="router.llm"))
     risk = {k: 1.0 if raw.get(k) is True else 0.0 for k in NO_RISK}
     decision = {k: v for k, v in raw.items() if k in ("tool", "arguments")}
     args = decision.get("arguments")
@@ -137,6 +142,7 @@ def jev_provider():
     raise KeyError("no Jev key: set TYPESAFE_API_KEY or AI_GATEWAY_API_KEY in .env")
 
 
+@observe(name="router.jev", as_type="generation")
 def route_jev(message, timeout=10.0):
     """One Jev call. Raises on HTTP errors - route() decides whether to fall back."""
     env, url, default_model = jev_provider()
@@ -156,6 +162,10 @@ def route_jev(message, timeout=10.0):
     intent, confidence = answers["intent"]["choice"], answers["intent"].get("confidence")
     input_tokens = body.get("usage", {}).get("input_tokens")
     risk = {k: float(answers.get(k, {}).get("noul") or 0.0) for k in NO_RISK}
+    get_client().update_current_generation(
+        model=body.get("model"), usage_details={"input": input_tokens or 0},
+        cost_details={"input": (input_tokens or 0) * JEV_USD_PER_TOKEN},
+        metadata={"intent": intent, "confidence": confidence, "risk": risk})
 
     if intent == "human_agent":
         decision = {"tool": "human_agent"}
@@ -169,6 +179,7 @@ def route_jev(message, timeout=10.0):
             "input_tokens": input_tokens, "risk": risk}
 
 
+@observe(name="router")
 def route(message):
     """The configured router. Jev falls back to the LLM when unsure or unreachable."""
     if (os.environ.get("ROUTER_BACKEND") or "llm").strip().lower() != "jev":

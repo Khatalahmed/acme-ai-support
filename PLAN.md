@@ -103,7 +103,13 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
 
 ## Phase C — Measurement (days 10–14)
 
-- [ ] **C1 Langfuse tracing** — router, retrieval, LLM, tools; cost and latency per step
+- [x] **C1 Langfuse tracing** — one trace per request (user + session), spans for router, Jev
+      (generation with cost), RAG, every LLM call (auto via `langfuse.openai`), agent nodes, tool
+      layer and guardrail (`replaced` flag). `src/evals/trace_report.py <session>` breaks a
+      conversation down. Tests run with `LANGFUSE_TRACING_ENABLED=false` (blank keys still try to
+      export). **First finding:** the disruption intro LLM call was 15.72 s of a 16.25 s request and
+      99% of its cost - 1,984 hidden reasoning tokens - and the guardrail discarded it every time:
+      the auto-injected persona ("options, a policy note…") contradicted the intro prompt
 - [ ] **C2 Jev shadow mode** — serve with Jev, run the LLM router silently, log disagreements to a
       Langfuse dataset for review
 - [ ] **C3 150-case benchmark** — built against the final intents, every label reviewed; shadow

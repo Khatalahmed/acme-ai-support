@@ -3,12 +3,15 @@
 Set in .env:
     LLM_BACKEND=ollama   -> OLLAMA_MODEL (default "acme-support", the fine-tuned GGUF)
     LLM_BACKEND=azure    -> AZURE_OPENAI_DEPLOYMENT
+
+Every call is recorded in Langfuse as a "generation" (model, tokens, cost) when tracing is on.
 """
 
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from langfuse import get_client, observe
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
@@ -23,7 +26,9 @@ PERSONA = (
 )
 
 if BACKEND == "azure":
-    from openai import OpenAI
+    # Langfuse's drop-in OpenAI client: identical API, and each call becomes a traced
+    # generation with model, token counts and cost - no hand-written tracing needed.
+    from langfuse.openai import OpenAI
 
     # Azure OpenAI v1 API: plain OpenAI client pointed at <endpoint>/openai/v1/, no api-version.
     _client = OpenAI(
@@ -39,11 +44,21 @@ else:
     raise ValueError(f"LLM_BACKEND must be 'ollama' or 'azure', got {BACKEND!r}")
 
 
-def chat(messages):
-    """Send a chat-format message list, return the reply text."""
+def chat(messages, name="llm"):
+    """Send a chat-format message list, return the reply text. `name` labels the trace step."""
     if MODEL != "acme-support" and not any(m["role"] == "system" for m in messages):
         messages = [{"role": "system", "content": PERSONA}] + messages
     if BACKEND == "azure":
-        resp = _client.chat.completions.create(model=MODEL, messages=messages)
+        resp = _client.chat.completions.create(model=MODEL, messages=messages, name=name)
         return resp.choices[0].message.content
-    return ollama.chat(model=MODEL, messages=messages)["message"]["content"]
+    return _ollama_chat(messages, name)
+
+
+@observe(as_type="generation")
+def _ollama_chat(messages, name):
+    resp = ollama.chat(model=MODEL, messages=messages)
+    get_client().update_current_generation(
+        name=name, model=MODEL,
+        usage_details={"input": resp.get("prompt_eval_count") or 0,
+                       "output": resp.get("eval_count") or 0})
+    return resp["message"]["content"]

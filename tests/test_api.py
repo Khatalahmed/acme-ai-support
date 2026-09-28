@@ -26,7 +26,7 @@ def router_says(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def fake_models(monkeypatch):
-    monkeypatch.setattr(main, "llm", lambda prompt, system=None: "stub reply")
+    monkeypatch.setattr(main, "llm", lambda prompt, system=None, **kw: "stub reply")
     monkeypatch.setattr(main, "retrieve", lambda q, k=3: (["policy text"],
                                                           [{"source": "p.md", "section": "s"}]))
 

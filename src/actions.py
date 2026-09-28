@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src" / "tools"))
 import backend  # noqa: E402  (same module object the API imports)
 import policy  # noqa: E402
+from langfuse import observe  # noqa: E402
 
 CONFIRM_TTL = timedelta(minutes=5)
 VERB = {"cancel_ticket": "cancel", "resolve_disruption": "resolve"}  # audit event prefixes
@@ -132,6 +133,7 @@ def _entitlements(booking):
 
 # ---------------------------------------------------------------- read tools
 
+@observe(name="actions.flight_status", as_type="tool")
 def flight_status(user_id, session_id, pnr):
     pnr = pnr.upper()
     if not _owned_booking(user_id, pnr):
@@ -139,6 +141,7 @@ def flight_status(user_id, session_id, pnr):
     return backend.get_flight_status(pnr)
 
 
+@observe(name="actions.disruption_options", as_type="tool")
 def disruption_options(user_id, session_id, pnr):
     """What the passenger is owed for this booking, computed by policy.py."""
     pnr = pnr.upper()
@@ -164,6 +167,7 @@ def _validate(action, booking, params):
     return "unknown_action"
 
 
+@observe(name="actions.propose", as_type="tool")
 def propose(user_id, session_id, pnr, action, params=None, **context):
     """Store a pending change; nothing is changed here. context: router, confidence."""
     pnr, params = pnr.upper(), params or {}
@@ -241,6 +245,7 @@ def _execute(action, pnr, params, booking):
     raise ValueError(f"unknown option kind {option['kind']!r}")
 
 
+@observe(name="actions.confirm", as_type="tool")
 def confirm(user_id, session_id):
     """Run the caller's pending action. Every check happens here, at execution time."""
     action = pending_action(user_id, session_id)
@@ -276,6 +281,7 @@ def confirm(user_id, session_id):
     return {"ok": True, "action_id": aid, "action": kind, "pnr": pnr, "result": result}
 
 
+@observe(name="actions.decline", as_type="tool")
 def decline(user_id, session_id):
     """Customer said no (or moved on): close the pending action without running it."""
     action = pending_action(user_id, session_id)
@@ -291,6 +297,7 @@ def decline(user_id, session_id):
 
 # ---------------------------------------------------------------- human handoff
 
+@observe(name="actions.escalate", as_type="tool")
 def escalate(user_id, session_id, pnr, reason, summary):
     """Hand the case to a human agent. Not irreversible for the passenger, so no confirmation."""
     if pnr and not _owned_booking(user_id, pnr):

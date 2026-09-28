@@ -26,6 +26,7 @@ from typing import TypedDict
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
+from langfuse import get_client, observe
 
 import actions
 import policy
@@ -70,13 +71,14 @@ class State(TypedDict):
     pending: dict | None
 
 
-def llm(prompt):
+def llm(prompt, name="agent.llm"):
     """The only model call in the agent (tests replace it)."""
-    return chat([{"role": "user", "content": prompt}]).strip()
+    return chat([{"role": "user", "content": prompt}], name=name).strip()
 
 
 # ---------------------------------------------------------------- nodes
 
+@observe(name="agent.assess")
 def assess(state):
     """Read-only: load the booking and what policy says the passenger is owed."""
     out = actions.disruption_options(state["user_id"], state["session_id"], state["pnr"])
@@ -97,6 +99,7 @@ def after_assess(state):
     return "present" if state["options"] else "explain"
 
 
+@observe(name="agent.escalate")
 def escalate(state):
     risk = state["risk"]
     reason = ("demands_exception" if risk.get("demands_exception", 0) >= RISK_THRESHOLD
@@ -111,10 +114,12 @@ def escalate(state):
         f"up with you directly. Nothing on your booking {state['pnr']} has been changed.")}
 
 
+@observe(name="agent.explain")
 def explain(state):
     facts = [policy.describe(a) for a in state["automatic"]] or [state["note"] or "No compensation"]
     reply = llm(EXPLAIN_PROMPT.format(message=state["message"], booking=state["booking"],
-                                      facts="; ".join(facts) + f" ({state['note']})"))
+                                      facts="; ".join(facts) + f" ({state['note']})"),
+                name="agent.explain.llm")
     return {"outcome": "explained", "reply": reply}
 
 
@@ -125,14 +130,19 @@ PROMISE = re.compile(r"(rs\.?|₹|inr|rupees?)\s*\d|\d[\d,]{2,}|refund|voucher|c
                      re.IGNORECASE)
 
 
+@observe(name="guardrail.intro", as_type="guardrail")
 def guard_intro(text):
     """Output guardrail: drop an LLM intro that makes promises the options list doesn't."""
-    return SAFE_INTRO if not text or PROMISE.search(text) else text
+    replaced = not text or bool(PROMISE.search(text))
+    get_client().update_current_span(metadata={"replaced": replaced})  # how often does it fire?
+    return SAFE_INTRO if replaced else text
 
 
+@observe(name="agent.present")
 def present(state):
     intro = guard_intro(llm(INTRO_PROMPT.format(message=state["message"],
-                                                booking=state["booking"], note=state["note"])))
+                                                booking=state["booking"], note=state["note"]),
+                            name="agent.intro.llm"))
     lines = [f"{i}. {policy.describe(o)}" for i, o in enumerate(state["options"], 1)]
     reply = (f"{intro}\n\nHere is what you can choose for booking {state['pnr']}:\n"
              + "\n".join(lines) + f"\n\nReply with the option number (1-{len(lines)}).")
@@ -170,6 +180,7 @@ def after_choice(state):
     return "propose" if state.get("choice") else END
 
 
+@observe(name="agent.propose")
 def propose(state):
     option = next(o for o in state["options"] if o["id"] == state["choice"])
     out = actions.propose_option(state["user_id"], state["session_id"], state["pnr"],
@@ -227,6 +238,7 @@ def _result(user_id, session_id):
             "pending": values.get("pending"), "options": values.get("options", [])}
 
 
+@observe(name="agent.start", as_type="agent")
 def start(user_id, session_id, pnr, message, risk):
     """Begin a new disruption case (resets any finished one in this session)."""
     fresh = State(user_id=user_id, session_id=session_id, pnr=pnr.upper(), message=message,
@@ -241,6 +253,7 @@ def waiting(user_id, session_id):
     return bool(graph().get_state(_config(user_id, session_id)).next)
 
 
+@observe(name="agent.resume", as_type="agent")
 def resume(user_id, session_id, message):
     graph().invoke(Command(resume=message), _config(user_id, session_id))
     return _result(user_id, session_id)

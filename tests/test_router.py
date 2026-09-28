@@ -75,7 +75,7 @@ def test_jev_without_key_falls_back(jev_on, monkeypatch):
 
 
 def test_llm_router_normalises_pnr(monkeypatch):
-    monkeypatch.setattr(router, "chat", lambda messages:
+    monkeypatch.setattr(router, "chat", lambda messages, **kw:
                         'sure! {"tool": "get_flight_status", "arguments": {"pnr": "acx 789"}}')
     assert resolve(router.route_llm("where is my flight acx 789")) == \
         ("tool:get_flight_status", "ACX789")
@@ -101,7 +101,7 @@ def test_jev_risk_and_human_intent(jev_on, monkeypatch):
     ('{"tool": "human_agent"}', {"tool": "human_agent"}),
 ])
 def test_llm_router_new_intents(monkeypatch, output, expected):
-    monkeypatch.setattr(router, "chat", lambda messages: output)
+    monkeypatch.setattr(router, "chat", lambda messages, **kw: output)
     d = router.route_llm("x")
     assert {k: v for k, v in d.items() if k in ("tool", "arguments")} == expected
     assert set(d["risk"]) == {"angry", "demands_exception"}
@@ -109,5 +109,5 @@ def test_llm_router_new_intents(monkeypatch, output, expected):
 
 @pytest.mark.parametrize("model_output", ["no json here", "{broken json", ""])
 def test_llm_router_garbage_means_no_tool(monkeypatch, model_output):
-    monkeypatch.setattr(router, "chat", lambda messages: model_output)
+    monkeypatch.setattr(router, "chat", lambda messages, **kw: model_output)
     assert resolve(router.route_llm("anything")) == ("rag", None)

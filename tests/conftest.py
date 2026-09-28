@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parent.parent
 # so empty keys stay empty and no test can reach a paid API.
 os.environ["LLM_BACKEND"] = "ollama"
 os.environ["ROUTER_BACKEND"] = "llm"
+# Tracing off. Blank Langfuse keys are NOT enough - a probe showed the SDK still tries to
+# export (and gets 401) - so use the SDK's own switch.
+os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 for key in ("TYPESAFE_API_KEY", "AI_GATEWAY_API_KEY", "JEV_MODEL", "JEV_MIN_CONFIDENCE"):
     os.environ[key] = ""
 

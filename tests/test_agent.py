@@ -29,10 +29,10 @@ def router_says(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def fake_models(monkeypatch):
-    monkeypatch.setattr(main, "llm", lambda prompt, system=None: "stub reply")
+    monkeypatch.setattr(main, "llm", lambda prompt, system=None, **kw: "stub reply")
     monkeypatch.setattr(main, "retrieve", lambda q, k=3: (["policy"], [{"source": "p.md",
                                                                         "section": "s"}]))
-    monkeypatch.setattr(agent, "llm", lambda prompt: "So sorry about your flight.")
+    monkeypatch.setattr(agent, "llm", lambda prompt, **kw: "So sorry about your flight.")
 
 
 @pytest.fixture
@@ -106,7 +106,7 @@ def test_option_not_offered_cannot_be_chosen(client, router_says):
 
 
 def test_llm_intro_cannot_promise_money(client, router_says, monkeypatch):
-    monkeypatch.setattr(agent, "llm", lambda p: "Great news, you get a full refund of Rs 6,500!")
+    monkeypatch.setattr(agent, "llm", lambda p, **kw: "Great news, you get a full refund of Rs 6,500!")
     offer = say(client, ASHA_DELAYED)
     assert "6,500" not in offer["reply"] and agent.SAFE_INTRO in offer["reply"]
     assert "1. A Rs 3,000 travel voucher" in offer["reply"]            # the real options
