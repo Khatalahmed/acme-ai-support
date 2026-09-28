@@ -1,13 +1,17 @@
-"""Router comparison: LLM JSON router vs Jev typed-decision router.
+"""Router benchmark: LLM router vs Jev vs production (Jev with LLM fallback).
 
-Runs every message in data/evals/routing_set.jsonl through each router, resolves the
-decision exactly as src/api/main.py does (invalid PNR -> clarify), and reports accuracy,
-per-route accuracy, latency, Jev cost and every miss. A record's "expected" may be a list
-of acceptable routes (e.g. the prompt-injection case: any route except a tool).
+Judges what the CUSTOMER would get (router.customer_outcome: the routing outcome plus the API's
+rule that high-risk change requests go to a person), repeated over several runs because LLM
+routers are not deterministic. Reports separate metrics - a wrongful cancel is a different
+failure from a missed PNR - and a label-review list: cases where every router disagrees with the
+label are checked first, because the label may be what's wrong.
 
 Usage:
-    uv run python src/evals/router_compare.py                 # both routers
-    uv run python src/evals/router_compare.py --routers llm   # one router
+    uv run python src/evals/router_compare.py                         # v2 set, all routers, 1 run
+    uv run python src/evals/router_compare.py --runs 3 --routers llm prod
+    uv run python src/evals/router_compare.py --set data/evals/routing_set.jsonl   # v1 set
+
+Tracing is OFF by default (a 150-case run is thousands of Langfuse units); add --trace to keep it.
 """
 
 import argparse
@@ -16,142 +20,191 @@ import os
 import statistics
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+if "--trace" not in sys.argv:
+    os.environ["LANGFUSE_TRACING_ENABLED"] = "false"   # before langfuse is imported
 sys.path.insert(0, str(ROOT / "src"))
-from router import jev_provider, outcome, route_jev, route_llm  # also loads .env via llm_backend
+import router  # noqa: E402  (also loads .env via llm_backend)
+from router import customer_outcome, jev_provider, outcome, route_jev, route_llm  # noqa: E402
 
-SET_PATH = ROOT / "data" / "evals" / "routing_set.jsonl"
-OUT_PATH = ROOT / "data" / "evals" / "router_compare.jsonl"
-ROUTERS = {"llm": route_llm, "jev": route_jev}
-JEV_USD_PER_MTOK = 0.042  # vendor list price, input tokens; output is free
+SET_V2 = ROOT / "data" / "evals" / "routing_set_v2.jsonl"
+SET_REAL = ROOT / "data" / "evals" / "routing_set_real.jsonl"   # labelled shadow disagreements
+RESULTS_DIR = ROOT / "data" / "evals" / "results"
+JEV_USD_PER_MTOK = 0.042
 
-
-# Grades the ROUTER: a cancel decision counts as tool:cancel_ticket even though the API asks the
-# customer to confirm before running it. Same definition shadow mode uses (router.outcome).
+# v1 name kept for older callers/tests: the routing outcome without the risk rule.
 resolve = outcome
+
+
+def route_prod(message):
+    """Production configuration: Jev, falling back to the LLM router when unsure/unreachable."""
+    return router.route(message)
+
+
+ROUTERS = {"llm": route_llm, "jev": route_jev, "prod": route_prod}
+
+
+def allowed(case):
+    exp = case["expected"]
+    return exp if isinstance(exp, list) else [exp]
+
+
+def judge(case, decision):
+    route, pnr = customer_outcome(decision)
+    ok = route in allowed(case) and (pnr == case.get("pnr") if route.startswith("tool:") else True)
+    return route, pnr, ok
+
+
+def run_case(name, fn, case, run_no):
+    t0 = time.perf_counter()
+    try:
+        decision, error = fn(case["message"]), None
+    except Exception as e:  # a failed call is a miss, not a crash
+        decision, error = {}, repr(e)
+    ms = round((time.perf_counter() - t0) * 1000)
+    route, pnr, ok = judge(case, decision) if not error else ("error", None, False)
+    return {"router": name, "run": run_no, "id": case["id"],
+            "category": case.get("category", case.get("set", "base")),
+            "message": case["message"], "expected": "|".join(allowed(case)),
+            "expected_pnr": case.get("pnr"), "got": route, "pnr": pnr, "correct": ok,
+            "latency_ms": ms, "served_by": decision.get("router"),
+            "confidence": decision.get("confidence"), "risk": decision.get("risk"),
+            "input_tokens": decision.get("input_tokens"), "error": error}
 
 
 def pct(n, d):
     return f"{100 * n / d:.0f}%" if d else "-"
 
 
-def run(name, fn, records):
-    rows = []
-    for i, rec in enumerate(records):
-        t0 = time.perf_counter()
-        try:
-            decision = fn(rec["message"])
-            got, pnr = resolve(decision)
-            error = None
-        except Exception as e:
-            if i == 0:  # failing on the very first call = bad key/endpoint, not a routing miss
-                sys.exit(f"{name} router failed on its first call - check .env:\n  {e!r}")
-            decision, got, pnr, error = {}, "error", None, repr(e)  # later failures count as misses
-        ms = (time.perf_counter() - t0) * 1000
-        # "expected" is one route, or a list of acceptable routes
-        allowed = rec["expected"] if isinstance(rec["expected"], list) else [rec["expected"]]
-        # the PNR only matters when a tool actually runs; rag/clarify never carry one
-        correct = got in allowed and (pnr == rec["pnr"] if got.startswith("tool:") else True)
-        rows.append({"router": name, "id": rec["id"], "set": rec.get("set", "base"),
-                     "message": rec["message"],
-                     "expected": "|".join(allowed), "got": got, "pnr": pnr,
-                     "expected_pnr": rec["pnr"], "correct": correct, "latency_ms": round(ms),
-                     "confidence": decision.get("confidence"),
-                     "input_tokens": decision.get("input_tokens"), "error": error})
-        print(f"  {name:3} {rec['id']}  {'ok ' if correct else 'MISS'}  {round(ms):6d} ms  "
-              f"{got}{' ' + pnr if pnr else ''}")
-    return rows
+def summarise(name, rows, runs):
+    by_run = defaultdict(list)
+    for r in rows:
+        by_run[r["run"]].append(r)
+    accs = [sum(r["correct"] for r in rr) / len(rr) for rr in by_run.values()]
+    n = len(by_run[1])
 
+    # consistency: same customer outcome on every run
+    outcomes = defaultdict(set)
+    for r in rows:
+        outcomes[r["id"]].add((r["got"], r["pnr"]))
+    consistent = sum(1 for s in outcomes.values() if len(s) == 1)
 
-def report(name, rows):
-    n, hits = len(rows), sum(r["correct"] for r in rows)
+    wrong_cancel = [r for r in rows if r["got"] == "tool:cancel_ticket"
+                    and "tool:cancel_ticket" not in r["expected"].split("|")]
+    esc = [r for r in rows if r["got"] == "escalate"]
+    esc_ok = [r for r in esc if "escalate" in r["expected"].split("|")]
+    must_esc = [r for r in rows if r["expected"] == "escalate"]
+    fallback = [r for r in rows if r["served_by"] == "jev->llm"]
     lat = sorted(r["latency_ms"] for r in rows)
-    print("\n" + "=" * 70)
-    print(f"{name.upper()} ROUTER  accuracy {hits}/{n} ({pct(hits, n)})")
-    by_set = defaultdict(list)
+    tokens = sum(r["input_tokens"] or 0 for r in rows if name == "jev")
+
+    print("\n" + "=" * 78)
+    acc_txt = (f"{100 * statistics.mean(accs):.1f}%" + (f" (runs {100 * min(accs):.0f}-"
+               f"{100 * max(accs):.0f}%)" if runs > 1 else ""))
+    print(f"{name.upper()}  accuracy {acc_txt}  over {n} cases x {runs} run(s)")
+    if runs > 1:
+        print(f"  consistency: {consistent}/{n} cases got the same outcome on every run")
+    print(f"  wrongful cancels: {len(wrong_cancel)}   "
+          f"escalation precision {pct(len(esc_ok), len(esc))} ({len(esc_ok)}/{len(esc)})   "
+          f"recall {pct(sum(1 for r in must_esc if r['got'] == 'escalate'), len(must_esc))}")
+    if name == "prod":
+        print(f"  Jev -> LLM fallback rate: {pct(len(fallback), len(rows))}")
+    print(f"  latency p50 {lat[len(lat) // 2]} ms   p95 {lat[min(len(lat) - 1, int(len(lat) * .95))]} ms"
+          + (f"   Jev cost ${tokens * JEV_USD_PER_MTOK / 1e6 / runs:.5f}/run" if tokens else ""))
+    cats = defaultdict(list)
     for r in rows:
-        by_set[r["set"]].append(r["correct"])
-    print("  " + " | ".join(f"{s} set {sum(o)}/{len(o)} ({pct(sum(o), len(o))})"
-                            for s, o in by_set.items()))
-    by_label = defaultdict(list)
-    for r in rows:
-        by_label[r["expected"]].append(r["correct"])
-    for label, oks in sorted(by_label.items()):
-        print(f"  {label:24} {sum(oks)}/{len(oks)} ({pct(sum(oks), len(oks))})")
-    print(f"  latency ms: mean {statistics.mean(lat):.0f} | p50 {lat[n // 2]} | "
-          f"p95 {lat[min(n - 1, int(n * 0.95))]} | max {lat[-1]}")
-
-    confs = [(r["confidence"], r["correct"]) for r in rows if r["confidence"] is not None]
-    if confs:
-        parts = []
-        for label, keep in (("hits", True), ("misses", False)):
-            vals = [c for c, ok in confs if ok == keep]
-            parts.append(f"mean on {label} {statistics.mean(vals):.2f}" if vals else f"no {label}")
-        print("  confidence: " + " | ".join(parts))
-    tokens = sum(r["input_tokens"] or 0 for r in rows)
-    if tokens:
-        print(f"  input tokens {tokens} -> ${tokens * JEV_USD_PER_MTOK / 1e6:.6f} at list price")
-
-    misses = [r for r in rows if not r["correct"]]
-    if misses:
-        print("  misses:")
-        for r in misses:
-            extra = f"  [{r['error']}]" if r["error"] else ""
-            print(f"    {r['id']} expected {r['expected']} {r['expected_pnr'] or ''}| "
-                  f"got {r['got']} {r['pnr'] or ''}| {r['message']}{extra}")
-    # the costliest error: choosing cancel_ticket for a message that didn't ask for it
-    # (the API's confirmation step stops these reaching the backend)
-    bad_cancels = [r for r in rows if r["got"] == "tool:cancel_ticket"
-                   and "tool:cancel_ticket" not in r["expected"].split("|")]
-    print(f"  wrongful cancel decisions (blocked by API confirmation): {len(bad_cancels)}"
-          + "".join(f"\n    {r['id']} {r['message']}" for r in bad_cancels))
-
-    hard = by_set.get("hard", [])
-    return {"router": name, "accuracy": hits / n, "hits": hits, "n": n,
-            "hard_hits": sum(hard), "hard_n": len(hard), "bad_cancels": len(bad_cancels),
-            "mean_ms": statistics.mean(lat), "p50_ms": lat[n // 2]}
+        cats[r["category"]].append(r["correct"])
+    print("  by category: " + " | ".join(f"{c} {pct(sum(v), len(v))}" for c, v in cats.items()))
+    for r in wrong_cancel[:10]:
+        print(f"    WRONGFUL CANCEL [{r['id']}] {r['message'][:70]!r}")
+    return {"router": name, "accuracy": statistics.mean(accs), "acc_min": min(accs),
+            "acc_max": max(accs), "consistent": consistent, "n": n, "runs": runs,
+            "wrongful_cancels": len(wrong_cancel), "esc_precision": (len(esc_ok) / len(esc)) if esc else None,
+            "esc_recall": (sum(1 for r in must_esc if r["got"] == "escalate") / len(must_esc))
+            if must_esc else None,
+            "fallback_rate": len(fallback) / len(rows) if name == "prod" else None,
+            "p50_ms": lat[len(lat) // 2], "p95_ms": lat[min(len(lat) - 1, int(len(lat) * .95))]}
 
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("--set", nargs="+",
+                   default=[str(SET_V2)] + ([str(SET_REAL)] if SET_REAL.exists() else []),
+                   help="one or more JSONL case files (default: v2 + imported real traffic)")
     p.add_argument("--routers", nargs="+", choices=list(ROUTERS), default=list(ROUTERS))
+    p.add_argument("--runs", type=int, default=1)
+    p.add_argument("--workers", type=int, default=4)
+    p.add_argument("--trace", action="store_true", help="keep Langfuse tracing on")
     args = p.parse_args()
 
     routers = list(args.routers)
-    if "jev" in routers:
-        try:
-            env, url, _ = jev_provider()
-            print(f"Jev via {url} ({env})")
-        except KeyError:
-            print("No TYPESAFE_API_KEY or AI_GATEWAY_API_KEY in .env - skipping the Jev router.\n")
-            routers.remove("jev")
-    if not routers:
-        return
-
-    records = [json.loads(l) for l in open(SET_PATH, encoding="utf-8")]
-    print(f"{len(records)} labelled messages | routers: {', '.join(routers)}\n")
+    try:
+        env, _, _ = jev_provider()
+    except KeyError:
+        print("No Jev key in .env - skipping jev and prod.")
+        routers = [r for r in routers if r == "llm"]
+    if "prod" in routers:
+        os.environ["ROUTER_BACKEND"] = "jev"
+    cases = [json.loads(line) for path in args.set
+             for line in open(path, encoding="utf-8") if line.strip()]
+    print(f"{len(cases)} cases | routers: {', '.join(routers)} | runs: {args.runs} | "
+          f"workers: {args.workers}")
 
     all_rows, summaries = [], []
     for name in routers:
-        rows = run(name, ROUTERS[name], records)
+        jobs = [(name, ROUTERS[name], c, run) for run in range(1, args.runs + 1) for c in cases]
+        t0 = time.perf_counter()
+        with ThreadPoolExecutor(max_workers=args.workers) as pool:
+            rows = list(pool.map(lambda j: run_case(*j), jobs))
+        print(f"  {name}: {len(rows)} calls in {time.perf_counter() - t0:.0f}s, "
+              f"{sum(1 for r in rows if r['error'])} errors")
         all_rows += rows
-        summaries.append(report(name, rows))
+        summaries.append(summarise(name, rows, args.runs))
 
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
+    # Label review: every router, every run disagrees with the label -> check the label first.
+    wrong_by = defaultdict(set)
+    seen_by = defaultdict(set)
+    for r in all_rows:
+        seen_by[r["id"]].add(r["router"])
+        if not r["correct"]:
+            wrong_by[r["id"]].add(r["router"])
+    unanimous = [c for c in cases if wrong_by[c["id"]] and wrong_by[c["id"]] == seen_by[c["id"]]
+                 and all(not r["correct"] for r in all_rows if r["id"] == c["id"])]
+    if unanimous and len(routers) > 1:
+        print("\n" + "=" * 78)
+        print(f"LABEL REVIEW - every router disagreed with these {len(unanimous)} labels "
+              "(check the label before blaming the routers):")
+        for c in unanimous:
+            got = Counter(r["got"] for r in all_rows if r["id"] == c["id"]).most_common(1)[0][0]
+            print(f"  [{c['id']}] label={'|'.join(allowed(c))}  routers said={got}  "
+                  f"{c['message'][:60]!r}")
+
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d-%H%M")
+    out = RESULTS_DIR / f"router_compare-{stamp}.jsonl"
+    with open(out, "w", encoding="utf-8") as f:
         for r in all_rows:
-            f.write(json.dumps(r) + "\n")
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    (RESULTS_DIR / f"summary-{stamp}.json").write_text(
+        json.dumps(summaries, indent=2), encoding="utf-8")
 
-    print("\n" + "=" * 70)
-    print("| Router | Accuracy | Hard set | Wrongful cancel decisions | Mean latency | p50 latency |")
-    print("|---|---|---|---|---|---|")
+    print("\n" + "=" * 78)
+    print("| Router | Accuracy | Consistent | Wrongful cancels | Esc. precision | Esc. recall "
+          "| Fallback | p50 | p95 |")
+    print("|---|---|---|---|---|---|---|---|---|")
     for s in summaries:
-        print(f"| {s['router']} | {s['hits']}/{s['n']} ({s['accuracy']:.0%}) | "
-              f"{s['hard_hits']}/{s['hard_n']} | {s['bad_cancels']} | "
-              f"{s['mean_ms']:.0f} ms | {s['p50_ms']} ms |")
-    print(f"\nper-message results -> {OUT_PATH}")
+        f = lambda v: "-" if v is None else f"{100 * v:.0f}%"  # noqa: E731
+        acc = f"{100 * s['accuracy']:.1f}%" + (f" ({100 * s['acc_min']:.0f}-{100 * s['acc_max']:.0f})"
+                                              if s["runs"] > 1 else "")
+        print(f"| {s['router']} | {acc} | {s['consistent']}/{s['n']} | {s['wrongful_cancels']} | "
+              f"{f(s['esc_precision'])} | {f(s['esc_recall'])} | {f(s['fallback_rate'])} | "
+              f"{s['p50_ms']} ms | {s['p95_ms']} ms |")
+    print(f"\nper-case results -> {out}")
 
 
 if __name__ == "__main__":

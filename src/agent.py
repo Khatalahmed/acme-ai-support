@@ -33,7 +33,7 @@ import actions
 import policy
 from llm_backend import chat
 
-RISK_THRESHOLD = 0.7  # angry / demands_exception at or above this -> a human takes over
+from router import RISK_THRESHOLD, high_risk  # one definition, shared with the API and benchmark
 
 EXPLAIN_PROMPT = """You are an empathetic ACME Bharat Airlines support agent.
 Customer's message: {message}
@@ -86,8 +86,7 @@ def assess(state):
 def after_assess(state):
     if state.get("outcome") == "not_found":
         return END
-    risk = state["risk"]
-    if max(risk.get("angry", 0), risk.get("demands_exception", 0)) >= RISK_THRESHOLD:
+    if high_risk({"risk": state["risk"]}):
         return "escalate"
     return "present" if state["options"] else "explain"
 

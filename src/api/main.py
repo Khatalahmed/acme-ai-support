@@ -30,7 +30,7 @@ import agent  # disruption-recovery agent (LangGraph); proposes changes via acti
 import shadow  # shadow routing: the other router's opinion, recorded, never used
 from auth import user_from_token
 from llm_backend import chat as llm_chat
-from router import TOOLS, find_pnr
+from router import RISK_THRESHOLD, TOOLS, find_pnr, high_risk
 from router import route as route_message  # LLM or Jev, picked by ROUTER_BACKEND
 
 TOP_K = 3
@@ -172,9 +172,6 @@ def receipt(action, pnr, result):
     return text + " Is there anything else I can help you with?"
 
 
-def high_risk(decision):
-    risk = decision.get("risk") or {}
-    return max(risk.get("angry", 0), risk.get("demands_exception", 0)) >= agent.RISK_THRESHOLD
 
 
 def not_found(pnr):
@@ -269,7 +266,7 @@ def handle(req, user_id):
             # want and can't be undone - a person should handle it.
             risk = decision["risk"]
             reason = "demands_exception" if risk.get("demands_exception", 0) >= \
-                agent.RISK_THRESHOLD else "angry"
+                RISK_THRESHOLD else "angry"
             ticket = actions.escalate(user_id, req.session_id, pnr, reason,
                                       f"High-risk cancel request: {req.message!r}")
             route, sources = "escalated", []

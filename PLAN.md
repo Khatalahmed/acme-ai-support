@@ -120,8 +120,14 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       decides, Jev's own answer is compared for free (no extra call). `src/evals/shadow_report.py`.
       Live (8 messages incl. benchmark hard cases): 4/8 agree; all 4 disagreements are hypotheticals,
       Hinglish, rebooking and injection. 3/8 fell back from Jev (confidence < 0.6)
-- [ ] **C3 150-case benchmark** — built against the final intents, every label reviewed; shadow
-      disagreements feed dataset v2
+- [x] **C3 150-case benchmark** — `data/evals/routing_set_v2.jsonl` (9 categories below), judged on
+      what the customer gets (`router.customer_outcome`), 3 runs, separate safety metrics, label-
+      review list; `src/evals/import_disagreements.py` adds labelled shadow disagreements
+      (`routing_set_real.jsonl`). **Labels: pending review by the project owner.**
+      First run (3 runs each): prod 95.6% (95–96), Jev 94.4%, LLM 93.1%; consistency prod 148/150,
+      Jev 149/150, LLM 133/150; wrongful cancel decisions ~5 per run for every router (all stopped
+      by the confirmation step); escalation recall 100% for all; p50 prod 422 ms, LLM 2.7 s;
+      Jev→LLM fallback 10%
 
       | Category | Cases | | Category | Cases |
       |---|---|---|---|---|

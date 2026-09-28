@@ -118,6 +118,24 @@ def outcome(decision):
     return "rag", None
 
 
+RISK_THRESHOLD = 0.7   # angry / demands_exception at or above this -> a person takes over
+CHANGE_TOOLS = ("tool:cancel_ticket", "tool:disruption_help")
+
+
+def high_risk(decision):
+    risk = decision.get("risk") or {}
+    return max(risk.get("angry", 0), risk.get("demands_exception", 0)) >= RISK_THRESHOLD
+
+
+def customer_outcome(decision):
+    """What the customer actually gets: outcome() plus the rule that a high-risk request to
+    change a booking goes to a person (applied by the API and the agent)."""
+    route, pnr = outcome(decision)
+    if route in CHANGE_TOOLS and high_risk(decision):
+        return "escalate", None
+    return route, pnr
+
+
 def _finish(decision, message):
     """Shared post-processing: PNR rules per tool, so both routers behave identically."""
     tool = decision.get("tool")
