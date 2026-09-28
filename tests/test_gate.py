@@ -10,7 +10,7 @@ HEALTHY = {
     "tool": {"unwanted_actions": 0, "action_recall": 1.0, "escalation_recall": 1.0,
              "escalation_precision": 1.0, "conversation_pass_rate": 1.0},
     "rag": {"grounded_numbers": 1.0, "unanswerable_refused": 1.0, "retrieval_hit_at_5": 1.0,
-            "fact_recall": 1.0},
+            "fact_recall": 1.0, "no_template_headings": 1.0},
     "router": {"accuracy": 0.984, "wrongful_cancels_per_run": 1.3, "cancel_recall": 0.92,
                "escalation_recall": 1.0},
 }
@@ -43,6 +43,7 @@ def test_every_limit_in_gate_json_is_checked():
     ("tool.action_recall", 17 / 18),
     ("router.wrongful_cancels_per_run", 3.5),
     ("router.accuracy", 0.94),
+    ("rag.no_template_headings", 40 / 41),  # one answer printed "Policy answer:"
 ])
 def test_crossing_a_limit_fails(path, value):
     _, failed = gate.judge(with_(path, value))

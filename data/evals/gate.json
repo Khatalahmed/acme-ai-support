@@ -11,7 +11,8 @@
     "grounded_numbers":       {"min": 1.0,  "critical": true,  "measured": "41/41 every run (C4)"},
     "unanswerable_refused":   {"min": 1.0,  "critical": true,  "measured": "4/4 every run (C4)"},
     "retrieval_hit_at_5":     {"min": 1.0,  "critical": false, "measured": "37/37 (C4)"},
-    "fact_recall":            {"min": 0.97, "critical": false, "measured": "37/37 on 2/2 runs (C4); 0.97 allows one miss"}
+    "fact_recall":            {"min": 0.97, "critical": false, "measured": "37/37 on 2/2 runs (C4); 0.97 allows one miss"},
+    "no_template_headings":   {"min": 1.0,  "critical": false, "measured": "0/41 leaked on 2/2 runs (D; was 33/41)"}
   },
   "router": {
     "accuracy":               {"min": 0.95, "critical": false, "measured": "98.4% on 150 + 100% on 28 held-out (C3)"},

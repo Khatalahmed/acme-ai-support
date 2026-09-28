@@ -16,6 +16,11 @@ def test_chat_page_is_served():
     assert 'role="log"' in r.text and 'id="form"' in r.text
 
 
+def test_page_warns_messages_are_logged():
+    """Messages go to Langfuse on the public demo, so visitors are told before they type."""
+    assert "don't enter personal information" in client.get("/").text
+
+
 def test_page_never_inserts_untrusted_text_as_html():
     """XSS guard: messages and replies go in via textContent, never innerHTML."""
     page = client.get("/").text

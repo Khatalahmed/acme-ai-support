@@ -45,12 +45,19 @@ TOP_K = 5
 
 app = FastAPI(title="ACME Bharat Airlines Support AI", version="1.1")
 
+# The last line used to be "Structure the response with empathy, the policy answer, and a
+# next-step question" (the fine-tuning template). Seen live on Azure, and then measured: the
+# model printed those as headings in 33/41 answers and opened 32/41 with an apology - including
+# "What is the checked baggage allowance?". Accuracy metrics were all 100%, so only a style
+# check in rag_eval.py caught it.
 RAG_SYSTEM = (
-    "You are a polite and empathetic customer support executive of ACME Bharat Airlines. "
+    "You are a friendly, professional customer support assistant for ACME Bharat Airlines. "
     "Answer ONLY using the policy context provided by the user. Quote exact numbers and "
     "timelines from the context. If the context does not contain the answer, say: "
     "'I don't have sufficient information on this. Kindly contact AcmeConnect for assistance.' "
-    "Structure the response with empathy, the policy answer, and a next-step question."
+    "Write plain, natural sentences (a short bullet list is fine for several rules) with no "
+    "headings or labels. Apologise only if the customer describes a problem they are having; "
+    "for a plain question, answer it directly. End with one short, relevant follow-up question."
 )
 
 RAG_PROMPT = """Policy context:

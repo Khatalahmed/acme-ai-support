@@ -2,7 +2,8 @@
 
   retrieval (free, instant): did we fetch the labelled section?  hit@1, hit@3, MRR
   answers   (calls the LLM): fact recall, grounded numbers (every number in the answer appears
-            in the retrieved text), correct refusals on unanswerable questions, latency
+            in the retrieved text), correct refusals on unanswerable questions, latency, and style:
+            leaked prompt headings ("Policy answer:") and replies that open with an apology
 
 Both call the production code (api.main.retrieve / rag_answer), so the numbers are what customers
 get. No LLM grades another LLM here: every check is a plain string/number comparison.
@@ -66,6 +67,22 @@ def refused(answer_n):
     """The scripted refusal. ("AcmeConnect" alone isn't one: good answers often end by offering
     it - an earlier version of this check counted those as refusals.)"""
     return "sufficientinformation" in answer_n
+
+
+# The old system prompt said "structure the response with empathy, the policy answer, and a
+# next-step question"; live on Azure the model printed those as headings. A line that starts
+# with one of these words and a colon is a leaked template, not writing a customer should see.
+LABEL = re.compile(r"^[\s*#_-]*(empathy|acknowledg\w*|policy answer|answer|next[- ]step"
+                   r"(?: question)?|follow[- ]up(?: question)?)\s*[*_]*\s*:", re.I | re.M)
+
+
+def leaked_labels(reply):
+    return sorted({m.group(1).lower() for m in LABEL.finditer(reply)})
+
+
+def opens_with_apology(reply):
+    first = re.split(r"(?<=[.!?])\s", reply.strip(), maxsplit=1)[0].lower()
+    return "sorry" in first or "apolog" in first
 
 
 def section_key(meta):
@@ -154,7 +171,8 @@ def answer_one(c, effort):
     facts = [fact_hit(f, ans_n) for f in c["facts"]]
     return {"id": c["id"], "answerable": c["answerable"], "ms": ms, "reply": reply,
             "facts_ok": all(facts) if c["answerable"] else None,
-            "refused": refused(ans_n), "ungrounded": ungrounded}
+            "refused": refused(ans_n), "ungrounded": ungrounded,
+            "labels": leaked_labels(reply), "apology": opens_with_apology(reply)}
 
 
 def eval_answers(cases, effort, workers):
@@ -174,6 +192,10 @@ def eval_answers(cases, effort, workers):
           f"grounded numbers {grounded}/{len(rows)}   "
           f"refused unanswerable {good_refusals}/{len(unans)}   "
           f"wrongly refused answerable {false_refusals}/{len(ans)}")
+    labelled = sum(bool(r["labels"]) for r in rows)
+    apologies = sum(r["apology"] for r in rows)
+    print(f"  style: leaked prompt headings {labelled}/{len(rows)}   "
+          f"opens with an apology {apologies}/{len(rows)}")
     print(f"  latency p50 {lat[len(lat) // 2]} ms   p95 {lat[min(len(lat) - 1, int(len(lat) * .95))]} ms")
     by_id = {c["id"]: c for c in cases}
     for r in rows:
@@ -186,11 +208,14 @@ def eval_answers(cases, effort, workers):
             problems.append("refused an answerable question")
         if not r["answerable"] and not r["refused"]:
             problems.append("did NOT refuse (may have invented an answer)")
+        if r["labels"]:
+            problems.append(f"leaked headings {r['labels']}")
         if problems:
             print(f"    [{r['id']}] {'; '.join(problems)}  <- {r['reply'][:90]!r}")
     return {"effort": label, "fact_recall": facts / len(ans), "grounded": grounded / len(rows),
             "refusals": good_refusals / len(unans) if unans else None,
-            "false_refusals": false_refusals, "p50_ms": lat[len(lat) // 2],
+            "false_refusals": false_refusals, "no_labels": 1 - labelled / len(rows),
+            "apology_openings": apologies, "p50_ms": lat[len(lat) // 2],
             "p95_ms": lat[min(len(lat) - 1, int(len(lat) * .95))], "rows": rows}
 
 
