@@ -30,6 +30,7 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import actions  # the safety boundary: every booking read/write goes through here
+import activity  # "My activity" / "My requests": the audit log, readable
 import agent  # disruption-recovery agent (LangGraph); proposes changes via actions
 import backend  # the mock airline (read here only to snapshot/reset it in demo mode)
 import decision_trace  # the "How I decided" panel, built from what actually happened
@@ -351,6 +352,12 @@ def airports(flight_no):
             "dest": f["dest"], "dest_city": backend.CITIES[f["dest"]]}
 
 
+@app.get("/v1/activity")
+def my_activity(user_id: str = Depends(current_user)):
+    """The signed-in user's own audit trail and support requests, in plain language."""
+    return activity.for_user(user_id)
+
+
 def booking_state(b):
     """ok | delayed | cancelled - the page shows it as colour + icon + the status text."""
     if b["booking_status"] == "cancelled" or b["flight_status"] == "cancelled":
@@ -423,7 +430,7 @@ def chat(req: ChatRequest, user_id: str = Depends(current_user),
 
 def handle(req, user_id):
     t0 = time.time()
-    pending = None
+    pending, refused = None, False     # refused: the ownership check turned the PNR away
 
     # 1. Answering our "are you sure?" (server-side pending action)
     if actions.pending_action(user_id, req.session_id):
@@ -505,24 +512,24 @@ def handle(req, user_id):
             elif proposal["reason"] == "already_cancelled":
                 route, reply, sources = "clarify", f"Booking {pnr.upper()} is already cancelled.", []
             else:
-                route, reply, sources = "clarify", not_found(pnr.upper()), []
+                route, reply, sources, refused = "clarify", not_found(pnr.upper()), [], True
         else:  # get_flight_status
             result = actions.flight_status(user_id, req.session_id, pnr)
             if result["ok"]:
                 reply, sources = phrase_result(tool, pnr.upper(), result, req.message)
                 route = f"tool:{tool}"
             else:
-                route, reply, sources = "clarify", not_found(pnr.upper()), []
+                route, reply, sources, refused = "clarify", not_found(pnr.upper()), [], True
 
     else:  # policy / general -> RAG
         reply, docs, metas = rag_answer(req.message)
         route = "rag"
         sources = [f"{m['source']} [{m['section']}]" for m in metas]
 
-    return respond(t0, user_id, decision, route, reply, sources, pending)
+    return respond(t0, user_id, decision, route, reply, sources, pending, refused)
 
 
-def respond(t0, user_id, decision, route, reply, sources, pending):
+def respond(t0, user_id, decision, route, reply, sources, pending, refused=False):
     latency_ms = round((time.time() - t0) * 1000)
     print(f"[trace] user={user_id} router={decision['router']} confidence={decision['confidence']} "
           f"route={route} latency_ms={latency_ms} sources={sources}")
@@ -530,4 +537,4 @@ def respond(t0, user_id, decision, route, reply, sources, pending):
     insights.record(route, decision, latency_ms, calls)
     return {"reply": reply, "route": route, "router": decision["router"],
             "sources": sources, "pending_action": pending, "latency_ms": latency_ms,
-            "trace": decision_trace.build(route, decision, sources, pending, calls)}
+            "trace": decision_trace.build(route, decision, sources, pending, calls, refused)}

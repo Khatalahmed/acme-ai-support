@@ -70,6 +70,44 @@
     .trip-foot b { color: var(--text); font-weight: 600; }
     .outcome { display: block; padding: .45rem 1.1rem; font-size: .78rem; font-weight: 600; background: var(--brand-soft); color: var(--brand); }
 
+    /* ---------------------------------------------------------------- account tabs */
+    .tabs { display: flex; gap: .25rem; margin-bottom: .8rem; border-bottom: 1px solid var(--line); }
+    .tabs [role="tab"] {
+      border: 0; border-radius: 0; background: transparent; padding: .55rem .7rem; font-weight: 600;
+      color: var(--muted); border-block-end: 3px solid transparent; margin-block-end: -1px;
+    }
+    .tabs [role="tab"][aria-selected="true"] { color: var(--brand); border-block-end-color: var(--saffron); }
+    .tabs .count {
+      display: inline-block; min-inline-size: 1.4rem; padding: 0 .35rem; border-radius: 999px; font-size: .72rem;
+      background: var(--brand-soft); color: var(--brand); text-align: center;
+    }
+    .tabs .count:empty { display: none; }
+    .panel-note { margin: 0 0 .7rem; font-size: .8rem; color: var(--muted); }
+    .empty { padding: .9rem; border: 1px dashed var(--line); border-radius: 12px; font-size: .85rem; color: var(--muted); list-style: none; }
+
+    .timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+    .timeline::before { content: ""; position: absolute; inset-block: .6rem; inset-inline-start: 13px; border-inline-start: 2px solid var(--line); }
+    .event { position: relative; display: grid; grid-template-columns: 28px 1fr; gap: .6rem; padding-block: .4rem; }
+    .event .dot {
+      position: relative; inline-size: 28px; block-size: 28px; border-radius: 50%; display: grid; place-items: center;
+      font-size: .8rem; font-weight: 700; background: var(--panel); border: 2px solid var(--kind); color: var(--kind);
+    }
+    .event[data-kind="done"] { --kind: var(--good); }
+    .event[data-kind="pending"] { --kind: var(--warning); }
+    .event[data-kind="stopped"], .event[data-kind="info"] { --kind: var(--muted); }
+    .event[data-kind="blocked"] { --kind: var(--critical); }
+    .event[data-kind="handoff"] { --kind: var(--brand); }
+    .event p { margin: 0; font-size: .86rem; }
+    .event small { color: var(--muted); font-size: .74rem; }
+
+    .requests { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+    .request { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .7rem .85rem; }
+    .request .top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .request .ref { font-family: ui-monospace, monospace; font-weight: 700; }
+    .request .open { font-size: .72rem; font-weight: 600; padding: .1rem .5rem; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+    .request p { margin: .3rem 0 0; font-size: .85rem; }
+    .request small { color: var(--muted); font-size: .74rem; }
+
     /* ---------------------------------------------------------------- assistant */
     #assist { display: grid; grid-template-rows: auto 1fr auto; block-size: min(82dvh, 48rem); overflow: hidden; }
     .assist-head { display: flex; align-items: center; gap: .7rem; padding: .8rem 1rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
@@ -201,11 +239,27 @@
 
   <div class="layout">
     <section id="trips" aria-labelledby="trips-title">
-      <div class="section-title">
-        <h2 id="trips-title">My trips</h2>
-        <p id="trip-count"></p>
+      <h2 id="trips-title" class="visually-hidden">My trips, activity and requests</h2>
+      <div class="tabs" role="tablist" aria-label="My account">
+        <button type="button" role="tab" id="tab-trips" aria-controls="panel-trips" aria-selected="true">
+          My trips <span class="count" id="n-trips"></span></button>
+        <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1">
+          Activity <span class="count" id="n-activity"></span></button>
+        <button type="button" role="tab" id="tab-requests" aria-controls="panel-requests" aria-selected="false" tabindex="-1">
+          Requests <span class="count" id="n-requests"></span></button>
       </div>
-      <ul class="trips" id="bookings" aria-labelledby="trips-title"></ul>
+      <div role="tabpanel" id="panel-trips" aria-labelledby="tab-trips">
+        <ul class="trips" id="bookings"></ul>
+      </div>
+      <div role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden>
+        <p class="panel-note">Everything you asked us to change, what you confirmed or declined, and
+          anything we refused - straight from the audit log.</p>
+        <ol class="timeline" id="activity"></ol>
+      </div>
+      <div role="tabpanel" id="panel-requests" aria-labelledby="tab-requests" hidden>
+        <p class="panel-note">Cases handed to a member of our team.</p>
+        <ul class="requests" id="requests"></ul>
+      </div>
     </section>
 
     <section class="card" id="assist" aria-labelledby="assist-title">
@@ -254,6 +308,7 @@
       <h2>Help</h2>
       <ul>
         <li><a href="#trips">My trips</a></li>
+        <li><a href="#trips" id="footer-activity">My activity</a></li>
         <li><a href="#assist">Chat with ACME Assist</a></li>
         <li><a href="/insights">Service insights</a></li>
       </ul>
@@ -470,6 +525,7 @@
       $("typing-text").textContent = "";
       if (matchMedia("(min-width: 58rem)").matches) input.focus();
       loadBookings();   // a cancel or rebooking changes the trip cards, whichever button sent it
+      loadActivity();
     }
   }
 
@@ -504,9 +560,70 @@
       const res = await fetch("/v1/bookings", { headers: headers() });
       const rows = await res.json();
       list.replaceChildren(...rows.map(tripCard));   // swap in one go: no flicker while refreshing
-      $("trip-count").textContent = `${rows.length} upcoming`;
+      $("n-trips").textContent = rows.length;
     } catch { list.replaceChildren(el("li", null, "Couldn't load your trips.")); }
   }
+
+  const KIND_MARK = { done: "✓", pending: "…", stopped: "–", blocked: "!", handoff: "→", info: "i" };
+  const KIND_LABEL = { done: "Done", pending: "Waiting for you", stopped: "Nothing changed", blocked: "Refused",
+                       handoff: "Handed to a person", info: "Note" };
+  const stamp = (ts) => {
+    const d = new Date(ts), today = new Date().toDateString() === d.toDateString();
+    const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    return today ? `Today, ${time}` : `${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}, ${time}`;
+  };
+
+  async function loadActivity() {
+    try {
+      const res = await fetch("/v1/activity", { headers: headers() });
+      const data = await res.json();
+      const events = data.activity.map((e) => {
+        const li = el("li", "event");
+        li.dataset.kind = e.kind;
+        const dot = el("span", "dot", KIND_MARK[e.kind] || "");
+        dot.setAttribute("aria-hidden", "true");
+        const body = el("div");
+        body.append(el("span", "visually-hidden", `${KIND_LABEL[e.kind] || ""}: `), el("p", null, e.text),
+                    el("small", null, stamp(e.ts)));
+        li.append(dot, body);
+        return li;
+      });
+      $("activity").replaceChildren(...(events.length ? events : [el("li", "empty",
+        "Nothing yet. Anything you ask ACME Assist to change appears here - including what you said no to.")]));
+      const requests = data.requests.map((r) => {
+        const li = el("li", "request"), top = el("div", "top");
+        top.append(el("span", "ref", r.ref), el("span", "open", r.status === "open" ? "Open" : r.status));
+        li.append(top, el("p", null, r.reason),
+                  el("small", null, `${r.pnr ? `Booking ${r.pnr} · ` : ""}${stamp(r.created_at)}`));
+        return li;
+      });
+      $("requests").replaceChildren(...(requests.length ? requests : [el("li", "empty",
+        "No open requests. Ask ACME Assist for a person at any time.")]));
+      $("n-activity").textContent = data.activity.length || "";
+      $("n-requests").textContent = data.requests.length || "";
+    } catch { $("activity").replaceChildren(el("li", "empty", "Couldn't load your activity.")); }
+  }
+
+  // Tabs (WAI-ARIA pattern): arrow keys move between tabs, only the selected one is in the tab order.
+  const tabs = ["trips", "activity", "requests"].map((n) => $(`tab-${n}`));
+  function select(tab) {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute("aria-controls")).hidden = !on;
+    }
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => select(t));
+    t.addEventListener("keydown", (e) => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      const next = tabs[(i + step + tabs.length) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
 
   function loadQuickHelp() {
     const tiles = QUICK[userSel.value].map(([kind, title, text]) => {
@@ -529,7 +646,9 @@
     const [li] = message("bot", "A", `Hi ${name}, I'm ACME Assist. Ask me about any of your trips or our ` +
                                      "policies - or pick one of the quick-help options above.");
     log.replaceChildren(li);
+    select(tabs[0]);
     loadBookings();
+    loadActivity();
     loadQuickHelp();
   }
 
@@ -541,6 +660,7 @@
     ask(text);
   });
   userSel.addEventListener("change", newConversation);
+  $("footer-activity").addEventListener("click", () => select(tabs[1]));
 
   // Public demo only: visitors share one mock airline, so let anyone restore it.
   const resetBtn = $("reset-demo");

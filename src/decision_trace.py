@@ -77,10 +77,18 @@ def _risk(decision):
             "flagged": flagged} if risk else None
 
 
-def build(route, decision, sources, pending, calls):
+REFUSED = ["Someone else's booking and a missing one get the same answer",
+           "The refused request is recorded in the audit log"]
+
+
+def build(route, decision, sources, pending, calls, refused=False):
+    """refused: the ownership check turned the PNR away (the route is still "clarify", so the
+    trace used to say "asked a clarifying question" - true of the reply, not of what happened)."""
+    act = ("Ownership check: that booking isn't on your account, so nothing was read or changed"
+           if refused else _act(route, sources, pending))
     steps = [{"step": "Understand", "detail": _understand(decision, route),
               "ms": decision.get("router_ms")},
-             {"step": "Act", "detail": _act(route, sources, pending), "ms": None}]
+             {"step": "Act", "detail": act, "ms": None}]
     for c in calls:
         tokens = (c["input_tokens"] or 0) + (c["output_tokens"] or 0)
         detail = f"Model call {c['name']}: {tokens:,} tokens"
@@ -90,7 +98,8 @@ def build(route, decision, sources, pending, calls):
     if not calls:
         steps.append({"step": "Write", "detail": "Written by code - no model call", "ms": 0})
 
-    safety = SAFETY.get(route) or (NOTHING_CHANGED if route.startswith("confirm:") else [])
+    safety = REFUSED if refused else (
+        SAFETY.get(route) or (NOTHING_CHANGED if route.startswith("confirm:") else []))
     return {"router": decision.get("router"), "confidence": decision.get("confidence"),
             "risk": _risk(decision), "steps": steps, "safety": safety,
             "policy": [s for s in sources if not s.startswith("backend:")],

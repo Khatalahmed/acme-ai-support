@@ -54,6 +54,14 @@ def test_cancel_trace_shows_the_guardrail(client):
     assert "Recorded in the audit log" in done["safety"]
 
 
+def test_someone_elses_booking_trace_says_refused(client):
+    """Found in the browser: this used to read "Asked a clarifying question instead of guessing"."""
+    t = say(client, "Cancel ACX789")["trace"]                      # Ravi's booking, asked by Asha
+    assert t["steps"][1]["detail"] == ("Ownership check: that booking isn't on your account, "
+                                       "so nothing was read or changed")
+    assert "The refused request is recorded in the audit log" in t["safety"]
+
+
 def test_status_trace_names_the_backend_call(client):
     t = say(client, "Is ACX456 on time?")["trace"]
     assert t["steps"][1]["detail"] == "Called get_flight_status(ACX456)"
