@@ -113,8 +113,13 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       **Fix (decision A):** intro is code-written from the booking; persona is opt-in (customer-
       facing replies only, never the router). Measured: opening disruption reply 16.25 s → 0.49 s,
       $0.004236 → $0.000024. Next slowest step: `rag.answer` (~7.6 s, 640 reasoning tokens)
-- [ ] **C2 Jev shadow mode** — serve with Jev, run the LLM router silently, log disagreements to a
-      Langfuse dataset for review
+- [x] **C2 Jev shadow mode** — `src/shadow.py`: the other router runs on a background thread after
+      the decision (never slows or changes the reply; errors contained; `ROUTER_SHADOW_RATE`
+      sampling). Every comparison → `shadow_log` + Langfuse `router_agreement` score; disagreements →
+      Langfuse dataset `router-disagreements`, linked to their traces. When Jev is unsure and the LLM
+      decides, Jev's own answer is compared for free (no extra call). `src/evals/shadow_report.py`.
+      Live (8 messages incl. benchmark hard cases): 4/8 agree; all 4 disagreements are hypotheticals,
+      Hinglish, rebooking and injection. 3/8 fell back from Jev (confidence < 0.6)
 - [ ] **C3 150-case benchmark** — built against the final intents, every label reviewed; shadow
       disagreements feed dataset v2
 

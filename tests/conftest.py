@@ -17,6 +17,7 @@ os.environ["ROUTER_BACKEND"] = "llm"
 # Tracing off. Blank Langfuse keys are NOT enough - a probe showed the SDK still tries to
 # export (and gets 401) - so use the SDK's own switch.
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
+os.environ["ROUTER_SHADOW"] = ""        # shadow off unless a test turns it on
 for key in ("TYPESAFE_API_KEY", "AI_GATEWAY_API_KEY", "JEV_MODEL", "JEV_MIN_CONFIDENCE"):
     os.environ[key] = ""
 
@@ -33,6 +34,8 @@ def fresh_state(tmp_path, monkeypatch):
     monkeypatch.setenv("ACME_DB_PATH", str(tmp_path / "acme.db"))
     saved = copy.deepcopy((backend.FLIGHTS, backend.BOOKINGS))
     yield
+    import shadow
+    shadow.drain()  # background comparisons must finish inside the test that started them
     for live, snapshot in zip((backend.FLIGHTS, backend.BOOKINGS), saved):
         live.clear()
         live.update(snapshot)

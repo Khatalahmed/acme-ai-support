@@ -99,6 +99,25 @@ JEV_RISK = {
 }
 
 
+def outcome(decision):
+    """Decision -> (route, pnr): what the customer would actually get, mirroring the API.
+
+    The single definition of "same routing result", shared by the benchmark (router_compare)
+    and shadow mode, so the two can never disagree about what "agree" means.
+    """
+    tool = decision.get("tool")
+    if tool == "ask_pnr":
+        return "clarify", None
+    if tool == "human_agent":
+        return "escalate", None
+    if tool in TOOLS:
+        pnr = (decision.get("arguments") or {}).get("pnr") or ""
+        if not re.fullmatch(r"[A-Za-z]{3}\d{3}", pnr):
+            return "clarify", None
+        return f"tool:{tool}", pnr.upper()
+    return "rag", None
+
+
 def _finish(decision, message):
     """Shared post-processing: PNR rules per tool, so both routers behave identically."""
     tool = decision.get("tool")
@@ -191,5 +210,6 @@ def route(message):
         return {**route_llm(message), "router": "jev->llm"}
     if decision["confidence"] is not None and \
             decision["confidence"] < float(os.environ.get("JEV_MIN_CONFIDENCE") or "0.6"):
-        return {**route_llm(message), "router": "jev->llm"}
+        # Keep Jev's unsure answer: shadow mode compares it with the LLM's for free.
+        return {**route_llm(message), "router": "jev->llm", "unsure_jev": decision}
     return decision

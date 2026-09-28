@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import actions  # the safety boundary: every booking read/write goes through here
 import agent  # disruption-recovery agent (LangGraph); proposes changes via actions
+import shadow  # shadow routing: the other router's opinion, recorded, never used
 from auth import user_from_token
 from llm_backend import chat as llm_chat
 from router import TOOLS, find_pnr
@@ -244,6 +245,9 @@ def handle(req, user_id):
 
     # 3. A new request
     decision = route_message(req.message)
+    # Second opinion on a background thread; its answer is only recorded (see src/shadow.py).
+    shadow.maybe_run(req.message, decision, user_id, req.session_id,
+                     get_client().get_current_trace_id())
     tool = decision.get("tool")
 
     if tool == "ask_pnr":

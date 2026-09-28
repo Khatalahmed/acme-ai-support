@@ -13,7 +13,6 @@ Usage:
 import argparse
 import json
 import os
-import re
 import statistics
 import sys
 import time
@@ -22,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "src"))
-from router import TOOLS, jev_provider, route_jev, route_llm  # also loads .env via llm_backend
+from router import jev_provider, outcome, route_jev, route_llm  # also loads .env via llm_backend
 
 SET_PATH = ROOT / "data" / "evals" / "routing_set.jsonl"
 OUT_PATH = ROOT / "data" / "evals" / "router_compare.jsonl"
@@ -30,22 +29,9 @@ ROUTERS = {"llm": route_llm, "jev": route_jev}
 JEV_USD_PER_MTOK = 0.042  # vendor list price, input tokens; output is free
 
 
-def resolve(decision):
-    """Decision -> (route, pnr), mirroring the branches in src/api/main.py.
-
-    Grades the ROUTER: a cancel decision counts as tool:cancel_ticket even though the API
-    now asks the customer to confirm before running it."""
-    tool = decision.get("tool")
-    if tool == "ask_pnr":
-        return "clarify", None
-    if tool == "human_agent":
-        return "escalate", None
-    if tool in TOOLS:
-        pnr = (decision.get("arguments") or {}).get("pnr") or ""
-        if not re.fullmatch(r"[A-Za-z]{3}\d{3}", pnr):
-            return "clarify", None
-        return f"tool:{tool}", pnr.upper()
-    return "rag", None
+# Grades the ROUTER: a cancel decision counts as tool:cancel_ticket even though the API asks the
+# customer to confirm before running it. Same definition shadow mode uses (router.outcome).
+resolve = outcome
 
 
 def pct(n, d):
