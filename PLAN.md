@@ -184,10 +184,18 @@ precision/recall · Jev→LLM fallback rate · Jev/LLM disagreement rate · p50/
 
 ## Phase D — Show it (days 15–17)
 
-- [ ] **Before starting:** check the Azure subscription — the $200 trial lasts 30 days (from ~25 Sep 2026);
-      upgrade to pay-as-you-go or the runtime LLM stops
-- [ ] Minimal chat page (with a mock-user switcher for the ownership demo)
-- [ ] Deploy to Azure Container Apps — live URL
+- [x] **Before starting:** check the Azure subscription — the $200 trial lasts 30 days (from ~25 Sep 2026);
+      upgrade to pay-as-you-go or the runtime LLM stops (checked: Enabled)
+- [x] **D1 Chat page** (with a mock-user switcher for the ownership demo) — `src/web/index.html`
+- [x] **D2 Safe to put online** — per-visitor rate limit + daily cap, demo reset, non-root Docker image
+- [x] **D3 Deploy to Azure Container Apps — live URL** (keys as secrets, 1 replica; free trial blocks
+      ACR Tasks, so images are built locally and pushed with a new tag each release). Found live:
+      re-asking about a resolved booking offered options that no longer existed (3.9 s LLM reply →
+      0.3 s code reply); RAG answers leaked prompt headings 33/41 → 0/41 (now a gated metric)
+- [x] **D3b Glass-box chat + public /insights** (scope change, see decisions log) — every reply has a
+      "How I decided" panel built by code from what happened (router + confidence, action, each model
+      call's real time and tokens, risk signals, safety checks, sources). `/insights`: measured results
+      computed from committed eval files (`build_insights.py`, drift-tested) + numbers-only live stats
 - [ ] 60-second demo: disruption → options → confirm → audit trail → Langfuse trace
 - [ ] README rewrite: architecture diagram, benchmark tables, trace screenshot, honest limitations
 
@@ -202,7 +210,7 @@ precision/recall · Jev→LLM fallback rate · Jev/LLM disagreement rate · p50/
 
 ## Scope freeze
 
-**Out:** operations control center · voice · document upload · custom dashboard (use Langfuse) ·
+**Out:** operations control center · voice · document upload · internal ops dashboard (use Langfuse) ·
 retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 
 ## Decisions log
@@ -227,3 +235,4 @@ retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 | 2026-09-28 | RAG: top 5 sections; reasoning effort is an .env setting (low), not code (model-dependent) |
 | 2026-09-28 | Status replies look policy up by section name from booking state - search only when unknown |
 | 2026-09-28 | LLMs get facts in plain language, never raw JSON; reply closings that offer help are code |
+| 2026-09-28 | Public /insights page added (reverses "no custom dashboard"): Langfuse is private, so the measured results were invisible to anyone evaluating the project. Numbers only, every figure traceable to a committed run |

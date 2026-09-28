@@ -9,38 +9,53 @@
   <style>
     :root {
       color-scheme: light dark;
+      interpolate-size: allow-keywords;   /* lets <details> animate to its natural height */
 
       /* raw colour pairs */
-      --bg-l: #f6f7fb;        --bg-d: #0f1218;
-      --panel-l: #ffffff;     --panel-d: #181c24;
-      --text-l: #1b1f29;      --text-d: #e7eaf0;
-      --muted-l: #5d6475;     --muted-d: #9aa3b5;
-      --line-l: #dfe3ec;      --line-d: #2a303c;
-      --brand-l: #3949ab;     --brand-d: #8c9eff;
-      --brand-text-l: #ffffff; --brand-text-d: #10142a;
-      --user-l: #e8ebfa;      --user-d: #26305a;
-      --warn-l: #fff4e0;      --warn-d: #3a2c12;
+      --bg-l: #f4f5f9;        --bg-d: #0d1016;
+      --panel-l: #ffffff;     --panel-d: #161a22;
+      --sunk-l: #f7f8fb;      --sunk-d: #11141b;
+      --text-l: #161a24;      --text-d: #e8ebf1;
+      --muted-l: #5b6273;     --muted-d: #9ba4b6;
+      --line-l: #e1e4ec;      --line-d: #272d39;
+      --brand-l: #3342a3;     --brand-d: #8c9eff;
+      --brand-text-l: #ffffff; --brand-text-d: #0f1330;
+      --brand-soft-l: #eceffd; --brand-soft-d: #1f2547;
+      --user-l: #3342a3;      --user-d: #3a4796;
+      --user-text-l: #ffffff; --user-text-d: #ffffff;
+      --ok-l: #e7f6e7;        --ok-d: #12301a;
+      --late-l: #fff4dc;      --late-d: #3a2c10;
+      --off-l: #fdeaea;       --off-d: #3a1719;
 
       /* fallback for browsers without light-dark(): pick the pair with a media query */
-      --bg: var(--bg-l); --panel: var(--panel-l); --text: var(--text-l); --muted: var(--muted-l);
-      --line: var(--line-l); --brand: var(--brand-l); --brand-text: var(--brand-text-l);
-      --user: var(--user-l); --warn: var(--warn-l);
+      --bg: var(--bg-l); --panel: var(--panel-l); --sunk: var(--sunk-l); --text: var(--text-l);
+      --muted: var(--muted-l); --line: var(--line-l); --brand: var(--brand-l);
+      --brand-text: var(--brand-text-l); --brand-soft: var(--brand-soft-l); --user: var(--user-l);
+      --user-text: var(--user-text-l); --ok: var(--ok-l); --late: var(--late-l); --off: var(--off-l);
       @media (prefers-color-scheme: dark) {
-        --bg: var(--bg-d); --panel: var(--panel-d); --text: var(--text-d); --muted: var(--muted-d);
-        --line: var(--line-d); --brand: var(--brand-d); --brand-text: var(--brand-text-d);
-        --user: var(--user-d); --warn: var(--warn-d);
+        --bg: var(--bg-d); --panel: var(--panel-d); --sunk: var(--sunk-d); --text: var(--text-d);
+        --muted: var(--muted-d); --line: var(--line-d); --brand: var(--brand-d);
+        --brand-text: var(--brand-text-d); --brand-soft: var(--brand-soft-d); --user: var(--user-d);
+        --user-text: var(--user-text-d); --ok: var(--ok-d); --late: var(--late-d); --off: var(--off-d);
       }
       @supports (color: light-dark(white, black)) {
         --bg: light-dark(var(--bg-l), var(--bg-d));
         --panel: light-dark(var(--panel-l), var(--panel-d));
+        --sunk: light-dark(var(--sunk-l), var(--sunk-d));
         --text: light-dark(var(--text-l), var(--text-d));
         --muted: light-dark(var(--muted-l), var(--muted-d));
         --line: light-dark(var(--line-l), var(--line-d));
         --brand: light-dark(var(--brand-l), var(--brand-d));
         --brand-text: light-dark(var(--brand-text-l), var(--brand-text-d));
+        --brand-soft: light-dark(var(--brand-soft-l), var(--brand-soft-d));
         --user: light-dark(var(--user-l), var(--user-d));
-        --warn: light-dark(var(--warn-l), var(--warn-d));
+        --user-text: light-dark(var(--user-text-l), var(--user-text-d));
+        --ok: light-dark(var(--ok-l), var(--ok-d));
+        --late: light-dark(var(--late-l), var(--late-d));
+        --off: light-dark(var(--off-l), var(--off-d));
       }
+      /* status colours: fixed in both themes, always paired with an icon and a label */
+      --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
       accent-color: var(--brand);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
@@ -50,73 +65,209 @@
       position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
     }
-    .app {
-      display: grid; grid-template-columns: 18rem 1fr; gap: 1rem;
-      max-width: 72rem; margin: 0 auto; padding: 1rem; min-height: 100dvh;
-    }
-    @media (max-width: 52rem) { .app { grid-template-columns: 1fr; } }
-
-    aside, main { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
-    aside { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; align-self: start; }
-    h1 { font-size: 1.05rem; margin: 0; }
-    h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 .4rem; }
-    .note { font-size: .8rem; color: var(--muted); margin: 0; line-height: 1.4; }
-    .note + .note { margin-top: .4rem; }
     select, input, button { font: inherit; }
+    :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+    a { color: var(--brand); }
+
+    /* ---------------------------------------------------------------- top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      flex-wrap: wrap; max-width: 76rem; margin: 0 auto; padding: .9rem 1rem .2rem;
+    }
+    .brand { display: flex; align-items: center; gap: .65rem; }
+    .logo {
+      inline-size: 2.4rem; block-size: 2.4rem; border-radius: 10px; display: grid;
+      place-items: center; background: var(--brand); color: var(--brand-text);
+    }
+    .brand h1 { font-size: 1.05rem; margin: 0; line-height: 1.2; }
+    .brand p { margin: 0; font-size: .8rem; color: var(--muted); }
+    nav ul { display: flex; gap: .25rem; list-style: none; margin: 0; padding: 0; }
+    nav a {
+      display: block; padding: .4rem .8rem; border-radius: 999px; text-decoration: none;
+      color: var(--muted); font-size: .9rem; font-weight: 500;
+    }
+    nav a:hover { color: var(--text); background: var(--panel); }
+    nav a[aria-current="page"] { background: var(--brand-soft); color: var(--brand); }
+
+    /* ---------------------------------------------------------------- layout */
+    .app {
+      display: grid; grid-template-columns: 19rem 1fr; gap: 1rem;
+      max-width: 76rem; margin: 0 auto; padding: .8rem 1rem 1rem;
+    }
+    @media (max-width: 54rem) {
+      .app { grid-template-columns: 1fr; }
+      main { order: -1; min-height: 70dvh; }      /* phones: the chat is the product - show it first */
+    }
+    aside, main { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+    aside { padding: 1rem; display: flex; flex-direction: column; gap: 1.1rem; align-self: start; }
+    h2 { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+         margin: 0 0 .5rem; font-weight: 600; }
+    .note { font-size: .78rem; color: var(--muted); margin: 0; line-height: 1.45; }
+    .note + .note { margin-top: .35rem; }
+
+    .profile { display: flex; align-items: center; gap: .6rem; }
+    .avatar {
+      flex: none; inline-size: 2.2rem; block-size: 2.2rem; border-radius: 50%; display: grid;
+      place-items: center; font-weight: 600; background: var(--brand-soft); color: var(--brand);
+    }
     select, input[type="text"] {
-      width: 100%; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 8px;
-      background: var(--bg); color: var(--text);
+      width: 100%; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 9px;
+      background: var(--sunk); color: var(--text);
     }
     button {
-      padding: .55rem .9rem; border-radius: 8px; border: 1px solid var(--line);
+      padding: .55rem .9rem; border-radius: 9px; border: 1px solid var(--line);
       background: var(--panel); color: var(--text); cursor: pointer;
     }
+    button:hover { border-color: var(--brand); }
     button.primary { background: var(--brand); color: var(--brand-text); border-color: var(--brand); }
     button:disabled { opacity: .55; cursor: not-allowed; }
-    :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 
-    .bookings { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
-    .bookings li { font-size: .85rem; padding: .45rem .55rem; border: 1px solid var(--line); border-radius: 8px; }
-    .bookings b { font-family: ui-monospace, monospace; }
-    .bookings span { display: block; color: var(--muted); font-size: .78rem; }
-    .examples { display: flex; flex-wrap: wrap; gap: .35rem; }
-    .examples button { font-size: .78rem; padding: .3rem .55rem; border-radius: 999px; text-align: left; }
+    /* ---------------------------------------------------------------- booking cards */
+    .bookings { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+    .booking {
+      padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 10px;
+      border-inline-start: 4px solid var(--state-color, var(--line)); background: var(--sunk);
+    }
+    .booking[data-state="ok"] { --state-color: var(--good); }
+    .booking[data-state="delayed"] { --state-color: var(--warning); }
+    .booking[data-state="cancelled"] { --state-color: var(--critical); }
+    .booking .top { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+    .booking .pnr { font-family: ui-monospace, monospace; font-weight: 700; font-size: .88rem; }
+    .booking .flight { font-size: .78rem; color: var(--muted); }
+    .booking .route { font-size: .84rem; margin: .15rem 0 .35rem; }
+    .pill {
+      display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem;
+      padding: .1rem .5rem; border-radius: 999px; font-weight: 500;
+    }
+    .pill .dot { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--state-color); }
+    .booking[data-state="ok"] .pill { background: var(--ok); }
+    .booking[data-state="delayed"] .pill { background: var(--late); }
+    .booking[data-state="cancelled"] .pill { background: var(--off); }
+    .outcome { display: block; margin-top: .35rem; font-size: .76rem; font-weight: 600; color: var(--brand); }
 
-    main { display: grid; grid-template-rows: 1fr auto; min-height: 70dvh; overflow: hidden; }
+    .examples { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+    .examples button { font-size: .78rem; padding: .3rem .6rem; border-radius: 999px; text-align: left;
+                       background: var(--sunk); }
+
+    .explainer { background: var(--brand-soft); border-radius: 10px; padding: .7rem .8rem; }
+    .explainer p { margin: 0; font-size: .8rem; line-height: 1.45; }
+    .explainer strong { color: var(--brand); }
+
+    /* ---------------------------------------------------------------- chat */
+    main { display: grid; grid-template-rows: auto 1fr auto; min-height: 78dvh; overflow: hidden; }
+    .chat-head {
+      display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap;
+      padding: .7rem 1rem; border-bottom: 1px solid var(--line);
+    }
+    .chat-head h2 { margin: 0; font-size: .95rem; text-transform: none; letter-spacing: 0; color: var(--text); }
+    .chat-head .status { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+    .chat-head .live { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--good); }
+    .toggle { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; cursor: pointer; }
+
     .log {
       list-style: none; margin: 0; padding: 1rem; overflow-y: auto; display: flex;
-      flex-direction: column; gap: .75rem; max-height: calc(100dvh - 9rem);
-      scrollbar-width: thin;
+      flex-direction: column; gap: 1rem; max-height: calc(100dvh - 12rem); scrollbar-width: thin;
     }
-    .msg { max-width: 85%; padding: .65rem .85rem; border-radius: 12px; line-height: 1.45; }
-    .msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .msg.user { align-self: flex-end; background: var(--user); }
-    .msg.bot { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); }
-    .msg.error { align-self: flex-start; background: var(--warn); }
-    .meta { margin-top: .45rem; font-size: .72rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: .35rem; }
-    .badge { border: 1px solid var(--line); border-radius: 999px; padding: .05rem .45rem; font-family: ui-monospace, monospace; }
-    .confirm { display: flex; gap: .5rem; margin-top: .6rem; }
-    .typing { color: var(--muted); font-size: .85rem; padding: 0 1rem .5rem; min-height: 1.2rem; }
+    .msg { display: flex; gap: .55rem; max-width: 88%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg .avatar { inline-size: 1.9rem; block-size: 1.9rem; font-size: .8rem; }
+    .msg.bot .avatar { background: var(--brand); color: var(--brand-text); }
+    .bubble { padding: .65rem .85rem; border-radius: 14px; line-height: 1.5; min-width: 0; }
+    .bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .msg.user .bubble { background: var(--user); color: var(--user-text); border-end-end-radius: 4px; }
+    .msg.bot .bubble { background: var(--sunk); border: 1px solid var(--line); border-end-start-radius: 4px; }
+    .msg.error .bubble { background: var(--late); }
+
+    .chips { margin-top: .55rem; display: flex; flex-wrap: wrap; gap: .3rem; font-size: .72rem; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .5rem; color: var(--muted);
+            background: var(--panel); }
+    .chip.code { border-color: var(--good); }
+
+    .confirm {
+      margin-top: .7rem; padding: .6rem .7rem; border-radius: 10px; background: var(--late);
+      border-inline-start: 4px solid var(--warning);
+    }
+    .confirm p { font-size: .82rem; margin: 0 0 .5rem; }
+    .confirm .buttons { display: flex; gap: .5rem; }
+
+    /* "How I decided" - native <details>: keyboard and screen-reader support built in */
+    details.trace { margin-top: .55rem; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    details.trace summary {
+      cursor: pointer; padding: .45rem .65rem; font-size: .8rem; font-weight: 600; color: var(--brand);
+      display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+    }
+    details.trace summary .sum { font-weight: 400; color: var(--muted); }
+    details.trace::details-content {
+      block-size: 0; overflow: hidden;
+      transition: block-size .25s ease, content-visibility .25s allow-discrete;
+    }
+    details.trace[open]::details-content { block-size: auto; }
+    @media (prefers-reduced-motion: reduce) { details.trace::details-content { transition: none; } }
+    .trace-body { padding: .2rem .7rem .7rem; display: grid; gap: .7rem; font-size: .8rem; }
+    .trace-body h3 { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 .35rem; }
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+    .step { display: grid; grid-template-columns: 5.2rem 1fr auto; gap: .5rem; align-items: start; }
+    .step .name { font-weight: 600; }
+    .step .ms { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .step .bar { grid-column: 2 / 4; block-size: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+    .step .bar span { display: block; block-size: 100%; background: var(--brand); border-radius: 2px; }
+    .risks { display: grid; gap: .45rem; }
+    .risk { display: grid; grid-template-columns: 9rem 1fr 3.2rem; gap: .5rem; align-items: center; }
+    .risk .track { position: relative; block-size: 8px; border-radius: 4px; background: var(--brand-soft); }
+    .risk .fill { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 4px; background: var(--brand); }
+    .risk.flagged .fill { background: var(--critical); }
+    .risk .threshold { position: absolute; inset-block: -3px; inline-size: 2px; background: var(--text); }
+    .risk .val { font-variant-numeric: tabular-nums; text-align: end; }
+    .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: .25rem; }
+    .checks li::before { content: "\2713"; color: var(--good); font-weight: 700; margin-inline-end: .45rem; }
+    .sources { margin: 0; padding-inline-start: 1.1rem; color: var(--muted); }
+
+    .typing { display: none; align-items: center; gap: .5rem; padding: 0 1rem .6rem; color: var(--muted); font-size: .82rem; }
+    .typing.on { display: flex; }
+    .dots { display: inline-flex; gap: 3px; }
+    .dots span { inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+    .dots span:nth-child(2) { animation-delay: .2s; }
+    .dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: .6; } }
 
     form { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--line); }
     form input { flex: 1; }
+    .privacy { padding: 0 1rem .7rem; margin-top: -.3rem; }
   </style>
 </head>
 <body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+    </div>
+    <div>
+      <h1>ACME Bharat Airlines</h1>
+      <p>AI support agent &middot; live portfolio demo</p>
+    </div>
+  </div>
+  <nav aria-label="Site">
+    <ul>
+      <li><a href="/" aria-current="page">Chat</a></li>
+      <li><a href="/insights">Insights</a></li>
+      <li><a href="https://github.com/Khatalahmed/acme-ai-support" rel="noopener">GitHub</a></li>
+    </ul>
+  </nav>
+</header>
+
 <div class="app">
   <aside aria-label="Demo controls">
-    <div>
-      <h1>ACME Bharat Airlines - support agent</h1>
-      <p class="note">Portfolio demo: mock airline data, simulated sign-in. Changes need your "yes"; every action is audited.</p>
-      <p class="note">Please don't enter personal information: messages are logged to improve quality.</p>
-    </div>
-
-    <div>
-      <label for="user"><h2>Signed in as</h2></label>
-      <select id="user">
-        <option value="asha">Asha (4 bookings)</option>
-        <option value="ravi">Ravi (3 bookings)</option>
-      </select>
+    <div class="profile">
+      <div class="avatar" id="initial" aria-hidden="true">A</div>
+      <div style="flex:1">
+        <label for="user"><h2 style="margin-bottom:.3rem">Signed in as</h2></label>
+        <select id="user">
+          <option value="asha">Asha (4 bookings)</option>
+          <option value="ravi">Ravi (3 bookings)</option>
+        </select>
+      </div>
     </div>
 
     <div>
@@ -124,20 +275,37 @@
       <ul class="bookings" id="bookings" aria-labelledby="bookings-title"></ul>
     </div>
 
-    <div>
-      <h2 id="examples-title">Try</h2>
-      <div class="examples" id="examples" role="group" aria-labelledby="examples-title"></div>
+    <div class="explainer">
+      <p><strong>Not a black box.</strong> Open <em>How I decided</em> under any reply to see
+        which router read your message, what the agent did, every model call and the safety
+        checks that applied.</p>
     </div>
 
-    <button type="button" id="new-chat">New conversation</button>
-    <button type="button" id="reset-demo" hidden>Reset demo data</button>
+    <div class="actions">
+      <button type="button" id="new-chat">New chat</button>
+      <button type="button" id="reset-demo" hidden>Reset demo</button>
+    </div>
+
+    <div>
+      <p class="note">Portfolio demo: mock airline data, simulated sign-in. Changes need your "yes"; every action is audited.</p>
+    </div>
   </aside>
 
   <main>
+    <div class="chat-head">
+      <div>
+        <h2>Support chat</h2>
+        <span class="status"><span class="live" aria-hidden="true"></span>Jev router + Azure OpenAI</span>
+      </div>
+      <label class="toggle"><input type="checkbox" id="auto-open"> Open "How I decided" automatically</label>
+    </div>
     <!-- role="log": new messages are announced to screen readers politely -->
     <ol class="log" id="log" role="log" aria-label="Conversation"></ol>
     <div>
-      <p class="typing" id="typing" aria-live="polite"></p>
+      <div class="typing" id="typing" aria-live="polite">
+        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span id="typing-text"></span>
+      </div>
       <!-- A real form with a single-line input: Enter submits natively and IME input is safe -->
       <form id="form">
         <label for="message" class="visually-hidden">Message</label>
@@ -145,6 +313,7 @@
                placeholder="Ask about your booking or ACME policy...">
         <button type="submit" class="primary" id="send">Send</button>
       </form>
+      <p class="note privacy">Please don't enter personal information: messages are logged to improve quality.</p>
     </div>
   </main>
 </div>
@@ -155,68 +324,153 @@
     asha: ["ACX123 is delayed 5 hours, what are my options?", "Is ACX456 on time?",
            "Cancel ACX456", "What's the checked baggage allowance?", "Cancel ACX789"],
     ravi: ["My flight ACX789 got cancelled, what can I do?", "What's happening with ACX654?",
-           "ACX987 is delayed 7 hours - compensation?", "I want to speak to a manager"],
+           "ACX987 is delayed 7 hours - compensation?", "Refund ACX654 right now or I'll sue"],
   };
+  const STATE_ICON = { ok: "On time", delayed: "Delayed", cancelled: "Cancelled" };
+  const FAMILIES = [["rag", "Policy answer"], ["tool:get_flight_status", "Booking status"],
+                    ["agent:", "Disruption agent"], ["confirm:", "Confirmation"],
+                    ["tool:", "Change completed"], ["escalated", "Handed to a person"],
+                    ["clarify", "Clarifying question"]];
   const $ = (id) => document.getElementById(id);
   const log = $("log"), form = $("form"), input = $("message"), send = $("send");
-  const typing = $("typing"), userSel = $("user");
+  const typing = $("typing"), userSel = $("user"), autoOpen = $("auto-open");
   let session = crypto.randomUUID();
+
+  // Per-viewer convenience only: may be unavailable (private mode), so never required.
+  try { autoOpen.checked = localStorage.getItem("acme-auto-open") === "1"; } catch {}
+  autoOpen.addEventListener("change", () => {
+    try { localStorage.setItem("acme-auto-open", autoOpen.checked ? "1" : "0"); } catch {}
+  });
 
   const headers = () => ({ "Authorization": `Bearer demo-${userSel.value}`,
                            "Content-Type": "application/json" });
 
-  // Untrusted text (customer input, LLM output) is only ever inserted with textContent:
-  // never innerHTML, so a message containing HTML/script can't run in this page.
+  // Untrusted text (customer input, LLM output, API fields) is only ever inserted with
+  // textContent: never innerHTML, so a message containing HTML/script can't run in this page.
   function el(tag, cls, text) {
     const node = document.createElement(tag);
     if (cls) node.className = cls;
     if (text != null) node.textContent = text;
     return node;
   }
+  const seconds = (ms) => ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms} ms`;
+  const family = (route) => (FAMILIES.find(([p]) => route.startsWith(p)) || [null, route])[1];
 
   function add(node) {
     log.append(node);
     node.scrollIntoView({ block: "end", behavior: "smooth" });
   }
 
+  function message(kind, initial, text) {
+    const li = el("li", `msg ${kind}`);
+    const bubble = el("div", "bubble");
+    bubble.append(el("p", null, text));
+    li.append(el("div", "avatar", initial), bubble);
+    return [li, bubble];
+  }
+
   function addUser(text) {
-    const li = el("li", "msg user");
-    li.append(el("p", null, text));
-    add(li);
+    add(message("user", userSel.value[0].toUpperCase(), text)[0]);
+  }
+
+  function traceView(t, total) {
+    const details = el("details", "trace");
+    details.open = autoOpen.checked;
+    const summary = el("summary");
+    const calls = t.model_calls === 1 ? "1 model call" : `${t.model_calls} model calls`;
+    summary.append(el("span", null, "How I decided"),
+                   el("span", "sum", `${t.steps.length} steps · ${calls} · ${seconds(total)}`));
+    const body = el("div", "trace-body");
+
+    const steps = el("ol", "steps");
+    for (const s of t.steps) {
+      const li = el("li", "step");
+      li.append(el("span", "name", s.step), el("span", null, s.detail),
+                el("span", "ms", s.ms == null ? "" : seconds(s.ms)));
+      if (s.ms) {
+        const bar = el("span", "bar"), fill = el("span");
+        fill.style.width = `${Math.min(100, (100 * s.ms) / Math.max(total, 1))}%`;
+        bar.append(fill);
+        li.append(bar);
+      }
+      steps.append(li);
+    }
+    const stepBox = el("section");
+    stepBox.append(el("h3", null, "Steps"), steps);
+    body.append(stepBox);
+
+    if (t.risk) {
+      const box = el("section"), risks = el("div", "risks");
+      box.append(el("h3", null, "Risk signals (a person takes over at 0.70)"));
+      for (const [key, label] of [["angry", "Anger"], ["demands_exception", "Demands an exception"]]) {
+        const v = t.risk[key] || 0, flagged = v >= 0.7;
+        const row = el("div", `risk${flagged ? " flagged" : ""}`);
+        const track = el("div", "track"), fill = el("div", "fill"), mark = el("div", "threshold");
+        track.setAttribute("role", "img");
+        track.setAttribute("aria-label", `${label}: ${v.toFixed(2)}${flagged ? ", flagged" : ""}`);
+        fill.style.width = `${v * 100}%`;
+        mark.style.insetInlineStart = "70%";
+        track.append(fill, mark);
+        row.append(el("span", null, label), track, el("span", "val", v.toFixed(2) + (flagged ? " !" : "")));
+        risks.append(row);
+      }
+      box.append(risks);
+      body.append(box);
+    }
+
+    if (t.safety.length) {
+      const box = el("section"), list = el("ul", "checks");
+      for (const s of t.safety) list.append(el("li", null, s));
+      box.append(el("h3", null, "Safety checks"), list);
+      body.append(box);
+    }
+    if (t.policy.length) {
+      const box = el("section"), list = el("ul", "sources");
+      for (const s of t.policy) list.append(el("li", null, s));
+      box.append(el("h3", null, "Policy sources"), list);
+      body.append(box);
+    }
+    details.append(summary, body);
+    return details;
   }
 
   function addBot(data) {
-    const li = el("li", "msg bot");
-    li.append(el("p", null, data.reply));
-    const meta = el("div", "meta");
-    meta.append(el("span", "badge", data.route), el("span", "badge", `router: ${data.router}`),
-                el("span", "badge", `${data.latency_ms} ms`));
-    for (const s of data.sources || []) meta.append(el("span", "badge", s));
-    li.append(meta);
+    const [li, bubble] = message("bot", "A", data.reply);
     if (data.pending_action) {
       const box = el("div", "confirm");
+      box.append(el("p", null, "Waiting for your confirmation - nothing changes until you say yes."));
+      const buttons = el("div", "buttons");
       const yes = el("button", "primary", "Yes, go ahead");
       const no = el("button", null, "No");
       for (const [btn, answer] of [[yes, "yes"], [no, "no"]]) {
         btn.type = "button";
         btn.addEventListener("click", () => { yes.disabled = no.disabled = true; ask(answer); });
       }
-      box.append(yes, no);
-      li.append(box);
+      buttons.append(yes, no);
+      box.append(buttons);
+      bubble.append(box);
     }
+    const chips = el("div", "chips");
+    chips.append(el("span", "chip", family(data.route)), el("span", "chip", seconds(data.latency_ms)));
+    const t = data.trace;
+    if (t && t.router === "jev" && t.confidence != null)
+      chips.append(el("span", "chip", `Jev ${Math.round(t.confidence * 100)}%`));
+    else if (t && t.router === "jev->llm") chips.append(el("span", "chip", "LLM fallback"));
+    if (t && t.model_calls === 0) chips.append(el("span", "chip code", "No model call"));
+    bubble.append(chips);
+    if (t) bubble.append(traceView(t, data.latency_ms));
     add(li);
   }
 
   function addError(text) {
-    const li = el("li", "msg error");
-    li.append(el("p", null, text));
-    add(li);
+    add(message("error", "!", text)[0]);
   }
 
   async function ask(text) {
     addUser(text);
     send.disabled = true;
-    typing.textContent = "Agent is working...";
+    typing.classList.add("on");
+    $("typing-text").textContent = "Agent is working...";
     try {
       const res = await fetch("/v1/chat", { method: "POST", headers: headers(),
                                             body: JSON.stringify({ message: text, session_id: session }) });
@@ -227,7 +481,8 @@
       addError("Couldn't reach the server. Is it running?");
     } finally {
       send.disabled = false;
-      typing.textContent = "";
+      typing.classList.remove("on");
+      $("typing-text").textContent = "";
       input.focus();
       loadBookings();   // a cancel or rebooking changes the sidebar, whichever button sent it
     }
@@ -235,39 +490,48 @@
 
   async function loadBookings() {
     const list = $("bookings");
-    list.replaceChildren();
     try {
       const res = await fetch("/v1/bookings", { headers: headers() });
+      const items = [];
       for (const b of await res.json()) {
-        const li = el("li");
-        li.append(el("b", null, b.pnr), document.createTextNode(` ${b.flight}`),
-                  el("span", null, `${b.route} · ${b.status}`));
-        list.append(li);
+        const li = el("li", "booking");
+        li.dataset.state = b.state;
+        const top = el("div", "top");
+        top.append(el("span", "pnr", b.pnr), el("span", "flight", `${b.flight} · ${b.departure}`));
+        const pill = el("span", "pill");
+        pill.append(el("span", "dot"), el("span", null, b.status));
+        pill.title = STATE_ICON[b.state] || "";
+        li.append(top, el("div", "route", b.route), pill);
+        if (b.outcome) li.append(el("span", "outcome", `✔ ${b.outcome}`));
+        items.push(li);
       }
-    } catch { list.append(el("li", null, "Couldn't load bookings.")); }
+      list.replaceChildren(...items);   // swap in one go: no flicker while refreshing
+    } catch { list.replaceChildren(el("li", null, "Couldn't load bookings.")); }
   }
 
-  function loadExamples() {
-    const box = $("examples");
-    box.replaceChildren();
+  function examples() {
+    const box = el("div", "examples");
+    box.setAttribute("role", "group");
+    box.setAttribute("aria-label", "Try one of these");
     for (const text of EXAMPLES[userSel.value]) {
       const b = el("button", null, text);
       b.type = "button";
       b.addEventListener("click", () => ask(text));
       box.append(b);
     }
+    return box;
   }
 
   function newConversation() {
     session = crypto.randomUUID();
-    log.replaceChildren();
-    const li = el("li", "msg bot");
-    li.append(el("p", null, `Hi ${userSel.options[userSel.selectedIndex].text.split(" ")[0]} - ` +
-                            "how can I help with your travel today?"));
-    log.append(li);
+    const name = userSel.options[userSel.selectedIndex].text.split(" ")[0];
+    $("initial").textContent = name[0];
+    const [li, bubble] = message("bot", "A", `Hi ${name} - how can I help with your travel today?`);
+    bubble.append(examples());
+    log.replaceChildren(li);
     loadBookings();
-    loadExamples();
-    input.focus();
+    // On a phone, focusing would jump past everything and pop up the keyboard on arrival.
+    if (matchMedia("(min-width: 54rem)").matches) input.focus();
   }
 
   form.addEventListener("submit", (e) => {

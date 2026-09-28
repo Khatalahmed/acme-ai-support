@@ -96,6 +96,18 @@ def test_insights_counts_real_traffic(client):
     assert families == {"Policy answer": 1, "Confirmations": 2, "Clarifying question": 1}
 
 
+def test_insights_count_only_since_this_server_started(client, monkeypatch):
+    """The database can outlive a restart; the page promises "since the server last started"."""
+    import insights
+    say(client, "What is the baggage allowance?")
+    say(client, "Cancel ACX456")
+    monkeypatch.setattr(insights, "STARTED", insights.actions.now())   # simulated restart
+    say(client, "no")
+    live = client.get("/v1/insights").json()["live"]
+    assert live["requests"] == 1
+    assert live["actions"]["proposed"] == 0 and live["actions"]["declined"] == 1
+
+
 def test_insights_never_stores_or_returns_messages(client):
     say(client, SECRET_MESSAGE)
     body = client.get("/v1/insights").text

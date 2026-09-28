@@ -334,8 +334,28 @@ def insights_data():
 @app.get("/v1/bookings")
 def bookings(user_id: str = Depends(current_user)):
     """The signed-in user's own bookings, for the demo page's sidebar."""
-    return [{k: b[k] for k in ("pnr", "flight", "route", "departure", "status")}
+    return [{**{k: b[k] for k in ("pnr", "flight", "route", "departure", "status")},
+             "state": booking_state(b), "outcome": booking_outcome(b)}
             for b in actions.my_bookings(user_id)]
+
+
+def booking_state(b):
+    """ok | delayed | cancelled - the page shows it as colour + icon + the status text."""
+    if b["booking_status"] == "cancelled" or b["flight_status"] == "cancelled":
+        return "cancelled"
+    return "delayed" if b["flight_status"] == "delayed" else "ok"
+
+
+def booking_outcome(b):
+    """What was done to this booking, so the sidebar visibly changes after an action."""
+    r = b.get("resolution") or {}
+    if r.get("kind") == "refund":
+        return f"Refunded Rs {r['amount']:,}"
+    if r.get("kind") == "voucher":
+        return f"Rs {r['amount']:,} voucher added"
+    if r.get("kind") == "rebook":
+        return "Rebooked" + (f" + Rs {r['voucher']:,} voucher" if r.get("voucher") else "")
+    return "Cancelled by you" if b["booking_status"] == "cancelled" else None
 
 
 def rate_limited(request: Request):

@@ -71,18 +71,23 @@ def percentile(values, p):
 
 
 def summary():
+    # Everything since THIS process started. The database can outlive a restart (locally, or a
+    # long-running container), and the page promises "since the server last started".
+    since = STARTED.isoformat()
     with actions._db() as conn:
-        conn.executescript(SCHEMA)
-        rows = [dict(r) for r in conn.execute("SELECT * FROM request_log ORDER BY id")]
+        conn.executescript(SCHEMA + shadow.SCHEMA)
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM request_log WHERE ts >= ? ORDER BY id", (since,))]
         events = Counter(r["event"] for r in conn.execute(
-            "SELECT event FROM audit_log WHERE event != 'demo_reset'"))
+            "SELECT event FROM audit_log WHERE event != 'demo_reset' AND ts >= ?", (since,)))
+        compared = [r["agree"] for r in conn.execute(
+            "SELECT agree FROM shadow_log WHERE agree IS NOT NULL AND ts >= ?", (since,))]
 
     by_family = {}
     for r in rows:
         by_family.setdefault(family(r["route"]), []).append(r["latency_ms"])
     routers = Counter(r["router"] for r in rows if r["router"] in ("jev", "jev->llm", "llm"))
     confidences = [r["confidence"] for r in rows if r["router"] == "jev" and r["confidence"]]
-    shadowed = shadow.summary()
 
     def count(suffix):
         return sum(n for e, n in events.items() if e.endswith(suffix))
@@ -106,5 +111,5 @@ def summary():
                     "failed": count("_failed")},
         "escalations": events.get("escalated", 0),
         "blocked_access": events.get("access_denied", 0),
-        "shadow": {"compared": shadowed["compared"], "agree": shadowed["agree"]},
+        "shadow": {"compared": len(compared), "agree": sum(compared)},
     }

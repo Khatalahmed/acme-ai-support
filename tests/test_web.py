@@ -37,8 +37,43 @@ def test_bookings_are_only_your_own():
     assert {b["pnr"] for b in asha} == owned("asha")
     assert {b["pnr"] for b in ravi} == owned("ravi")
     assert not {b["pnr"] for b in asha} & {b["pnr"] for b in ravi}
-    assert set(asha[0]) == {"pnr", "flight", "route", "departure", "status"}   # no owner/fare
+    assert set(asha[0]) == {"pnr", "flight", "route", "departure", "status",   # no owner/fare
+                            "state", "outcome"}
+
+
+def sidebar(user="asha"):
+    rows = client.get("/v1/bookings", headers={"Authorization": f"Bearer demo-{user}"}).json()
+    return {b["pnr"]: (b["state"], b["outcome"]) for b in rows}
+
+
+def test_booking_states_for_the_sidebar():
+    assert sidebar()["ACX456"] == ("ok", None)
+    assert sidebar()["ACX123"] == ("delayed", None)
+    assert sidebar("ravi")["ACX789"] == ("cancelled", None)
+
+
+def test_sidebar_shows_what_was_done():
+    """After an action the sidebar must visibly change - the demo video relies on it."""
+    backend.refund("ACX789", 3200)
+    backend.issue_voucher("ACX123", 3000)
+    backend.cancel_ticket("ACX456")
+    assert sidebar("ravi")["ACX789"] == ("cancelled", "Refunded Rs 3,200")
+    assert sidebar()["ACX123"] == ("delayed", "Rs 3,000 voucher added")
+    assert sidebar()["ACX456"] == ("cancelled", "Cancelled by you")
 
 
 def test_bookings_need_a_token():
     assert client.get("/v1/bookings").status_code == 401
+
+
+def test_insights_page_is_served_and_linked():
+    r = client.get("/insights")
+    assert r.status_code == 200 and "text/html" in r.headers["content-type"]
+    assert 'href="/insights"' in client.get("/").text and 'href="/"' in r.text
+
+
+def test_insights_page_never_inserts_api_text_as_html():
+    page = client.get("/insights").text
+    assert not re.search(r"\.(innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML\(|document\.write\(",
+                         page)
+    assert "textContent" in page
