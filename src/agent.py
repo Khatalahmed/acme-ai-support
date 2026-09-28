@@ -1,6 +1,7 @@
 """Disruption-recovery agent: a LangGraph state machine over the tool layer.
 
     assess ──┬─► escalate ─────────────────────────────► END  (angry / demands an exception)
+             ├─► resolved ─────────────────────────────► END  (already sorted: say what was done)
              ├─► explain ──────────────────────────────► END  (nothing to choose)
              └─► present ─► await_choice ─► propose ───► END  (pending action created)
                                │ (pauses)
@@ -89,6 +90,9 @@ def after_assess(state):
         return END
     if high_risk({"risk": state["risk"]}):
         return "escalate"
+    booking = state["booking"]
+    if booking.get("resolution") or booking.get("booking_status") == "cancelled":
+        return "resolved"
     return "present" if state["options"] else "explain"
 
 
@@ -114,6 +118,31 @@ def explain(state):
                                       facts="; ".join(facts) + f" ({state['note']})"),
                 name="agent.explain.llm")
     return {"outcome": "explained", "reply": reply}
+
+
+@observe(name="agent.resolved")
+def resolved(state):
+    """Code-written: the disruption was already handled, so say exactly what was done.
+
+    This used to go to explain(). Live on Azure, the LLM told a customer whose voucher had just
+    been added "would you like me to ... show the options for this delayed flight?" - offering
+    choices that no longer exist, after 3.9 s. The facts are all in the booking; no model needed.
+    """
+    booking, r = state["booking"], state["booking"].get("resolution") or {}
+    if r.get("kind") == "voucher":
+        done = f"a Rs {r['amount']:,} travel voucher was added and you kept your flight"
+    elif r.get("kind") == "rebook":
+        extra = f", plus a Rs {r['voucher']:,} travel voucher" if r.get("voucher") else ""
+        done = (f"you were rebooked onto {r['flight']}, departing "
+                f"{booking['departure']}{extra}")
+    elif r.get("kind") == "refund":
+        done = f"a full refund of Rs {r['amount']:,} is on its way to your original payment method"
+    else:
+        done = "the booking was cancelled"
+    return {"outcome": "resolved", "reply": (
+        f"Booking {state['pnr']} is already sorted: {done}. Each disruption can be resolved "
+        "once, so there are no further options to choose. If something looks wrong, I can "
+        "connect you to a person. Is there anything else I can help you with?")}
 
 
 def intro(booking):
@@ -194,12 +223,14 @@ def propose(state):
 
 def _build():
     g = StateGraph(State)
-    for name, fn in [("assess", assess), ("escalate", escalate), ("explain", explain),
+    for name, fn in [("assess", assess), ("escalate", escalate), ("resolved", resolved),
+                     ("explain", explain),
                      ("present", present), ("await_choice", await_choice), ("propose", propose)]:
         g.add_node(name, fn)
     g.add_edge(START, "assess")
-    g.add_conditional_edges("assess", after_assess, ["escalate", "explain", "present", END])
+    g.add_conditional_edges("assess", after_assess, ["escalate", "resolved", "explain", "present", END])
     g.add_edge("escalate", END)
+    g.add_edge("resolved", END)
     g.add_edge("explain", END)
     g.add_edge("present", "await_choice")
     g.add_conditional_edges("await_choice", after_choice, ["propose", END])

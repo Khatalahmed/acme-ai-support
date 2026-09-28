@@ -145,6 +145,36 @@ def test_nothing_to_choose_is_explained(client, router_says):
     assert not agent.waiting("asha", "s1")
 
 
+@pytest.mark.parametrize("choice, done", [
+    ("1", "a Rs 3,000 travel voucher was added and you kept your flight"),
+    ("2", "you were rebooked onto AC103, departing 2026-10-02 19:45"),
+])
+def test_already_resolved_says_what_was_done(client, router_says, monkeypatch, choice, done):
+    """Found live: after a voucher was added, asking again got an LLM reply offering to 'show
+    the options' that no longer existed. Now code states what was done - and offers nothing."""
+    say(client, ASHA_DELAYED)
+    say(client, choice)
+    say(client, "yes")
+
+    def no_llm(*a, **kw):
+        raise AssertionError("an already-resolved booking must not call an LLM")
+    monkeypatch.setattr(agent, "llm", no_llm)
+    r = say(client, ASHA_DELAYED)
+    assert r["route"] == "agent:resolved" and r["pending_action"] is None
+    assert r["reply"].startswith(f"Booking ACX123 is already sorted: {done}.")
+    assert "no further options" in r["reply"] and not agent.waiting("asha", "s1")
+
+
+def test_already_refunded_and_cancelled_bookings(client, router_says):
+    say(client, RAVI_CANCELLED, user="ravi")
+    say(client, "3", user="ravi")
+    say(client, "yes", user="ravi")
+    assert "a full refund of Rs 3,200 is on its way" in say(client, RAVI_CANCELLED,
+                                                              user="ravi")["reply"]
+    backend.cancel_ticket("ACX123")                             # voluntary cancel: no resolution
+    assert "the booking was cancelled" in say(client, ASHA_DELAYED)["reply"]
+
+
 def test_someone_elses_booking(client, router_says):
     assert say(client, RAVI_CANCELLED, user="asha")["route"] == "agent:not_found"
     assert events(user_id="asha") == ["access_denied"]
