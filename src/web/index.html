@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Declare both themes early so the first paint already matches the user's system theme -->
+  <meta name="color-scheme" content="light dark">
+  <title>ACME Support Agent - demo</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+
+      /* raw colour pairs */
+      --bg-l: #f6f7fb;        --bg-d: #0f1218;
+      --panel-l: #ffffff;     --panel-d: #181c24;
+      --text-l: #1b1f29;      --text-d: #e7eaf0;
+      --muted-l: #5d6475;     --muted-d: #9aa3b5;
+      --line-l: #dfe3ec;      --line-d: #2a303c;
+      --brand-l: #3949ab;     --brand-d: #8c9eff;
+      --brand-text-l: #ffffff; --brand-text-d: #10142a;
+      --user-l: #e8ebfa;      --user-d: #26305a;
+      --warn-l: #fff4e0;      --warn-d: #3a2c12;
+
+      /* fallback for browsers without light-dark(): pick the pair with a media query */
+      --bg: var(--bg-l); --panel: var(--panel-l); --text: var(--text-l); --muted: var(--muted-l);
+      --line: var(--line-l); --brand: var(--brand-l); --brand-text: var(--brand-text-l);
+      --user: var(--user-l); --warn: var(--warn-l);
+      @media (prefers-color-scheme: dark) {
+        --bg: var(--bg-d); --panel: var(--panel-d); --text: var(--text-d); --muted: var(--muted-d);
+        --line: var(--line-d); --brand: var(--brand-d); --brand-text: var(--brand-text-d);
+        --user: var(--user-d); --warn: var(--warn-d);
+      }
+      @supports (color: light-dark(white, black)) {
+        --bg: light-dark(var(--bg-l), var(--bg-d));
+        --panel: light-dark(var(--panel-l), var(--panel-d));
+        --text: light-dark(var(--text-l), var(--text-d));
+        --muted: light-dark(var(--muted-l), var(--muted-d));
+        --line: light-dark(var(--line-l), var(--line-d));
+        --brand: light-dark(var(--brand-l), var(--brand-d));
+        --brand-text: light-dark(var(--brand-text-l), var(--brand-text-d));
+        --user: light-dark(var(--user-l), var(--user-d));
+        --warn: light-dark(var(--warn-l), var(--warn-d));
+      }
+      accent-color: var(--brand);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+    .app {
+      display: grid; grid-template-columns: 18rem 1fr; gap: 1rem;
+      max-width: 72rem; margin: 0 auto; padding: 1rem; min-height: 100dvh;
+    }
+    @media (max-width: 52rem) { .app { grid-template-columns: 1fr; } }
+
+    aside, main { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+    aside { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; align-self: start; }
+    h1 { font-size: 1.05rem; margin: 0; }
+    h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 .4rem; }
+    .note { font-size: .8rem; color: var(--muted); margin: 0; line-height: 1.4; }
+    select, input, button { font: inherit; }
+    select, input[type="text"] {
+      width: 100%; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--bg); color: var(--text);
+    }
+    button {
+      padding: .55rem .9rem; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--text); cursor: pointer;
+    }
+    button.primary { background: var(--brand); color: var(--brand-text); border-color: var(--brand); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+    .bookings { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
+    .bookings li { font-size: .85rem; padding: .45rem .55rem; border: 1px solid var(--line); border-radius: 8px; }
+    .bookings b { font-family: ui-monospace, monospace; }
+    .bookings span { display: block; color: var(--muted); font-size: .78rem; }
+    .examples { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .examples button { font-size: .78rem; padding: .3rem .55rem; border-radius: 999px; text-align: left; }
+
+    main { display: grid; grid-template-rows: 1fr auto; min-height: 70dvh; overflow: hidden; }
+    .log {
+      list-style: none; margin: 0; padding: 1rem; overflow-y: auto; display: flex;
+      flex-direction: column; gap: .75rem; max-height: calc(100dvh - 9rem);
+      scrollbar-width: thin;
+    }
+    .msg { max-width: 85%; padding: .65rem .85rem; border-radius: 12px; line-height: 1.45; }
+    .msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .msg.user { align-self: flex-end; background: var(--user); }
+    .msg.bot { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); }
+    .msg.error { align-self: flex-start; background: var(--warn); }
+    .meta { margin-top: .45rem; font-size: .72rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: .35rem; }
+    .badge { border: 1px solid var(--line); border-radius: 999px; padding: .05rem .45rem; font-family: ui-monospace, monospace; }
+    .confirm { display: flex; gap: .5rem; margin-top: .6rem; }
+    .typing { color: var(--muted); font-size: .85rem; padding: 0 1rem .5rem; min-height: 1.2rem; }
+
+    form { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--line); }
+    form input { flex: 1; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside aria-label="Demo controls">
+    <div>
+      <h1>ACME Bharat Airlines - support agent</h1>
+      <p class="note">Portfolio demo: mock airline data, simulated sign-in. Changes need your "yes"; every action is audited.</p>
+    </div>
+
+    <div>
+      <label for="user"><h2>Signed in as</h2></label>
+      <select id="user">
+        <option value="asha">Asha (4 bookings)</option>
+        <option value="ravi">Ravi (3 bookings)</option>
+      </select>
+    </div>
+
+    <div>
+      <h2 id="bookings-title">Your bookings</h2>
+      <ul class="bookings" id="bookings" aria-labelledby="bookings-title"></ul>
+    </div>
+
+    <div>
+      <h2 id="examples-title">Try</h2>
+      <div class="examples" id="examples" role="group" aria-labelledby="examples-title"></div>
+    </div>
+
+    <button type="button" id="new-chat">New conversation</button>
+  </aside>
+
+  <main>
+    <!-- role="log": new messages are announced to screen readers politely -->
+    <ol class="log" id="log" role="log" aria-label="Conversation"></ol>
+    <div>
+      <p class="typing" id="typing" aria-live="polite"></p>
+      <!-- A real form with a single-line input: Enter submits natively and IME input is safe -->
+      <form id="form">
+        <label for="message" class="visually-hidden">Message</label>
+        <input type="text" id="message" autocomplete="off" required maxlength="1000"
+               placeholder="Ask about your booking or ACME policy...">
+        <button type="submit" class="primary" id="send">Send</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+{
+  const EXAMPLES = {
+    asha: ["ACX123 is delayed 5 hours, what are my options?", "Is ACX456 on time?",
+           "Cancel ACX456", "What's the checked baggage allowance?", "Cancel ACX789"],
+    ravi: ["My flight ACX789 got cancelled, what can I do?", "What's happening with ACX654?",
+           "ACX987 is delayed 7 hours - compensation?", "I want to speak to a manager"],
+  };
+  const $ = (id) => document.getElementById(id);
+  const log = $("log"), form = $("form"), input = $("message"), send = $("send");
+  const typing = $("typing"), userSel = $("user");
+  let session = crypto.randomUUID();
+
+  const headers = () => ({ "Authorization": `Bearer demo-${userSel.value}`,
+                           "Content-Type": "application/json" });
+
+  // Untrusted text (customer input, LLM output) is only ever inserted with textContent:
+  // never innerHTML, so a message containing HTML/script can't run in this page.
+  function el(tag, cls, text) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function add(node) {
+    log.append(node);
+    node.scrollIntoView({ block: "end", behavior: "smooth" });
+  }
+
+  function addUser(text) {
+    const li = el("li", "msg user");
+    li.append(el("p", null, text));
+    add(li);
+  }
+
+  function addBot(data) {
+    const li = el("li", "msg bot");
+    li.append(el("p", null, data.reply));
+    const meta = el("div", "meta");
+    meta.append(el("span", "badge", data.route), el("span", "badge", `router: ${data.router}`),
+                el("span", "badge", `${data.latency_ms} ms`));
+    for (const s of data.sources || []) meta.append(el("span", "badge", s));
+    li.append(meta);
+    if (data.pending_action) {
+      const box = el("div", "confirm");
+      const yes = el("button", "primary", "Yes, go ahead");
+      const no = el("button", null, "No");
+      for (const [btn, answer] of [[yes, "yes"], [no, "no"]]) {
+        btn.type = "button";
+        btn.addEventListener("click", () => { yes.disabled = no.disabled = true; ask(answer); });
+      }
+      box.append(yes, no);
+      li.append(box);
+    }
+    add(li);
+  }
+
+  function addError(text) {
+    const li = el("li", "msg error");
+    li.append(el("p", null, text));
+    add(li);
+  }
+
+  async function ask(text) {
+    addUser(text);
+    send.disabled = true;
+    typing.textContent = "Agent is working...";
+    try {
+      const res = await fetch("/v1/chat", { method: "POST", headers: headers(),
+                                            body: JSON.stringify({ message: text, session_id: session }) });
+      if (res.status === 429) addError("Too many requests for this demo right now - please wait a minute.");
+      else if (!res.ok) addError(`Something went wrong (HTTP ${res.status}). Please try again.`);
+      else addBot(await res.json());
+    } catch {
+      addError("Couldn't reach the server. Is it running?");
+    } finally {
+      send.disabled = false;
+      typing.textContent = "";
+      input.focus();
+      loadBookings();   // a cancel or rebooking changes the sidebar, whichever button sent it
+    }
+  }
+
+  async function loadBookings() {
+    const list = $("bookings");
+    list.replaceChildren();
+    try {
+      const res = await fetch("/v1/bookings", { headers: headers() });
+      for (const b of await res.json()) {
+        const li = el("li");
+        li.append(el("b", null, b.pnr), document.createTextNode(` ${b.flight}`),
+                  el("span", null, `${b.route} · ${b.status}`));
+        list.append(li);
+      }
+    } catch { list.append(el("li", null, "Couldn't load bookings.")); }
+  }
+
+  function loadExamples() {
+    const box = $("examples");
+    box.replaceChildren();
+    for (const text of EXAMPLES[userSel.value]) {
+      const b = el("button", null, text);
+      b.type = "button";
+      b.addEventListener("click", () => ask(text));
+      box.append(b);
+    }
+  }
+
+  function newConversation() {
+    session = crypto.randomUUID();
+    log.replaceChildren();
+    const li = el("li", "msg bot");
+    li.append(el("p", null, `Hi ${userSel.options[userSel.selectedIndex].text.split(" ")[0]} - ` +
+                            "how can I help with your travel today?"));
+    log.append(li);
+    loadBookings();
+    loadExamples();
+    input.focus();
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text || send.disabled) return;
+    input.value = "";
+    ask(text);
+  });
+  userSel.addEventListener("change", newConversation);
+  $("new-chat").addEventListener("click", newConversation);
+  newConversation();
+}
+</script>
+</body>
+</html>

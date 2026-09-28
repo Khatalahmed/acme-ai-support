@@ -141,6 +141,12 @@ def flight_status(user_id, session_id, pnr):
     return backend.get_flight_status(pnr)
 
 
+def my_bookings(user_id):
+    """The caller's own bookings (customer-safe view) - never anyone else's."""
+    return [backend.get_flight_status(pnr) for pnr, b in backend.BOOKINGS.items()
+            if b["owner"] == user_id]
+
+
 @observe(name="actions.disruption_options", as_type="tool")
 def disruption_options(user_id, session_id, pnr):
     """What the passenger is owed for this booking, computed by policy.py."""

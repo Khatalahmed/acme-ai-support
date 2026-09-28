@@ -21,6 +21,7 @@ from pathlib import Path
 import chromadb
 from langfuse import get_client, observe, propagate_attributes
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
@@ -290,6 +291,22 @@ def answer_pending(user_id, req):
                 f"No problem - I haven't made any changes to booking {declined.get('pnr')}. "
                 "Is there anything else I can help you with?", [])
     return None  # moved on to something else: pending closed, handle the message normally
+
+
+WEB = ROOT / "src" / "web"
+
+
+@app.get("/", include_in_schema=False)
+def chat_page():
+    """The demo chat page (plain HTML/CSS/JS, no build step)."""
+    return FileResponse(WEB / "index.html")
+
+
+@app.get("/v1/bookings")
+def bookings(user_id: str = Depends(current_user)):
+    """The signed-in user's own bookings, for the demo page's sidebar."""
+    return [{k: b[k] for k in ("pnr", "flight", "route", "departure", "status")}
+            for b in actions.my_bookings(user_id)]
 
 
 @app.post("/v1/chat")
