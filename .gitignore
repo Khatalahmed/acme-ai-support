@@ -15,8 +15,12 @@ data/chroma/
 !.env.example
 data/audit/
 *.db
+*.db-wal
+*.db-shm
+*.db-journal
 *.sqlite
 *.sqlite3
+*.sqlite-*
 .pytest_cache/
 # local dev tooling
 .claude/
