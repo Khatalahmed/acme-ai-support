@@ -109,7 +109,10 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       conversation down. Tests run with `LANGFUSE_TRACING_ENABLED=false` (blank keys still try to
       export). **First finding:** the disruption intro LLM call was 15.72 s of a 16.25 s request and
       99% of its cost - 1,984 hidden reasoning tokens - and the guardrail discarded it every time:
-      the auto-injected persona ("options, a policy note…") contradicted the intro prompt
+      the auto-injected persona ("options, a policy note…") contradicted the intro prompt.
+      **Fix (decision A):** intro is code-written from the booking; persona is opt-in (customer-
+      facing replies only, never the router). Measured: opening disruption reply 16.25 s → 0.49 s,
+      $0.004236 → $0.000024. Next slowest step: `rag.answer` (~7.6 s, 640 reasoning tokens)
 - [ ] **C2 Jev shadow mode** — serve with Jev, run the LLM router silently, log disagreements to a
       Langfuse dataset for review
 - [ ] **C3 150-case benchmark** — built against the final intents, every label reviewed; shadow
@@ -172,3 +175,5 @@ retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 | 2026-09-28 | Completed changes get code-written receipts, never LLM phrasing |
 | 2026-09-28 | Disruption questions without a PNR are answered by RAG (general policy) |
 | 2026-09-28 | MCP: no confirm tool; human approval via elicitation (MCP SDK 2.x `MCPServer`) |
+| 2026-09-28 | Drop the LLM disruption intro (A): traced at 97% of latency, discarded every time |
+| 2026-09-28 | Persona is opt-in per call, not auto-added to every call without a system prompt |

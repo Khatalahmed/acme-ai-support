@@ -44,9 +44,16 @@ else:
     raise ValueError(f"LLM_BACKEND must be 'ollama' or 'azure', got {BACKEND!r}")
 
 
-def chat(messages, name="llm"):
-    """Send a chat-format message list, return the reply text. `name` labels the trace step."""
-    if MODEL != "acme-support" and not any(m["role"] == "system" for m in messages):
+def chat(messages, name="llm", persona=False):
+    """Send a chat-format message list, return the reply text. `name` labels the trace step.
+
+    persona=True adds the airline persona as the system message - ONLY for customer-facing
+    replies that don't bring their own. It used to be added to every call without a system
+    message, and tracing showed it contradicting task prompts ("options, a policy note…" vs.
+    "don't list options") and padding the router's JSON call.
+    """
+    if (persona and MODEL != "acme-support"
+            and not any(m["role"] == "system" for m in messages)):
         messages = [{"role": "system", "content": PERSONA}] + messages
     if BACKEND == "azure":
         resp = _client.chat.completions.create(model=MODEL, messages=messages, name=name)

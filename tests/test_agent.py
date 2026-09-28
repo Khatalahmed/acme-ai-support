@@ -105,11 +105,26 @@ def test_option_not_offered_cannot_be_chosen(client, router_says):
     assert r["route"] == "rag" and actions.pending_action("asha", "s1") is None
 
 
-def test_llm_intro_cannot_promise_money(client, router_says, monkeypatch):
-    monkeypatch.setattr(agent, "llm", lambda p, **kw: "Great news, you get a full refund of Rs 6,500!")
+def test_presenting_options_makes_no_llm_call(client, router_says, monkeypatch):
+    """The whole options message is code: no model can add a promise, and it costs nothing."""
+    def no_llm(*a, **kw):
+        raise AssertionError("presenting options must not call an LLM")
+    monkeypatch.setattr(agent, "llm", no_llm)
     offer = say(client, ASHA_DELAYED)
-    assert "6,500" not in offer["reply"] and agent.SAFE_INTRO in offer["reply"]
-    assert "1. A Rs 3,000 travel voucher" in offer["reply"]            # the real options
+    assert offer["reply"].startswith(
+        "I'm sorry your AC101 flight (Pune -> Delhi) is delayed by 5 hours.")
+    assert "1. A Rs 3,000 travel voucher" in offer["reply"]
+
+
+@pytest.mark.parametrize("status, expected", [
+    ("Cancelled by airline", "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled."),
+    ("Delayed by 6 hours 40 minutes",
+     "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) is delayed by 6 hours 40 minutes."),
+    ("On time", "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) has been disrupted."),
+])
+def test_intro_line(status, expected):
+    assert agent.intro({"flight": "AC310", "route": "Hyderabad -> Bengaluru",
+                        "status": status}) == expected
 
 
 def test_seat_gone_between_choice_and_yes(client, router_says):

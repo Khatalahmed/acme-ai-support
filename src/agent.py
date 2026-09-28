@@ -9,8 +9,9 @@
 Rules this file follows:
   - The agent never changes a booking. It PROPOSES through actions.py; the customer's "yes"
     is handled by the same server-side confirmation as every other change.
-  - Entitlements come from policy.py via actions.disruption_options - the LLM only writes a
-    short, empathetic intro. The options list itself is appended by code.
+  - Entitlements come from policy.py via actions.disruption_options. The options message is
+    written entirely by code (intro line included); the LLM is only used to explain cases with
+    nothing to choose.
   - await_choice holds the interrupt() and nothing else with side effects: LangGraph re-runs
     the interrupted node from its start when the customer replies.
   - Conversation state lives in SQLite (one thread per user+session), so a paused
@@ -26,21 +27,13 @@ from typing import TypedDict
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
-from langfuse import get_client, observe
+from langfuse import observe
 
 import actions
 import policy
 from llm_backend import chat
 
 RISK_THRESHOLD = 0.7  # angry / demands_exception at or above this -> a human takes over
-
-INTRO_PROMPT = """You are an empathetic ACME Bharat Airlines support agent.
-Customer's message: {message}
-Their booking: {booking}
-Policy note: {note}
-
-Write ONE or TWO short sentences acknowledging their situation. Do NOT list options, amounts,
-refunds or promises of any kind - the exact options are added after your text."""
 
 EXPLAIN_PROMPT = """You are an empathetic ACME Bharat Airlines support agent.
 Customer's message: {message}
@@ -72,8 +65,8 @@ class State(TypedDict):
 
 
 def llm(prompt, name="agent.llm"):
-    """The only model call in the agent (tests replace it)."""
-    return chat([{"role": "user", "content": prompt}], name=name).strip()
+    """The agent's only model call - customer-facing, so it gets the airline persona."""
+    return chat([{"role": "user", "content": prompt}], name=name, persona=True).strip()
 
 
 # ---------------------------------------------------------------- nodes
@@ -123,28 +116,28 @@ def explain(state):
     return {"outcome": "explained", "reply": reply}
 
 
-SAFE_INTRO = "I'm sorry about the disruption to your journey."
-# The intro must not promise anything: money, refunds, vouchers or compensation belong only in
-# the code-generated options list below it.
-PROMISE = re.compile(r"(rs\.?|₹|inr|rupees?)\s*\d|\d[\d,]{2,}|refund|voucher|compensat",
-                     re.IGNORECASE)
+def intro(booking):
+    """Code-written opening line naming their flight.
 
-
-@observe(name="guardrail.intro", as_type="guardrail")
-def guard_intro(text):
-    """Output guardrail: drop an LLM intro that makes promises the options list doesn't."""
-    replaced = not text or bool(PROMISE.search(text))
-    get_client().update_current_span(metadata={"replaced": replaced})  # how often does it fire?
-    return SAFE_INTRO if replaced else text
+    This used to be an LLM call. Tracing (C1) showed it was 15.7 s of a 16.3 s request and 99% of
+    its cost (1,984 hidden reasoning tokens) - and the output guardrail discarded it every time.
+    A sentence built from the booking is instant, free, and still personal.
+    """
+    status = booking.get("status", "")
+    if status.startswith("Cancelled"):
+        what = "was cancelled"
+    elif status.startswith("Delayed"):
+        what = "is " + status[0].lower() + status[1:]           # "is delayed by 5 hours"
+    else:
+        what = "has been disrupted"
+    return f"I'm sorry your {booking['flight']} flight ({booking['route']}) {what}."
 
 
 @observe(name="agent.present")
 def present(state):
-    intro = guard_intro(llm(INTRO_PROMPT.format(message=state["message"],
-                                                booking=state["booking"], note=state["note"]),
-                            name="agent.intro.llm"))
+    intro_line = intro(state["booking"])
     lines = [f"{i}. {policy.describe(o)}" for i, o in enumerate(state["options"], 1)]
-    reply = (f"{intro}\n\nHere is what you can choose for booking {state['pnr']}:\n"
+    reply = (f"{intro_line}\n\nHere is what you can choose for booking {state['pnr']}:\n"
              + "\n".join(lines) + f"\n\nReply with the option number (1-{len(lines)}).")
     return {"outcome": "presented", "reply": reply}
 

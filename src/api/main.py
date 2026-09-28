@@ -103,10 +103,10 @@ def retrieve(question, k=TOP_K):
     return res["documents"][0], res["metadatas"][0]
 
 
-def llm(prompt, system=None, name="api.llm"):
+def llm(prompt, system=None, name="api.llm", persona=False):
     messages = ([{"role": "system", "content": system}] if system else [])
     messages.append({"role": "user", "content": prompt})
-    return llm_chat(messages, name=name)
+    return llm_chat(messages, name=name, persona=persona)
 
 
 def clean(text):
@@ -141,7 +141,7 @@ def phrase_result(tool, pnr, result, question):
     docs, metas = retrieve(question)
     reply = clean(llm(TOOL_RESPONSE_PROMPT.format(
         question=question, result=json.dumps(result), context="\n\n---\n\n".join(docs)),
-        name="tool.reply"))
+        name="tool.reply", persona=True))   # customer-facing, no system prompt of its own
     return reply, [f"backend:{tool}({pnr})"] + [m["source"] for m in metas]
 
 
