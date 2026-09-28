@@ -148,8 +148,17 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       | Negation | 15 | | Cancellation / refund edge cases | 20 |
       | Ambiguous | 15 | | **Total** | **150** |
 
-- [ ] **C4 RAG evaluation** — measure retrieval before/after on the known failure (status questions
-      retrieving loyalty docs), fix, re-measure
+- [x] **C4 RAG evaluation** — `src/evals/rag_eval.py` + `data/evals/rag_set.jsonl` (41 questions, 4
+      unanswerable). Retrieval and answers measured separately, all deterministic (hit@k, MRR, fact
+      recall, grounded numbers, correct refusals). Baseline (top 3, default effort): hit@3 95%, fact
+      recall 95%, p50 8.1 s; both misses were RETRIEVAL (answer ranked 4th/5th) and the LLM correctly
+      refused. Effort sweep: default/low/minimal equal quality, minimal 3.2x faster; top 5 fixes the
+      misses but is flaky with minimal. **Chosen: TOP_K 5 + RAG_REASONING_EFFORT=low → 100% fact
+      recall on 2/2 runs, 0 invented numbers, p50 ~4.1 s.** Status replies: searching with the
+      customer's words found the right policy 7/21 (2.7 irrelevant sections/reply); query from
+      booking 12/21; **lookup by section name from the booking state 21/21, 0 irrelevant**. Also
+      stopped internal fields (`flight_status: scheduled`) reaching customer replies. Known limit:
+      Hinglish retrieval (English-only MiniLM) - covered by top 5, a multilingual embedding is v2
 - [ ] **C5 Tool-call evaluation** — right tool, right arguments, no forbidden calls, escalation precision
 - [ ] **C6 CI gate 2** — **weekly + manual + release** (not nightly: it would use ~45k of Langfuse Hobby's
       50k units/month). Thresholds: wrongful cancellations = 0, confirmation bypasses = 0,
@@ -201,3 +210,5 @@ retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 | 2026-09-28 | Persona is opt-in per call, not auto-added to every call without a system prompt |
 | 2026-09-28 | Router changes are validated on held-out cases written before the change (no tuning to the 150) |
 | 2026-09-28 | Demanding an exception escalates on any route; anger alone only escalates change requests |
+| 2026-09-28 | RAG: top 5 sections; reasoning effort is an .env setting (low), not code (model-dependent) |
+| 2026-09-28 | Status replies look policy up by section name from booking state - search only when unknown |

@@ -44,7 +44,7 @@ else:
     raise ValueError(f"LLM_BACKEND must be 'ollama' or 'azure', got {BACKEND!r}")
 
 
-def chat(messages, name="llm", persona=False):
+def chat(messages, name="llm", persona=False, reasoning_effort=None):
     """Send a chat-format message list, return the reply text. `name` labels the trace step.
 
     persona=True adds the airline persona as the system message - ONLY for customer-facing
@@ -56,7 +56,10 @@ def chat(messages, name="llm", persona=False):
             and not any(m["role"] == "system" for m in messages)):
         messages = [{"role": "system", "content": PERSONA}] + messages
     if BACKEND == "azure":
-        resp = _client.chat.completions.create(model=MODEL, messages=messages, name=name)
+        # reasoning_effort (minimal | low | medium | high): how much hidden "thinking" a
+        # reasoning model does before answering - traced at up to 94% of a call's cost (C1)
+        extra = {"reasoning_effort": reasoning_effort} if reasoning_effort else {}
+        resp = _client.chat.completions.create(model=MODEL, messages=messages, name=name, **extra)
         return resp.choices[0].message.content
     return _ollama_chat(messages, name)
 

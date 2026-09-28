@@ -77,7 +77,9 @@ def flight_view(flight_no):
     f = FLIGHTS[flight_no]
     return {"flight": flight_no, "route": f"{CITIES[f['origin']]} -> {CITIES[f['dest']]}",
             "departure": f["dep"], "scheduled": f["dep"][-5:], "status": display_status(f),
-            "seats_available": f["seats"]}
+            "seats_available": f["seats"],
+            # raw disruption facts: which policy applies depends on these, not on the wording
+            "flight_status": f["status"], "delay_min": f["delay_min"], "cause": f["cause"]}
 
 
 def get_flight_status(pnr: str) -> dict:

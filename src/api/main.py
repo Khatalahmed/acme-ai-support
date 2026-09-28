@@ -11,6 +11,7 @@ message in the same session answers it, and only a clear yes cancels.
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -33,7 +34,10 @@ from llm_backend import chat as llm_chat
 from router import RISK_THRESHOLD, TOOLS, demands_exception, find_pnr, high_risk
 from router import route as route_message  # LLM or Jev, picked by ROUTER_BACKEND
 
-TOP_K = 3
+# Policy sections given to the LLM. 3 -> 5 after the C4 eval: two questions (non-refundable
+# refunds, a Hinglish one) had their answer ranked 4th/5th, so the LLM correctly refused;
+# with 5 (and RAG_REASONING_EFFORT=low) fact recall went 95% -> 100% over repeated runs.
+TOP_K = 5
 
 app = FastAPI(title="ACME Bharat Airlines Support AI", version="1.1")
 
@@ -99,15 +103,25 @@ def _policies():
 
 
 @observe(name="rag.retrieve", as_type="retriever")
-def retrieve(question, k=TOP_K):
-    res = _policies().query(query_texts=[question], n_results=k)
+def retrieve(question, k=None):
+    res = _policies().query(query_texts=[question], n_results=k or TOP_K)
     return res["documents"][0], res["metadatas"][0]
 
 
-def llm(prompt, system=None, name="api.llm", persona=False):
+def llm(prompt, system=None, name="api.llm", persona=False, reasoning_effort=None):
     messages = ([{"role": "system", "content": system}] if system else [])
     messages.append({"role": "user", "content": prompt})
-    return llm_chat(messages, name=name, persona=persona)
+    return llm_chat(messages, name=name, persona=persona, reasoning_effort=reasoning_effort)
+
+
+def rag_answer(question, reasoning_effort=None):
+    """Retrieve policy sections and answer from them only. The API and src/evals/rag_eval.py
+    both call this, so the evaluation measures exactly what customers get."""
+    effort = reasoning_effort or os.environ.get("RAG_REASONING_EFFORT") or None
+    docs, metas = retrieve(question)
+    reply = clean(llm(RAG_PROMPT.format(context="\n\n---\n\n".join(docs), question=question),
+                      system=RAG_SYSTEM, name="rag.answer", reasoning_effort=effort))
+    return reply, docs, metas
 
 
 def clean(text):
@@ -137,11 +151,54 @@ def declines(text):
     return bool(words) and words[0] in DECLINE_START
 
 
+# Which policy section a booking's state makes relevant. Status replies used to SEARCH with the
+# customer's words ("What's the status of ACX123?"), which say nothing about which policy matters:
+# the right section was found for 7 of 21 test replies. Searching with a query built from the
+# booking reached 12/21 - delays still ranked "Processing Claims" above the tiers. But here we
+# KNOW the section, so we look it up by name: search is for when you don't know what you need.
+DELAY_TIERS = ("delay-compensation-policy.md", "2. Delay Compensation Tiers")
+DELAY_EXCLUSIONS = ("delay-compensation-policy.md", "4. Policy Exclusions")
+AIRLINE_CANCEL = ("refund-cancellation-policy.md", "4. Airline-Initiated Cancellations")
+WEATHER_CANCEL = ("refund-cancellation-policy.md", "5. Weather and Force Majeure Cancellations")
+POLICY_SECTIONS = (DELAY_TIERS, DELAY_EXCLUSIONS, AIRLINE_CANCEL, WEATHER_CANCEL)
+INTERNAL_FIELDS = {"ok", "flight_status", "delay_min", "cause", "seats_available"}
+
+
+def policy_section(booking):
+    """(source, section) that applies to this booking's disruption, or None (operating normally)."""
+    status, external = booking.get("flight_status"), booking.get("cause") in ("weather", "atc")
+    if status == "cancelled":
+        return WEATHER_CANCEL if external else AIRLINE_CANCEL
+    if status == "delayed":
+        return DELAY_EXCLUSIONS if external else DELAY_TIERS
+    return None
+
+
+@observe(name="rag.lookup", as_type="retriever")
+def status_context(booking, question):
+    """Policy text for a booking status reply: a lookup by section name, not a search.
+    Empty when the flight is operating normally (no policy applies)."""
+    key = policy_section(booking)
+    if not key:
+        return [], []
+    got = _policies().get(where={"$and": [{"source": key[0]}, {"section": key[1]}]},
+                          include=["documents", "metadatas"])
+    if got["documents"]:
+        return got["documents"], got["metadatas"]
+    # Section renamed in the policy docs? Degrade to search rather than answer without policy.
+    return retrieve(f"{key[1]} {question}", k=2)
+
+
 def phrase_result(tool, pnr, result, question):
     """Let the LLM phrase a verified backend result, grounded in retrieved policy."""
-    docs, metas = retrieve(question)
+    docs, metas = status_context(result, question)
+    context = ("\n\n---\n\n".join(docs) if docs else
+               "(none - the flight is operating normally, so make no policy statements)")
+    # Raw fields are for code (choosing the policy); the LLM gets the customer-facing view only.
+    # A live reply showed "(flight_status: scheduled; ..." to a customer before this filter.
+    shown = {k: v for k, v in result.items() if k not in INTERNAL_FIELDS}
     reply = clean(llm(TOOL_RESPONSE_PROMPT.format(
-        question=question, result=json.dumps(result), context="\n\n---\n\n".join(docs)),
+        question=question, result=json.dumps(shown), context=context),
         name="tool.reply", persona=True))   # customer-facing, no system prompt of its own
     return reply, [f"backend:{tool}({pnr})"] + [m["source"] for m in metas]
 
@@ -312,10 +369,7 @@ def handle(req, user_id):
                 route, reply, sources = "clarify", not_found(pnr.upper()), []
 
     else:  # policy / general -> RAG
-        docs, metas = retrieve(req.message)
-        reply = clean(llm(RAG_PROMPT.format(
-            context="\n\n---\n\n".join(docs), question=req.message), system=RAG_SYSTEM,
-            name="rag.answer"))
+        reply, docs, metas = rag_answer(req.message)
         route = "rag"
         sources = [f"{m['source']} [{m['section']}]" for m in metas]
 

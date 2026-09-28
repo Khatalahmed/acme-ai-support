@@ -1,0 +1,18 @@
+[
+  {
+    "router": "prod",
+    "accuracy": 1.0,
+    "acc_min": 1.0,
+    "acc_max": 1.0,
+    "consistent": 20,
+    "n": 20,
+    "runs": 1,
+    "wrongful_cancels": 0,
+    "cancel_recall": 1.0,
+    "esc_precision": 1.0,
+    "esc_recall": null,
+    "fallback_rate": 0.05,
+    "p50_ms": 480,
+    "p95_ms": 6516
+  }
+]
