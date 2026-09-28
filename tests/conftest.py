@@ -41,6 +41,27 @@ def fresh_state(tmp_path, monkeypatch):
         live.update(snapshot)
 
 
+class FakePolicies:
+    """Stands in for the Chroma policy index, so no test can depend on data/chroma existing.
+    (A status-lookup test once passed locally only because the real index was on disk - CI,
+    which has no index, caught it.)"""
+
+    def get(self, where, include=None):
+        source, section = where["$and"][0]["source"], where["$and"][1]["section"]
+        return {"documents": [f"{section}: policy text"],
+                "metadatas": [{"source": source, "section": section}]}
+
+    def query(self, query_texts, n_results):
+        return {"documents": [["policy text"] * n_results],
+                "metadatas": [[{"source": "p.md", "section": "s"}] * n_results]}
+
+
+@pytest.fixture(autouse=True)
+def no_real_index(monkeypatch):
+    from src.api import main
+    monkeypatch.setattr(main, "_policies", lambda: FakePolicies())
+
+
 @pytest.fixture
 def clock(monkeypatch):
     """Controllable time: clock.advance(minutes=6) jumps forward instantly."""
