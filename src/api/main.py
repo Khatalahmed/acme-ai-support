@@ -18,7 +18,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import chromadb
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -76,10 +77,14 @@ class ChatRequest(BaseModel):
     session_id: str = Field(min_length=1, max_length=100)
 
 
-def current_user(authorization: str | None = Header(default=None)):
+# Declared as a security scheme (not a plain header parameter), so the OpenAPI docs show an
+# "Authorize" button - Swagger UI ignores header parameters named "Authorization".
+bearer = HTTPBearer(auto_error=False, description="Demo tokens: demo-asha, demo-ravi (src/auth.py)")
+
+
+def current_user(creds: HTTPAuthorizationCredentials | None = Depends(bearer)):
     """Authentication: bearer token -> user_id (simulated; see src/auth.py)."""
-    token = authorization.removeprefix("Bearer ").strip() if authorization else None
-    user_id = user_from_token(token)
+    user_id = user_from_token(creds.credentials) if creds else None
     if not user_id:
         raise HTTPException(401, "Missing or invalid token", headers={"WWW-Authenticate": "Bearer"})
     return user_id

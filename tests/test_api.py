@@ -54,6 +54,14 @@ def test_requires_valid_token(client, headers):
     assert r.status_code == 401
 
 
+def test_docs_offer_authorize_button(client):
+    """Swagger ignores plain 'Authorization' header params; a bearer scheme gives Authorize."""
+    spec = client.get("/openapi.json").json()
+    schemes = spec["components"]["securitySchemes"]
+    assert any(s["type"] == "http" and s["scheme"] == "bearer" for s in schemes.values())
+    assert "security" in spec["paths"]["/v1/chat"]["post"]
+
+
 def test_requires_session_id(client):
     r = client.post("/v1/chat", json={"message": "hi"}, headers={"Authorization": "Bearer demo-asha"})
     assert r.status_code == 422
