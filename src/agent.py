@@ -66,7 +66,8 @@ class State(TypedDict):
 
 def llm(prompt, name="agent.llm"):
     """The agent's only model call - customer-facing, so it gets the airline persona."""
-    return chat([{"role": "user", "content": prompt}], name=name, persona=True).strip()
+    return chat([{"role": "user", "content": prompt}], name=name, persona=True,
+                reasoning_effort=os.environ.get("REPLY_REASONING_EFFORT") or None).strip()
 
 
 # ---------------------------------------------------------------- nodes

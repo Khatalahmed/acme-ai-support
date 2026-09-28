@@ -62,9 +62,18 @@ Verified backend result for their booking:
 Relevant ACME policy context:
 {context}
 
-Reply to the customer. Use ONLY the backend result for booking facts, and ONLY the
-policy context for any policy statements - NEVER state a policy that is not in the
-context. Be empathetic, state facts exactly, end with one next-step question."""
+Reply in 2-4 short sentences. Use ONLY the booking facts above, in plain words, and ONLY the
+policy context for any policy statement - NEVER state a policy that is not in the context.
+Do not offer options, services or next steps, and do not ask a question: a closing line is
+added after your text."""
+
+# Status replies get their own system prompt instead of the shared persona: the persona's
+# "end with a question / list options" rules made the model invent services (C5 eval).
+STATUS_SYSTEM = (
+    "You are a polite, empathetic ACME Bharat Airlines support assistant. Acknowledge the "
+    "customer briefly, then state the booking facts you were given in plain words. Mention "
+    "refunds, vouchers or compensation only if the policy context says they apply.")
+STATUS_CLOSING = "Is there anything else I can help you with?"
 
 CLARIFY_PNR = ("Could you please share your 6-character PNR (for example ACX123) "
                "so I can look up your booking?")
@@ -189,17 +198,34 @@ def status_context(booking, question):
     return retrieve(f"{key[1]} {question}", k=2)
 
 
+def customer_view(booking):
+    """Booking facts as a customer should read them - what the LLM sees.
+
+    Raw fields are for code: the LLM recited JSON it was given ("(flight_status: scheduled",
+    "refundable: false; resolution: null; vouchers: []") straight to customers. So it gets
+    plain labels and values, and nothing empty or internal.
+    """
+    lines = {"PNR": booking.get("pnr"), "Flight": booking.get("flight"),
+             "Route": booking.get("route"), "Departure": booking.get("departure"),
+             "Status": booking.get("status")}
+    if booking.get("fare"):
+        lines["Fare"] = f"Rs {booking['fare']:,}"
+        lines["Fare type"] = "refundable" if booking.get("refundable") else "non-refundable"
+    if booking.get("vouchers"):
+        lines["Travel vouchers on this booking"] = ", ".join(f"Rs {v:,}" for v in booking["vouchers"])
+    return "\n".join(f"- {k}: {v}" for k, v in lines.items() if v not in (None, "", []))
+
+
 def phrase_result(tool, pnr, result, question):
     """Let the LLM phrase a verified backend result, grounded in retrieved policy."""
     docs, metas = status_context(result, question)
     context = ("\n\n---\n\n".join(docs) if docs else
                "(none - the flight is operating normally, so make no policy statements)")
-    # Raw fields are for code (choosing the policy); the LLM gets the customer-facing view only.
-    # A live reply showed "(flight_status: scheduled; ..." to a customer before this filter.
-    shown = {k: v for k, v in result.items() if k not in INTERNAL_FIELDS}
     reply = clean(llm(TOOL_RESPONSE_PROMPT.format(
-        question=question, result=json.dumps(shown), context=context),
-        name="tool.reply", persona=True))   # customer-facing, no system prompt of its own
+        question=question, result=customer_view(result), context=context),
+        system=STATUS_SYSTEM, name="tool.reply",
+        reasoning_effort=os.environ.get("REPLY_REASONING_EFFORT") or None))
+    reply = f"{reply}\n\n{STATUS_CLOSING}"   # code, not LLM: nothing can be offered that we don't do
     return reply, [f"backend:{tool}({pnr})"] + [m["source"] for m in metas]
 
 

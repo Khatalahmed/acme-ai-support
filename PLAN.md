@@ -159,7 +159,16 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       booking 12/21; **lookup by section name from the booking state 21/21, 0 irrelevant**. Also
       stopped internal fields (`flight_status: scheduled`) reaching customer replies. Known limit:
       Hinglish retrieval (English-only MiniLM) - covered by top 5, a multilingual embedding is v2
-- [ ] **C5 Tool-call evaluation** — right tool, right arguments, no forbidden calls, escalation precision
+- [x] **C5 Tool-call evaluation** — `src/evals/tool_eval.py` + `data/evals/tool_scenarios.jsonl`
+      (20 multi-turn conversations): real router, LLM, safety layer and backend on a fresh airline
+      per conversation; judged on executed actions (pending_actions), escalations, reply must/must-not
+      phrases and final booking state. First run (2x): actions 12/12, **0 unwanted**, escalation 6/6,
+      but the on-time status reply invented services ("status alerts", "check-in") and recited raw
+      JSON ("resolution: null; vouchers: []") - a persona rewrite alone didn't fix it (0/3). Fixed
+      structurally: the LLM gets plain-language facts (`customer_view`), status replies get their own
+      system prompt, and the closing question is code. **Final (3 runs, REPLY_REASONING_EFFORT=low):
+      60/60 conversations, 18/18 actions, 0 unwanted, escalation 9/9, reply checks 27/27; status
+      reply p50 10.5 s → 4.4 s, explanations 12.1 s → 5.6 s**
 - [ ] **C6 CI gate 2** — **weekly + manual + release** (not nightly: it would use ~45k of Langfuse Hobby's
       50k units/month). Thresholds: wrongful cancellations = 0, confirmation bypasses = 0,
       accuracy ≥ target, p95 latency ≤ target. Secrets via GitHub Secrets; never on PRs
@@ -212,3 +221,4 @@ retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 | 2026-09-28 | Demanding an exception escalates on any route; anger alone only escalates change requests |
 | 2026-09-28 | RAG: top 5 sections; reasoning effort is an .env setting (low), not code (model-dependent) |
 | 2026-09-28 | Status replies look policy up by section name from booking state - search only when unknown |
+| 2026-09-28 | LLMs get facts in plain language, never raw JSON; reply closings that offer help are code |

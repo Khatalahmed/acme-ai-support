@@ -192,4 +192,5 @@ def test_not_yours_and_nonexistent_get_identical_replies(client, router_says):
 def test_owner_gets_status(client, router_says):
     router_says["status ACX123"] = {"tool": "get_flight_status", "arguments": {"pnr": "ACX123"}}
     r = say(client, "status ACX123").json()
-    assert r["route"] == "tool:get_flight_status" and r["reply"] == "stub reply"
+    assert r["route"] == "tool:get_flight_status"
+    assert r["reply"] == "stub reply\n\nIs there anything else I can help you with?"

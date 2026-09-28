@@ -41,11 +41,25 @@ def test_on_time_flight_gets_no_policy_and_says_so(monkeypatch):
     assert "operating normally, so make no policy statements" in prompts[0]
 
 
-def test_internal_fields_never_reach_the_llm(monkeypatch):
-    """Seen live: a reply quoted '(flight_status: scheduled; ...' to a customer."""
+def test_llm_sees_plain_facts_not_raw_fields(monkeypatch):
+    """Seen live: replies recited '(flight_status: scheduled' and 'resolution: null; vouchers: []'."""
     prompts = []
     monkeypatch.setattr(main, "llm", lambda prompt, **kw: prompts.append(prompt) or "ok")
     main.phrase_result("get_flight_status", "ACX456", get_flight_status("ACX456"), "status?")
-    for field in main.INTERNAL_FIELDS:
-        assert f'"{field}"' not in prompts[0]
-    assert '"status": "On time"' in prompts[0]                   # the customer-facing fields stay
+    for raw in ["flight_status", "delay_min", "cause", "seats_available", "resolution",
+                "booking_status", "null", "[]", "{", "refundable\""]:
+        assert raw not in prompts[0], raw
+    assert "- Status: On time" in prompts[0]
+    assert "- Fare type: non-refundable" in prompts[0]
+
+
+def test_status_reply_closing_is_code(monkeypatch):
+    """The LLM isn't asked to offer anything, so it can't offer services that don't exist."""
+    monkeypatch.setattr(main, "llm", lambda prompt, **kw: "Your flight AC205 is on time.")
+    reply, _ = main.phrase_result("get_flight_status", "ACX456", get_flight_status("ACX456"), "?")
+    assert reply == "Your flight AC205 is on time.\n\nIs there anything else I can help you with?"
+
+
+def test_vouchers_shown_in_plain_words():
+    booking = {**get_flight_status("ACX123"), "vouchers": [3000]}
+    assert "- Travel vouchers on this booking: Rs 3,000" in main.customer_view(booking)
