@@ -5,189 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Declare both themes early so the first paint already matches the user's system theme -->
   <meta name="color-scheme" content="light dark">
-  <title>ACME Support Agent - demo</title>
+  <title>Help & support - ACME Bharat Airlines</title>
+  <link rel="stylesheet" href="/static/site.css">
   <style>
-    :root {
-      color-scheme: light dark;
-      interpolate-size: allow-keywords;   /* lets <details> animate to its natural height */
-
-      /* raw colour pairs */
-      --bg-l: #f4f5f9;        --bg-d: #0d1016;
-      --panel-l: #ffffff;     --panel-d: #161a22;
-      --sunk-l: #f7f8fb;      --sunk-d: #11141b;
-      --text-l: #161a24;      --text-d: #e8ebf1;
-      --muted-l: #5b6273;     --muted-d: #9ba4b6;
-      --line-l: #e1e4ec;      --line-d: #272d39;
-      --brand-l: #3342a3;     --brand-d: #8c9eff;
-      --brand-text-l: #ffffff; --brand-text-d: #0f1330;
-      --brand-soft-l: #eceffd; --brand-soft-d: #1f2547;
-      --user-l: #3342a3;      --user-d: #3a4796;
-      --user-text-l: #ffffff; --user-text-d: #ffffff;
-      --ok-l: #e7f6e7;        --ok-d: #12301a;
-      --late-l: #fff4dc;      --late-d: #3a2c10;
-      --off-l: #fdeaea;       --off-d: #3a1719;
-
-      /* fallback for browsers without light-dark(): pick the pair with a media query */
-      --bg: var(--bg-l); --panel: var(--panel-l); --sunk: var(--sunk-l); --text: var(--text-l);
-      --muted: var(--muted-l); --line: var(--line-l); --brand: var(--brand-l);
-      --brand-text: var(--brand-text-l); --brand-soft: var(--brand-soft-l); --user: var(--user-l);
-      --user-text: var(--user-text-l); --ok: var(--ok-l); --late: var(--late-l); --off: var(--off-l);
-      @media (prefers-color-scheme: dark) {
-        --bg: var(--bg-d); --panel: var(--panel-d); --sunk: var(--sunk-d); --text: var(--text-d);
-        --muted: var(--muted-d); --line: var(--line-d); --brand: var(--brand-d);
-        --brand-text: var(--brand-text-d); --brand-soft: var(--brand-soft-d); --user: var(--user-d);
-        --user-text: var(--user-text-d); --ok: var(--ok-d); --late: var(--late-d); --off: var(--off-d);
-      }
-      @supports (color: light-dark(white, black)) {
-        --bg: light-dark(var(--bg-l), var(--bg-d));
-        --panel: light-dark(var(--panel-l), var(--panel-d));
-        --sunk: light-dark(var(--sunk-l), var(--sunk-d));
-        --text: light-dark(var(--text-l), var(--text-d));
-        --muted: light-dark(var(--muted-l), var(--muted-d));
-        --line: light-dark(var(--line-l), var(--line-d));
-        --brand: light-dark(var(--brand-l), var(--brand-d));
-        --brand-text: light-dark(var(--brand-text-l), var(--brand-text-d));
-        --brand-soft: light-dark(var(--brand-soft-l), var(--brand-soft-d));
-        --user: light-dark(var(--user-l), var(--user-d));
-        --user-text: light-dark(var(--user-text-l), var(--user-text-d));
-        --ok: light-dark(var(--ok-l), var(--ok-d));
-        --late: light-dark(var(--late-l), var(--late-d));
-        --off: light-dark(var(--off-l), var(--off-d));
-      }
-      /* status colours: fixed in both themes, always paired with an icon and a label */
-      --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
-      accent-color: var(--brand);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    /* ---------------------------------------------------------------- quick help */
+    .quick { padding: 1rem 1.1rem 1.1rem; }
+    .quick h2 { margin: 0 0 .7rem; font-size: 1rem; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .6rem; }
+    .tile {
+      display: grid; grid-template-columns: auto 1fr; gap: .15rem .65rem; align-items: start; text-align: start;
+      padding: .75rem .8rem; border-radius: 12px; background: var(--sunk); border: 1px solid var(--line);
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); }
-    .visually-hidden {
-      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    .tile:hover { border-color: var(--brand); background: var(--brand-soft); }
+    .tile .icon {
+      grid-row: span 2; inline-size: 2.1rem; block-size: 2.1rem; border-radius: 10px; display: grid; place-items: center;
+      background: var(--brand-soft); color: var(--brand);
     }
-    select, input, button { font: inherit; }
-    :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
-    a { color: var(--brand); }
-
-    /* ---------------------------------------------------------------- top bar */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-      flex-wrap: wrap; max-width: 76rem; margin: 0 auto; padding: .9rem 1rem .2rem;
-    }
-    .brand { display: flex; align-items: center; gap: .65rem; }
-    .logo {
-      inline-size: 2.4rem; block-size: 2.4rem; border-radius: 10px; display: grid;
-      place-items: center; background: var(--brand); color: var(--brand-text);
-    }
-    .brand h1 { font-size: 1.05rem; margin: 0; line-height: 1.2; }
-    .brand p { margin: 0; font-size: .8rem; color: var(--muted); }
-    nav ul { display: flex; gap: .25rem; list-style: none; margin: 0; padding: 0; }
-    nav a {
-      display: block; padding: .4rem .8rem; border-radius: 999px; text-decoration: none;
-      color: var(--muted); font-size: .9rem; font-weight: 500;
-    }
-    nav a:hover { color: var(--text); background: var(--panel); }
-    nav a[aria-current="page"] { background: var(--brand-soft); color: var(--brand); }
+    .tile b { font-size: .9rem; }
+    .tile small { font-size: .74rem; color: var(--muted); line-height: 1.3; }
 
     /* ---------------------------------------------------------------- layout */
-    .app {
-      display: grid; grid-template-columns: 19rem 1fr; gap: 1rem;
-      max-width: 76rem; margin: 0 auto; padding: .8rem 1rem 1rem;
+    .layout { display: grid; grid-template-columns: 22rem 1fr; gap: 1.25rem; margin-top: 1.5rem; align-items: start; }
+    @media (max-width: 58rem) {
+      .layout { grid-template-columns: 1fr; }
+      #assist { order: -1; }                     /* phones: the chat first, trips below */
     }
-    @media (max-width: 54rem) {
-      .app { grid-template-columns: 1fr; }
-      main { order: -1; min-height: 70dvh; }      /* phones: the chat is the product - show it first */
-    }
-    aside, main { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
-    aside { padding: 1rem; display: flex; flex-direction: column; gap: 1.1rem; align-self: start; }
-    h2 { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
-         margin: 0 0 .5rem; font-weight: 600; }
-    .note { font-size: .78rem; color: var(--muted); margin: 0; line-height: 1.45; }
-    .note + .note { margin-top: .35rem; }
 
-    .profile { display: flex; align-items: center; gap: .6rem; }
-    .avatar {
-      flex: none; inline-size: 2.2rem; block-size: 2.2rem; border-radius: 50%; display: grid;
-      place-items: center; font-weight: 600; background: var(--brand-soft); color: var(--brand);
+    /* ---------------------------------------------------------------- boarding-pass trip cards */
+    .trips { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+    .trip {
+      --state-color: var(--line); position: relative; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgb(12 34 87 / .05);
     }
-    select, input[type="text"] {
-      width: 100%; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 9px;
-      background: var(--sunk); color: var(--text);
-    }
-    button {
-      padding: .55rem .9rem; border-radius: 9px; border: 1px solid var(--line);
-      background: var(--panel); color: var(--text); cursor: pointer;
-    }
-    button:hover { border-color: var(--brand); }
-    button.primary { background: var(--brand); color: var(--brand-text); border-color: var(--brand); }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-
-    /* ---------------------------------------------------------------- booking cards */
-    .bookings { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
-    .booking {
-      padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 10px;
-      border-inline-start: 4px solid var(--state-color, var(--line)); background: var(--sunk);
-    }
-    .booking[data-state="ok"] { --state-color: var(--good); }
-    .booking[data-state="delayed"] { --state-color: var(--warning); }
-    .booking[data-state="cancelled"] { --state-color: var(--critical); }
-    .booking .top { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
-    .booking .pnr { font-family: ui-monospace, monospace; font-weight: 700; font-size: .88rem; }
-    .booking .flight { font-size: .78rem; color: var(--muted); }
-    .booking .route { font-size: .84rem; margin: .15rem 0 .35rem; }
+    .trip[data-state="ok"] { --state-color: var(--good); --state-bg: var(--ok); }
+    .trip[data-state="delayed"] { --state-color: var(--warning); --state-bg: var(--late); }
+    .trip[data-state="cancelled"] { --state-color: var(--critical); --state-bg: var(--off); }
+    .trip::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 4px; background: var(--state-color); }
+    .trip-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .7rem .9rem 0 1.1rem; }
+    .trip-top .pnr { font-size: .72rem; color: var(--muted); letter-spacing: .08em; }
+    .trip-top .pnr b { font-family: ui-monospace, monospace; font-size: .9rem; color: var(--text); letter-spacing: .02em; margin-inline-start: .3rem; }
     .pill {
-      display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem;
-      padding: .1rem .5rem; border-radius: 999px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; font-weight: 600;
+      padding: .15rem .55rem; border-radius: 999px; background: var(--state-bg);
     }
     .pill .dot { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--state-color); }
-    .booking[data-state="ok"] .pill { background: var(--ok); }
-    .booking[data-state="delayed"] .pill { background: var(--late); }
-    .booking[data-state="cancelled"] .pill { background: var(--off); }
-    .outcome { display: block; margin-top: .35rem; font-size: .76rem; font-weight: 600; color: var(--brand); }
-
-    .examples { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
-    .examples button { font-size: .78rem; padding: .3rem .6rem; border-radius: 999px; text-align: left;
-                       background: var(--sunk); }
-
-    .explainer { background: var(--brand-soft); border-radius: 10px; padding: .7rem .8rem; }
-    .explainer p { margin: 0; font-size: .8rem; line-height: 1.45; }
-    .explainer strong { color: var(--brand); }
-
-    /* ---------------------------------------------------------------- chat */
-    main { display: grid; grid-template-rows: auto 1fr auto; min-height: 78dvh; overflow: hidden; }
-    .chat-head {
-      display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap;
-      padding: .7rem 1rem; border-bottom: 1px solid var(--line);
+    .leg { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .6rem; padding: .55rem .9rem .7rem 1.1rem; }
+    .apt b { display: block; font-size: 1.55rem; letter-spacing: .02em; line-height: 1; }
+    .apt span { font-size: .75rem; color: var(--muted); }
+    .apt.end { text-align: end; }
+    .path { position: relative; display: grid; place-items: center; color: var(--muted); font-size: .7rem; }
+    .path::before { content: ""; position: absolute; inset-inline: 0; top: 50%; border-top: 2px dotted var(--line); }
+    /* no padding on the icon: with border-box sizing it would shrink the plane to ~10px */
+    .path svg { position: relative; background: var(--panel); box-shadow: 0 0 0 .3rem var(--panel); color: var(--brand); transform: rotate(90deg); }
+    .path span { position: absolute; top: calc(50% + .55rem); }
+    .trip-foot {
+      position: relative; display: flex; justify-content: space-between; gap: .5rem; padding: .55rem .9rem .65rem 1.1rem;
+      border-top: 2px dashed var(--line); font-size: .78rem; color: var(--muted);
     }
-    .chat-head h2 { margin: 0; font-size: .95rem; text-transform: none; letter-spacing: 0; color: var(--text); }
-    .chat-head .status { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
-    .chat-head .live { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--good); }
-    .toggle { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; cursor: pointer; }
-
-    .log {
-      list-style: none; margin: 0; padding: 1rem; overflow-y: auto; display: flex;
-      flex-direction: column; gap: 1rem; max-height: calc(100dvh - 12rem); scrollbar-width: thin;
+    /* ticket notches where the tear line meets the edges */
+    .trip-foot::before, .trip-foot::after {
+      content: ""; position: absolute; top: -8px; inline-size: 14px; block-size: 14px; border-radius: 50%; background: var(--bg);
     }
-    .msg { display: flex; gap: .55rem; max-width: 88%; }
+    .trip-foot::before { left: -8px; } .trip-foot::after { right: -8px; }
+    .trip-foot b { color: var(--text); font-weight: 600; }
+    .outcome { display: block; padding: .45rem 1.1rem; font-size: .78rem; font-weight: 600; background: var(--brand-soft); color: var(--brand); }
+
+    /* ---------------------------------------------------------------- assistant */
+    #assist { display: grid; grid-template-rows: auto 1fr auto; block-size: min(82dvh, 48rem); overflow: hidden; }
+    .assist-head { display: flex; align-items: center; gap: .7rem; padding: .8rem 1rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .bot-avatar {
+      inline-size: 2.3rem; block-size: 2.3rem; border-radius: 50%; display: grid; place-items: center; flex: none;
+      background: var(--navy); color: #fff; box-shadow: inset 0 0 0 2px var(--saffron);
+    }
+    .assist-head h2 { margin: 0; font-size: 1rem; }
+    .assist-head .status { font-size: .76rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; }
+    .assist-head .live { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--good); }
+    .toggle { margin-inline-start: auto; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; cursor: pointer; }
+
+    .log { list-style: none; margin: 0; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scrollbar-width: thin; }
+    .msg { display: flex; gap: .55rem; max-width: 90%; }
     .msg.user { align-self: flex-end; flex-direction: row-reverse; }
-    .msg .avatar { inline-size: 1.9rem; block-size: 1.9rem; font-size: .8rem; }
-    .msg.bot .avatar { background: var(--brand); color: var(--brand-text); }
+    .msg .who {
+      inline-size: 1.9rem; block-size: 1.9rem; border-radius: 50%; display: grid; place-items: center; flex: none;
+      font-size: .78rem; font-weight: 700; background: var(--brand-soft); color: var(--brand);
+    }
+    .msg.bot .who { background: var(--navy); color: #fff; }
     .bubble { padding: .65rem .85rem; border-radius: 14px; line-height: 1.5; min-width: 0; }
     .bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .msg.user .bubble { background: var(--user); color: var(--user-text); border-end-end-radius: 4px; }
+    .msg.user .bubble { background: var(--user); color: #fff; border-end-end-radius: 4px; }
     .msg.bot .bubble { background: var(--sunk); border: 1px solid var(--line); border-end-start-radius: 4px; }
     .msg.error .bubble { background: var(--late); }
 
     .chips { margin-top: .55rem; display: flex; flex-wrap: wrap; gap: .3rem; font-size: .72rem; }
-    .chip { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .5rem; color: var(--muted);
-            background: var(--panel); }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .5rem; color: var(--muted); background: var(--panel); }
     .chip.code { border-color: var(--good); }
 
-    .confirm {
-      margin-top: .7rem; padding: .6rem .7rem; border-radius: 10px; background: var(--late);
-      border-inline-start: 4px solid var(--warning);
-    }
+    .confirm { margin-top: .7rem; padding: .6rem .7rem; border-radius: 10px; background: var(--late); border-inline-start: 4px solid var(--warning); }
     .confirm p { font-size: .82rem; margin: 0 0 .5rem; }
     .confirm .buttons { display: flex; gap: .5rem; }
 
@@ -198,10 +111,7 @@
       display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
     }
     details.trace summary .sum { font-weight: 400; color: var(--muted); }
-    details.trace::details-content {
-      block-size: 0; overflow: hidden;
-      transition: block-size .25s ease, content-visibility .25s allow-discrete;
-    }
+    details.trace::details-content { block-size: 0; overflow: hidden; transition: block-size .25s ease, content-visibility .25s allow-discrete; }
     details.trace[open]::details-content { block-size: auto; }
     @media (prefers-reduced-motion: reduce) { details.trace::details-content { transition: none; } }
     .trace-body { padding: .2rem .7rem .7rem; display: grid; gap: .7rem; font-size: .8rem; }
@@ -232,101 +142,154 @@
     @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
     @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: .6; } }
 
-    form { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--line); }
-    form input { flex: 1; }
-    .privacy { padding: 0 1rem .7rem; margin-top: -.3rem; }
+    form { display: flex; gap: .5rem; padding: .75rem .9rem .4rem; border-top: 1px solid var(--line); }
+    form input {
+      flex: 1; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--sunk); color: var(--text);
+    }
+    .privacy { margin: 0; padding: 0 1rem .75rem; font-size: .74rem; color: var(--muted); }
   </style>
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <div class="logo" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
-    </div>
-    <div>
-      <h1>ACME Bharat Airlines</h1>
-      <p>AI support agent &middot; live portfolio demo</p>
-    </div>
-  </div>
-  <nav aria-label="Site">
-    <ul>
-      <li><a href="/" aria-current="page">Chat</a></li>
-      <li><a href="/insights">Insights</a></li>
-      <li><a href="https://github.com/Khatalahmed/acme-ai-support" rel="noopener">GitHub</a></li>
-    </ul>
-  </nav>
-</header>
-
-<div class="app">
-  <aside aria-label="Demo controls">
-    <div class="profile">
-      <div class="avatar" id="initial" aria-hidden="true">A</div>
-      <div style="flex:1">
-        <label for="user"><h2 style="margin-bottom:.3rem">Signed in as</h2></label>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+      <span class="mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+      </span>
+      <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="#trips">My trips</a></li>
+        <li><a href="/" aria-current="page">Help &amp; support</a></li>
+        <li><a href="/insights">Service insights</a></li>
+      </ul>
+    </nav>
+    <div class="account">
+      <span class="avatar" id="initial" aria-hidden="true">A</span>
+      <div>
+        <label for="user">Signed in as</label>
         <select id="user">
-          <option value="asha">Asha (4 bookings)</option>
-          <option value="ravi">Ravi (3 bookings)</option>
+          <option value="asha">Asha</option>
+          <option value="ravi">Ravi</option>
         </select>
       </div>
     </div>
+  </div>
+</header>
 
-    <div>
-      <h2 id="bookings-title">Your bookings</h2>
-      <ul class="bookings" id="bookings" aria-labelledby="bookings-title"></ul>
-    </div>
+<section class="hero" aria-labelledby="greeting">
+  <svg class="art" viewBox="0 0 600 260" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+    <path d="M40 230 C 200 40, 420 20, 580 120" fill="none" stroke="rgb(255 255 255 / .45)" stroke-width="2" stroke-dasharray="2 9" stroke-linecap="round"/>
+    <circle cx="40" cy="230" r="5" fill="#f5a524"/><circle cx="580" cy="120" r="5" fill="#f5a524"/>
+    <g transform="translate(372 58) rotate(20)" fill="#fff"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="rotate(90 12 12) scale(1.6) translate(-4 -4)"/></g>
+    <g fill="rgb(255 255 255 / .08)"><ellipse cx="470" cy="215" rx="120" ry="26"/><ellipse cx="560" cy="200" rx="80" ry="20"/></g>
+  </svg>
+  <div class="wrap">
+    <p class="eyebrow">Help &amp; support</p>
+    <h1 id="greeting">Namaste, Asha. How can we help?</h1>
+    <p class="lead">Check a flight, sort out a delay or a cancellation, or ask about our policies.
+      ACME Assist, our AI agent, answers in seconds &mdash; and never changes a booking without your "yes".</p>
+  </div>
+</section>
 
-    <div class="explainer">
-      <p><strong>Not a black box.</strong> Open <em>How I decided</em> under any reply to see
-        which router read your message, what the agent did, every model call and the safety
-        checks that applied.</p>
-    </div>
+<main class="wrap">
+  <section class="card lift quick" aria-labelledby="quick-title">
+    <h2 id="quick-title">Quick help</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
 
-    <div class="actions">
-      <button type="button" id="new-chat">New chat</button>
-      <button type="button" id="reset-demo" hidden>Reset demo</button>
-    </div>
+  <div class="layout">
+    <section id="trips" aria-labelledby="trips-title">
+      <div class="section-title">
+        <h2 id="trips-title">My trips</h2>
+        <p id="trip-count"></p>
+      </div>
+      <ul class="trips" id="bookings" aria-labelledby="trips-title"></ul>
+    </section>
 
-    <div>
-      <p class="note">Portfolio demo: mock airline data, simulated sign-in. Changes need your "yes"; every action is audited.</p>
-    </div>
-  </aside>
-
-  <main>
-    <div class="chat-head">
+    <section class="card" id="assist" aria-labelledby="assist-title">
+      <div class="assist-head">
+        <span class="bot-avatar" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 1 7 7v2.2l1.6 2.7A1.4 1.4 0 0 1 19.4 16H18v2a3 3 0 0 1-3 3h-1v-5h4V9a6 6 0 0 0-12 0v7h4v5H9a3 3 0 0 1-3-3v-2H4.6a1.4 1.4 0 0 1-1.2-2.1L5 11.2V9a7 7 0 0 1 7-7z"/></svg>
+        </span>
+        <div>
+          <h2 id="assist-title">ACME Assist</h2>
+          <span class="status"><span class="live" aria-hidden="true"></span>AI support agent &middot; online</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="auto-open"> Always show "How I decided"</label>
+      </div>
+      <!-- role="log": new messages are announced to screen readers politely -->
+      <ol class="log" id="log" role="log" aria-label="Conversation"></ol>
       <div>
-        <h2>Support chat</h2>
-        <span class="status"><span class="live" aria-hidden="true"></span>Jev router + Azure OpenAI</span>
+        <div class="typing" id="typing" aria-live="polite">
+          <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span id="typing-text"></span>
+        </div>
+        <!-- A real form with a single-line input: Enter submits natively and IME input is safe -->
+        <form id="form">
+          <label for="message" class="visually-hidden">Message</label>
+          <input type="text" id="message" autocomplete="off" required maxlength="1000"
+                 placeholder="Ask about your booking or ACME policy...">
+          <button type="submit" class="primary" id="send">Send</button>
+        </form>
+        <p class="privacy">Please don't enter personal information: messages are logged to improve quality.</p>
       </div>
-      <label class="toggle"><input type="checkbox" id="auto-open"> Open "How I decided" automatically</label>
-    </div>
-    <!-- role="log": new messages are announced to screen readers politely -->
-    <ol class="log" id="log" role="log" aria-label="Conversation"></ol>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
     <div>
-      <div class="typing" id="typing" aria-live="polite">
-        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span id="typing-text"></span>
-      </div>
-      <!-- A real form with a single-line input: Enter submits natively and IME input is safe -->
-      <form id="form">
-        <label for="message" class="visually-hidden">Message</label>
-        <input type="text" id="message" autocomplete="off" required maxlength="1000"
-               placeholder="Ask about your booking or ACME policy...">
-        <button type="submit" class="primary" id="send">Send</button>
-      </form>
-      <p class="note privacy">Please don't enter personal information: messages are logged to improve quality.</p>
+      <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+        <span class="mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+        </span>
+        <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+      </a>
+      <p>Changes to a booking always need your "yes", and every action is recorded in an audit log.</p>
     </div>
-  </main>
-</div>
+    <div>
+      <h2>Help</h2>
+      <ul>
+        <li><a href="#trips">My trips</a></li>
+        <li><a href="#assist">Chat with ACME Assist</a></li>
+        <li><a href="/insights">Service insights</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>This demo</h2>
+      <p>Visitors share one mock airline. Reset it any time.</p>
+      <button type="button" id="reset-demo" hidden>Reset demo data</button>
+    </div>
+    <p class="legal">ACME Bharat Airlines is a fictional airline built for a portfolio project. Flights, bookings
+      and sign-in are simulated; no real payments or personal data are processed.</p>
+  </div>
+</footer>
 
 <script>
 {
-  const EXAMPLES = {
-    asha: ["ACX123 is delayed 5 hours, what are my options?", "Is ACX456 on time?",
-           "Cancel ACX456", "What's the checked baggage allowance?", "Cancel ACX789"],
-    ravi: ["My flight ACX789 got cancelled, what can I do?", "What's happening with ACX654?",
-           "ACX987 is delayed 7 hours - compensation?", "Refund ACX654 right now or I'll sue"],
+  const ICONS = {   // 24x24 outline paths
+    status: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+    disruption: "M12 9v4m0 4h.01M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+    cancel: "M15 9l-6 6m0-6 6 6M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+    baggage: "M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M5 7h14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm4 0v13m6-13v13",
+    shield: "M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z",
+    person: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0",
   };
-  const STATE_ICON = { ok: "On time", delayed: "Delayed", cancelled: "Cancelled" };
+  const QUICK = {
+    asha: [["status", "Flight status", "Is ACX456 on time?"],
+           ["disruption", "Delayed flight", "ACX123 is delayed 5 hours, what are my options?"],
+           ["cancel", "Cancel a booking", "Cancel ACX456"],
+           ["baggage", "Baggage allowance", "What's the checked baggage allowance?"],
+           ["shield", "Try someone else's booking", "Cancel ACX789"]],
+    ravi: [["disruption", "Cancelled flight", "My flight ACX789 got cancelled, what can I do?"],
+           ["status", "Flight status", "What's happening with ACX654?"],
+           ["disruption", "Long delay", "ACX987 is delayed 7 hours - compensation?"],
+           ["baggage", "Baggage allowance", "What's the checked baggage allowance?"],
+           ["person", "Angry customer", "Refund ACX654 right now or I'll sue"]],
+  };
   const FAMILIES = [["rag", "Policy answer"], ["tool:get_flight_status", "Booking status"],
                     ["agent:", "Disruption agent"], ["confirm:", "Confirmation"],
                     ["tool:", "Change completed"], ["escalated", "Handed to a person"],
@@ -334,6 +297,7 @@
   const $ = (id) => document.getElementById(id);
   const log = $("log"), form = $("form"), input = $("message"), send = $("send");
   const typing = $("typing"), userSel = $("user"), autoOpen = $("auto-open");
+  const SVG = "http://www.w3.org/2000/svg";
   let session = crypto.randomUUID();
 
   // Per-viewer convenience only: may be unavailable (private mode), so never required.
@@ -353,8 +317,29 @@
     if (text != null) node.textContent = text;
     return node;
   }
+  function icon(name, size = 18) {
+    const svg = document.createElementNS(SVG, "svg"), path = document.createElementNS(SVG, "path");
+    for (const [k, v] of [["width", size], ["height", size], ["viewBox", "0 0 24 24"], ["fill", "none"],
+                          ["stroke", "currentColor"], ["stroke-width", "1.8"], ["stroke-linecap", "round"],
+                          ["stroke-linejoin", "round"], ["aria-hidden", "true"]]) svg.setAttribute(k, v);
+    path.setAttribute("d", ICONS[name]);
+    svg.append(path);
+    return svg;
+  }
+  const planeIcon = () => {
+    const svg = document.createElementNS(SVG, "svg"), path = document.createElementNS(SVG, "path");
+    for (const [k, v] of [["width", 22], ["height", 22], ["viewBox", "0 0 24 24"], ["fill", "currentColor"], ["aria-hidden", "true"]])
+      svg.setAttribute(k, v);
+    path.setAttribute("d", "M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z");
+    svg.append(path);
+    return svg;
+  };
   const seconds = (ms) => ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms} ms`;
   const family = (route) => (FAMILIES.find(([p]) => route.startsWith(p)) || [null, route])[1];
+  const when = (dep) => {
+    const d = new Date(dep.replace(" ", "T"));
+    return isNaN(d) ? dep : `${d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} · ${dep.slice(11, 16)}`;
+  };
 
   function add(node) {
     log.append(node);
@@ -365,7 +350,7 @@
     const li = el("li", `msg ${kind}`);
     const bubble = el("div", "bubble");
     bubble.append(el("p", null, text));
-    li.append(el("div", "avatar", initial), bubble);
+    li.append(el("div", "who", initial), bubble);
     return [li, bubble];
   }
 
@@ -470,7 +455,7 @@
     addUser(text);
     send.disabled = true;
     typing.classList.add("on");
-    $("typing-text").textContent = "Agent is working...";
+    $("typing-text").textContent = "ACME Assist is working...";
     try {
       const res = await fetch("/v1/chat", { method: "POST", headers: headers(),
                                             body: JSON.stringify({ message: text, session_id: session }) });
@@ -483,55 +468,69 @@
       send.disabled = false;
       typing.classList.remove("on");
       $("typing-text").textContent = "";
-      input.focus();
-      loadBookings();   // a cancel or rebooking changes the sidebar, whichever button sent it
+      if (matchMedia("(min-width: 58rem)").matches) input.focus();
+      loadBookings();   // a cancel or rebooking changes the trip cards, whichever button sent it
     }
+  }
+
+  function tripCard(b) {
+    const li = el("li", "trip");
+    li.dataset.state = b.state;
+    const top = el("div", "trip-top"), pnr = el("span", "pnr", "PNR");
+    pnr.append(el("b", null, b.pnr));
+    const pill = el("span", "pill");
+    pill.append(el("span", "dot"), el("span", null, b.status));
+    top.append(pnr, pill);
+
+    const leg = el("div", "leg");
+    const from = el("div", "apt"), to = el("div", "apt end"), path = el("div", "path");
+    from.append(el("b", null, b.origin), el("span", null, b.origin_city));
+    to.append(el("b", null, b.dest), el("span", null, b.dest_city));
+    path.append(planeIcon(), el("span", null, b.flight));
+    leg.append(from, path, to);
+
+    const foot = el("div", "trip-foot"), dep = el("span", null, "Departs "), fl = el("span", null, "Flight ");
+    dep.append(el("b", null, when(b.departure)));
+    fl.append(el("b", null, b.flight));
+    foot.append(dep, fl);
+    li.append(top, leg, foot);
+    if (b.outcome) li.append(el("span", "outcome", `✔ ${b.outcome}`));
+    return li;
   }
 
   async function loadBookings() {
     const list = $("bookings");
     try {
       const res = await fetch("/v1/bookings", { headers: headers() });
-      const items = [];
-      for (const b of await res.json()) {
-        const li = el("li", "booking");
-        li.dataset.state = b.state;
-        const top = el("div", "top");
-        top.append(el("span", "pnr", b.pnr), el("span", "flight", `${b.flight} · ${b.departure}`));
-        const pill = el("span", "pill");
-        pill.append(el("span", "dot"), el("span", null, b.status));
-        pill.title = STATE_ICON[b.state] || "";
-        li.append(top, el("div", "route", b.route), pill);
-        if (b.outcome) li.append(el("span", "outcome", `✔ ${b.outcome}`));
-        items.push(li);
-      }
-      list.replaceChildren(...items);   // swap in one go: no flicker while refreshing
-    } catch { list.replaceChildren(el("li", null, "Couldn't load bookings.")); }
+      const rows = await res.json();
+      list.replaceChildren(...rows.map(tripCard));   // swap in one go: no flicker while refreshing
+      $("trip-count").textContent = `${rows.length} upcoming`;
+    } catch { list.replaceChildren(el("li", null, "Couldn't load your trips.")); }
   }
 
-  function examples() {
-    const box = el("div", "examples");
-    box.setAttribute("role", "group");
-    box.setAttribute("aria-label", "Try one of these");
-    for (const text of EXAMPLES[userSel.value]) {
-      const b = el("button", null, text);
+  function loadQuickHelp() {
+    const tiles = QUICK[userSel.value].map(([kind, title, text]) => {
+      const b = el("button", "tile");
       b.type = "button";
-      b.addEventListener("click", () => ask(text));
-      box.append(b);
-    }
-    return box;
+      const ic = el("span", "icon");
+      ic.append(icon(kind));
+      b.append(ic, el("b", null, title), el("small", null, text));
+      b.addEventListener("click", () => { $("assist").scrollIntoView({ block: "nearest" }); ask(text); });
+      return b;
+    });
+    $("tiles").replaceChildren(...tiles);
   }
 
   function newConversation() {
     session = crypto.randomUUID();
-    const name = userSel.options[userSel.selectedIndex].text.split(" ")[0];
+    const name = userSel.options[userSel.selectedIndex].text;
     $("initial").textContent = name[0];
-    const [li, bubble] = message("bot", "A", `Hi ${name} - how can I help with your travel today?`);
-    bubble.append(examples());
+    $("greeting").textContent = `Namaste, ${name}. How can we help?`;
+    const [li] = message("bot", "A", `Hi ${name}, I'm ACME Assist. Ask me about any of your trips or our ` +
+                                     "policies - or pick one of the quick-help options above.");
     log.replaceChildren(li);
     loadBookings();
-    // On a phone, focusing would jump past everything and pop up the keyboard on arrival.
-    if (matchMedia("(min-width: 54rem)").matches) input.focus();
+    loadQuickHelp();
   }
 
   form.addEventListener("submit", (e) => {
@@ -542,7 +541,6 @@
     ask(text);
   });
   userSel.addEventListener("change", newConversation);
-  $("new-chat").addEventListener("click", newConversation);
 
   // Public demo only: visitors share one mock airline, so let anyone restore it.
   const resetBtn = $("reset-demo");
@@ -554,6 +552,7 @@
       const res = await fetch("/v1/demo/reset", { method: "POST", headers: headers() });
       if (!res.ok) throw new Error(res.status);
       newConversation();
+      $("assist").scrollIntoView({ block: "nearest" });
     } catch { addError("Couldn't reset the demo data."); }
     finally { resetBtn.disabled = false; }
   });

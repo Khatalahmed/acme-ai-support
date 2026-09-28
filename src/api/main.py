@@ -23,6 +23,7 @@ import chromadb
 from langfuse import get_client, observe, propagate_attributes
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
@@ -309,6 +310,10 @@ def answer_pending(user_id, req):
 WEB = ROOT / "src" / "web"
 
 
+# Shared stylesheet and assets for the two pages (plain files, no build step).
+app.mount("/static", StaticFiles(directory=WEB / "static"), name="static")
+
+
 @app.get("/", include_in_schema=False)
 def chat_page():
     """The demo chat page (plain HTML/CSS/JS, no build step)."""
@@ -335,8 +340,15 @@ def insights_data():
 def bookings(user_id: str = Depends(current_user)):
     """The signed-in user's own bookings, for the demo page's sidebar."""
     return [{**{k: b[k] for k in ("pnr", "flight", "route", "departure", "status")},
-             "state": booking_state(b), "outcome": booking_outcome(b)}
+             **airports(b["flight"]), "state": booking_state(b), "outcome": booking_outcome(b)}
             for b in actions.my_bookings(user_id)]
+
+
+def airports(flight_no):
+    """Airport codes and cities, for the boarding-pass style trip cards."""
+    f = backend.FLIGHTS[flight_no]
+    return {"origin": f["origin"], "origin_city": backend.CITIES[f["origin"]],
+            "dest": f["dest"], "dest_city": backend.CITIES[f["dest"]]}
 
 
 def booking_state(b):

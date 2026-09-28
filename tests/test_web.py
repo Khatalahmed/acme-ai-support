@@ -38,7 +38,7 @@ def test_bookings_are_only_your_own():
     assert {b["pnr"] for b in ravi} == owned("ravi")
     assert not {b["pnr"] for b in asha} & {b["pnr"] for b in ravi}
     assert set(asha[0]) == {"pnr", "flight", "route", "departure", "status",   # no owner/fare
-                            "state", "outcome"}
+                            "state", "outcome", "origin", "origin_city", "dest", "dest_city"}
 
 
 def sidebar(user="asha"):
@@ -77,3 +77,16 @@ def test_insights_page_never_inserts_api_text_as_html():
     assert not re.search(r"\.(innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML\(|document\.write\(",
                          page)
     assert "textContent" in page
+
+
+def test_trip_cards_get_airport_codes():
+    rows = client.get("/v1/bookings", headers={"Authorization": "Bearer demo-asha"}).json()
+    acx123 = next(b for b in rows if b["pnr"] == "ACX123")
+    assert (acx123["origin"], acx123["origin_city"], acx123["dest"]) == ("PNQ", "Pune", "DEL")
+
+
+def test_shared_stylesheet_is_served_and_the_github_link_is_gone():
+    assert client.get("/static/site.css").status_code == 200
+    for page in ("/", "/insights"):
+        html = client.get(page).text
+        assert '/static/site.css' in html and "github.com" not in html

@@ -1,0 +1,145 @@
+/* ACME Bharat Airlines (a fictional airline) - shared look for the chat and insights pages.
+   Plain CSS, no build step. Colours are light/dark pairs picked with light-dark(), with a
+   media-query fallback for browsers that don't support it yet. */
+
+:root {
+  color-scheme: light dark;
+  interpolate-size: allow-keywords;   /* lets <details> animate to its natural height */
+
+  --bg-l: #f3f5fa;         --bg-d: #0b0f17;
+  --panel-l: #ffffff;      --panel-d: #141a24;
+  --sunk-l: #f6f8fc;       --sunk-d: #10151e;
+  --text-l: #10192e;       --text-d: #e8edf6;
+  --muted-l: #56607a;      --muted-d: #9aa6bd;
+  --line-l: #dfe4ee;       --line-d: #252e3d;
+  --grid-l: #eaedf3;       --grid-d: #1f2733;
+  --brand-l: #16357a;      --brand-d: #9db8ff;      /* navy: buttons, links, emphasis */
+  --brand-text-l: #ffffff; --brand-text-d: #0a1433;
+  --brand-soft-l: #e8eefb; --brand-soft-d: #1a2544;
+  --user-l: #16357a;       --user-d: #2d4a94;
+  --ok-l: #e6f5e6;         --ok-d: #11301a;
+  --late-l: #fff3d9;       --late-d: #3a2c10;
+  --off-l: #fde8e8;        --off-d: #3a1618;
+
+  --bg: var(--bg-l); --panel: var(--panel-l); --sunk: var(--sunk-l); --text: var(--text-l);
+  --muted: var(--muted-l); --line: var(--line-l); --grid: var(--grid-l); --brand: var(--brand-l);
+  --brand-text: var(--brand-text-l); --brand-soft: var(--brand-soft-l); --user: var(--user-l);
+  --ok: var(--ok-l); --late: var(--late-l); --off: var(--off-l);
+  @media (prefers-color-scheme: dark) {
+    --bg: var(--bg-d); --panel: var(--panel-d); --sunk: var(--sunk-d); --text: var(--text-d);
+    --muted: var(--muted-d); --line: var(--line-d); --grid: var(--grid-d); --brand: var(--brand-d);
+    --brand-text: var(--brand-text-d); --brand-soft: var(--brand-soft-d); --user: var(--user-d);
+    --ok: var(--ok-d); --late: var(--late-d); --off: var(--off-d);
+  }
+  @supports (color: light-dark(white, black)) {
+    --bg: light-dark(var(--bg-l), var(--bg-d));
+    --panel: light-dark(var(--panel-l), var(--panel-d));
+    --sunk: light-dark(var(--sunk-l), var(--sunk-d));
+    --text: light-dark(var(--text-l), var(--text-d));
+    --muted: light-dark(var(--muted-l), var(--muted-d));
+    --line: light-dark(var(--line-l), var(--line-d));
+    --grid: light-dark(var(--grid-l), var(--grid-d));
+    --brand: light-dark(var(--brand-l), var(--brand-d));
+    --brand-text: light-dark(var(--brand-text-l), var(--brand-text-d));
+    --brand-soft: light-dark(var(--brand-soft-l), var(--brand-soft-d));
+    --user: light-dark(var(--user-l), var(--user-d));
+    --ok: light-dark(var(--ok-l), var(--ok-d));
+    --late: light-dark(var(--late-l), var(--late-d));
+    --off: light-dark(var(--off-l), var(--off-d));
+  }
+  /* the same in both themes */
+  --navy: #0c2257;                    /* header strip, hero, footer */
+  --saffron: #f5a524;                 /* brand accent - small highlights only */
+  --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;   /* status: always with a label */
+  --shadow: 0 10px 30px rgb(12 34 87 / .10), 0 2px 6px rgb(12 34 87 / .06);
+  --radius: 16px;
+  accent-color: var(--brand);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.45; }
+:focus-visible { outline: 3px solid var(--saffron); outline-offset: 2px; }
+a { color: var(--brand); }
+select, input, button { font: inherit; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.wrap { max-width: 78rem; margin: 0 auto; padding-inline: 1rem; }
+
+button {
+  padding: .55rem .95rem; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--text); cursor: pointer;
+}
+button:hover { border-color: var(--brand); }
+button.primary { background: var(--brand); color: var(--brand-text); border-color: var(--brand); font-weight: 600; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ---------------------------------------------------------------- header */
+.site-header { background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+.site-header .wrap { display: flex; align-items: center; gap: 1.5rem; min-block-size: 4rem; flex-wrap: wrap; }
+.logo { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--text); }
+.logo .mark {
+  inline-size: 2.4rem; block-size: 2.4rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--navy); color: #fff; box-shadow: inset 0 0 0 3px var(--saffron);
+}
+.logo .mark svg { transform: rotate(45deg); }
+.logo .name { display: flex; flex-direction: column; line-height: 1.05; }
+.logo .name b { font-size: 1.1rem; letter-spacing: -.01em; }
+.logo .name small { font-size: .62rem; letter-spacing: .32em; font-weight: 700; color: var(--muted); }
+.site-nav ul { display: flex; gap: .15rem; list-style: none; margin: 0; padding: 0; }
+.site-nav a {
+  display: block; padding: 1.35rem .8rem; text-decoration: none; color: var(--muted); font-weight: 600;
+  font-size: .92rem; border-block-end: 3px solid transparent;
+}
+.site-nav a:hover { color: var(--text); }
+.site-nav a[aria-current="page"] { color: var(--brand); border-block-end-color: var(--saffron); }
+.account { margin-inline-start: auto; display: flex; align-items: center; gap: .55rem; }
+.account .avatar {
+  inline-size: 2.2rem; block-size: 2.2rem; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 700; background: var(--brand-soft); color: var(--brand);
+}
+.account label { font-size: .7rem; color: var(--muted); display: block; line-height: 1; }
+.account select {
+  border: 0; background: transparent; color: var(--text); font-weight: 600; padding: .1rem 0; cursor: pointer;
+}
+@media (max-width: 54rem) {
+  .site-header .wrap { gap: .25rem 1rem; padding-block: .5rem 0; }
+  .site-nav { order: 3; inline-size: 100%; overflow-x: auto; }
+  .site-nav a { padding: .6rem .7rem; white-space: nowrap; }
+}
+
+/* ---------------------------------------------------------------- hero */
+.hero {
+  position: relative; overflow: hidden; color: #fff;
+  background:
+    radial-gradient(60rem 20rem at 85% -20%, rgb(245 165 36 / .28), transparent 60%),
+    linear-gradient(115deg, #081a45 0%, #12337e 55%, #1f55b8 100%);
+}
+.hero .wrap { position: relative; padding-block: 2.4rem 4.6rem; }
+.hero .eyebrow { margin: 0; font-size: .78rem; letter-spacing: .18em; font-weight: 700; color: var(--saffron); text-transform: uppercase; }
+.hero h1 { margin: .35rem 0 .45rem; font-size: clamp(1.7rem, 3.4vw, 2.5rem); letter-spacing: -.02em; line-height: 1.12; }
+.hero p.lead { margin: 0; max-width: 40rem; color: rgb(255 255 255 / .82); font-size: 1.02rem; }
+.hero .art { position: absolute; inset-inline-end: 0; inset-block: 0; inline-size: min(46rem, 60%); pointer-events: none; opacity: .9; }
+@media (max-width: 54rem) { .hero .art { opacity: .35; inline-size: 100%; } .hero .wrap { padding-block: 1.6rem 4rem; } }
+
+/* ---------------------------------------------------------------- cards */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.lift { position: relative; margin-block-start: -3rem; box-shadow: var(--shadow); }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 0 0 .75rem; }
+.section-title h2 { margin: 0; font-size: 1.15rem; letter-spacing: -.01em; }
+.section-title p { margin: 0; font-size: .82rem; color: var(--muted); }
+
+/* ---------------------------------------------------------------- footer */
+.site-footer { margin-block-start: 3rem; background: var(--navy); color: rgb(255 255 255 / .78); font-size: .85rem; }
+.site-footer .wrap { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 1.5rem; padding-block: 2rem; }
+.site-footer h2 { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: #fff; margin: 0 0 .6rem; }
+.site-footer p { margin: 0 0 .5rem; }
+.site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.site-footer a { color: #fff; }
+.site-footer button { background: transparent; color: #fff; border-color: rgb(255 255 255 / .35); }
+.site-footer .legal { grid-column: 1 / -1; border-top: 1px solid rgb(255 255 255 / .15); padding-top: 1rem; font-size: .78rem; }
+.site-footer .logo { color: #fff; margin-bottom: .6rem; }
+.site-footer .logo .name small { color: rgb(255 255 255 / .6); }
+@media (max-width: 54rem) { .site-footer .wrap { grid-template-columns: 1fr; } }

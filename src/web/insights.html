@@ -4,77 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>ACME Support Agent - insights</title>
+  <title>Service insights - ACME Bharat Airlines</title>
+  <link rel="stylesheet" href="/static/site.css">
   <style>
     :root {
-      color-scheme: light dark;
-      --bg-l: #f4f5f9;        --bg-d: #0d1016;
-      --panel-l: #ffffff;     --panel-d: #161a22;
-      --sunk-l: #f7f8fb;      --sunk-d: #11141b;
-      --text-l: #161a24;      --text-d: #e8ebf1;
-      --muted-l: #5b6273;     --muted-d: #9ba4b6;
-      --line-l: #e1e4ec;      --line-d: #272d39;
-      --grid-l: #eceef3;      --grid-d: #222734;
-      --brand-l: #3342a3;     --brand-d: #8c9eff;
-      --brand-soft-l: #eceffd; --brand-soft-d: #1f2547;
       --deemph-l: #b9bdc8;    --deemph-d: #4a5163;
       /* router identity: reference categorical slots 1-3, validated on these surfaces
-         (light #ffffff, dark #161a22) with dataviz/scripts/validate_palette.js --pairs all */
+         (light #ffffff, dark #141a24) with dataviz/scripts/validate_palette.js --pairs all */
       --s1-l: #2a78d6; --s1-d: #3987e5;
       --s2-l: #eb6834; --s2-d: #d95926;
       --s3-l: #1baf7a; --s3-d: #199e70;
-
-      --bg: var(--bg-l); --panel: var(--panel-l); --sunk: var(--sunk-l); --text: var(--text-l);
-      --muted: var(--muted-l); --line: var(--line-l); --grid: var(--grid-l); --brand: var(--brand-l);
-      --brand-soft: var(--brand-soft-l); --deemph: var(--deemph-l);
-      --s1: var(--s1-l); --s2: var(--s2-l); --s3: var(--s3-l);
+      --deemph: var(--deemph-l); --s1: var(--s1-l); --s2: var(--s2-l); --s3: var(--s3-l);
       @media (prefers-color-scheme: dark) {
-        --bg: var(--bg-d); --panel: var(--panel-d); --sunk: var(--sunk-d); --text: var(--text-d);
-        --muted: var(--muted-d); --line: var(--line-d); --grid: var(--grid-d); --brand: var(--brand-d);
-        --brand-soft: var(--brand-soft-d); --deemph: var(--deemph-d);
-        --s1: var(--s1-d); --s2: var(--s2-d); --s3: var(--s3-d);
+        --deemph: var(--deemph-d); --s1: var(--s1-d); --s2: var(--s2-d); --s3: var(--s3-d);
       }
       @supports (color: light-dark(white, black)) {
-        --bg: light-dark(var(--bg-l), var(--bg-d));
-        --panel: light-dark(var(--panel-l), var(--panel-d));
-        --sunk: light-dark(var(--sunk-l), var(--sunk-d));
-        --text: light-dark(var(--text-l), var(--text-d));
-        --muted: light-dark(var(--muted-l), var(--muted-d));
-        --line: light-dark(var(--line-l), var(--line-d));
-        --grid: light-dark(var(--grid-l), var(--grid-d));
-        --brand: light-dark(var(--brand-l), var(--brand-d));
-        --brand-soft: light-dark(var(--brand-soft-l), var(--brand-soft-d));
         --deemph: light-dark(var(--deemph-l), var(--deemph-d));
         --s1: light-dark(var(--s1-l), var(--s1-d));
         --s2: light-dark(var(--s2-l), var(--s2-d));
         --s3: light-dark(var(--s3-l), var(--s3-d));
       }
-      --good: #0ca30c;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.45; }
-    :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
-    a { color: var(--brand); }
-    button { font: inherit; padding: .4rem .8rem; border-radius: 9px; border: 1px solid var(--line);
-             background: var(--panel); color: var(--text); cursor: pointer; }
+    button { padding: .4rem .8rem; }
 
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-              flex-wrap: wrap; max-width: 76rem; margin: 0 auto; padding: .9rem 1rem .2rem; }
-    .brand { display: flex; align-items: center; gap: .65rem; }
-    .logo { inline-size: 2.4rem; block-size: 2.4rem; border-radius: 10px; display: grid;
-            place-items: center; background: var(--brand); color: var(--panel); }
-    .brand h1 { font-size: 1.05rem; margin: 0; line-height: 1.2; }
-    .brand p { margin: 0; font-size: .8rem; color: var(--muted); }
-    nav ul { display: flex; gap: .25rem; list-style: none; margin: 0; padding: 0; }
-    nav a { display: block; padding: .4rem .8rem; border-radius: 999px; text-decoration: none;
-            color: var(--muted); font-size: .9rem; font-weight: 500; }
-    nav a:hover { color: var(--text); background: var(--panel); }
-    nav a[aria-current="page"] { background: var(--brand-soft); color: var(--brand); }
-
-    .page { max-width: 76rem; margin: 0 auto; padding: .8rem 1rem 3rem; display: grid; gap: 1.25rem; }
-    .intro h2 { font-size: 1.6rem; margin: .4rem 0 .3rem; }
-    .intro p { margin: 0; color: var(--muted); max-width: 48rem; }
+    .page { display: grid; gap: 1.25rem; }
     section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; }
     .card > header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem; }
     .card h3 { margin: 0; font-size: 1.05rem; }
@@ -85,9 +38,9 @@
     /* hero + KPI row */
     .headline { display: grid; grid-template-columns: minmax(15rem, 1.1fr) 3fr; gap: 1rem; align-items: stretch; }
     @media (max-width: 54rem) { .headline { grid-template-columns: 1fr; } }
-    .hero { display: flex; flex-direction: column; justify-content: center; }
-    .hero .value { font-size: 4rem; font-weight: 700; line-height: 1; color: var(--text); }
-    .hero .label { font-size: .95rem; margin-top: .4rem; }
+    .bignum { display: flex; flex-direction: column; justify-content: center; padding: .4rem .6rem; }
+    .bignum .value { font-size: 4rem; font-weight: 700; line-height: 1; color: var(--text); }
+    .bignum .label { font-size: .95rem; margin-top: .4rem; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .75rem; }
     .tile { background: var(--sunk); border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; }
     .tile .label { font-size: .8rem; color: var(--muted); }
@@ -161,35 +114,44 @@
   </style>
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <div class="logo" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
-    </div>
-    <div>
-      <h1>ACME Bharat Airlines</h1>
-      <p>AI support agent &middot; live portfolio demo</p>
-    </div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+      <span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+      <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/#trips">My trips</a></li>
+        <li><a href="/">Help &amp; support</a></li>
+        <li><a href="/insights" aria-current="page">Service insights</a></li>
+      </ul>
+    </nav>
   </div>
-  <nav aria-label="Site">
-    <ul>
-      <li><a href="/">Chat</a></li>
-      <li><a href="/insights" aria-current="page">Insights</a></li>
-      <li><a href="https://github.com/Khatalahmed/acme-ai-support" rel="noopener">GitHub</a></li>
-    </ul>
-  </nav>
 </header>
 
-<main class="page">
-  <div class="intro">
-    <h2>How well does the agent work?</h2>
-    <p>Every number on this page comes from an evaluation run committed to the repository, or
-      from live traffic on this server. Nothing is estimated, and no message text is stored.</p>
+<section class="hero" aria-labelledby="page-title">
+  <svg class="art" viewBox="0 0 600 260" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+    <g fill="none" stroke="rgb(255 255 255 / .35)" stroke-width="2" stroke-linecap="round">
+      <path d="M60 220 L160 170 L260 185 L360 110 L460 125 L560 60"/>
+    </g>
+    <g fill="#f5a524"><circle cx="160" cy="170" r="4"/><circle cx="260" cy="185" r="4"/><circle cx="360" cy="110" r="4"/><circle cx="460" cy="125" r="4"/><circle cx="560" cy="60" r="6"/></g>
+    <g fill="rgb(255 255 255 / .08)"><ellipse cx="470" cy="215" rx="120" ry="26"/></g>
+  </svg>
+  <div class="wrap">
+    <p class="eyebrow">Service insights</p>
+    <h1 id="page-title">How well does ACME Assist work?</h1>
+    <p class="lead">Every number on this page comes from an evaluation run committed to the repository,
+      or from live traffic on this server. Nothing is estimated, and no message text is stored.</p>
   </div>
+</section>
 
-  <section class="card headline" aria-labelledby="h-safety" id="safety">
-    <div class="hero">
-      <h3 id="h-safety" style="position:absolute;left:-9999px">Safety</h3>
+<main class="wrap page">
+
+
+  <section class="card lift headline" aria-labelledby="h-safety" id="safety">
+    <div class="bignum">
+      <h3 id="h-safety" class="visually-hidden">Safety</h3>
       <div class="value" id="hero-value">-</div>
       <div class="label" id="hero-label"></div>
     </div>
@@ -244,6 +206,33 @@
     <div id="live"></div>
   </section>
 </main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+        <span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+        <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+      </a>
+      <p>Changes to a booking always need your "yes", and every action is recorded in an audit log.</p>
+    </div>
+    <div>
+      <h2>Help</h2>
+      <ul>
+        <li><a href="/#trips">My trips</a></li>
+        <li><a href="/">Chat with ACME Assist</a></li>
+        <li><a href="/insights">Service insights</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>About these numbers</h2>
+      <p>Measured with deterministic checks (no AI grading AI) on labelled test sets, and re-run by a
+        quality gate with fixed limits.</p>
+    </div>
+    <p class="legal">ACME Bharat Airlines is a fictional airline built for a portfolio project. Flights, bookings
+      and sign-in are simulated; no real payments or personal data are processed.</p>
+  </div>
+</footer>
 <div id="tip" role="tooltip" hidden></div>
 
 <script>
