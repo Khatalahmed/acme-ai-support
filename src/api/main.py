@@ -30,7 +30,7 @@ import agent  # disruption-recovery agent (LangGraph); proposes changes via acti
 import shadow  # shadow routing: the other router's opinion, recorded, never used
 from auth import user_from_token
 from llm_backend import chat as llm_chat
-from router import RISK_THRESHOLD, TOOLS, find_pnr, high_risk
+from router import RISK_THRESHOLD, TOOLS, demands_exception, find_pnr, high_risk
 from router import route as route_message  # LLM or Jev, picked by ROUTER_BACKEND
 
 TOP_K = 3
@@ -246,8 +246,19 @@ def handle(req, user_id):
     shadow.maybe_run(req.message, decision, user_id, req.session_id,
                      get_client().get_current_trace_id())
     tool = decision.get("tool")
+    pnr_in_msg = find_pnr(req.message)
 
-    if tool == "ask_pnr":
+    if demands_exception(decision) and tool not in ("human_agent", "disruption_help"):
+        # Only a person can grant an exception, whatever the route. (The disruption agent
+        # escalates these itself, with the passenger's entitlements in the handover.)
+        ticket = actions.escalate(user_id, req.session_id, pnr_in_msg, "demands_exception",
+                                  f"Customer asked for an exception: {req.message!r}")
+        route, sources = "escalated", []
+        reply = (f"I understand. That needs a decision from a member of our team, so I've passed "
+                 f"your request to them (reference {ticket['ref']}); they will get back to you "
+                 f"directly. Nothing on your booking has been changed.")
+
+    elif tool == "ask_pnr":
         route, reply, sources = "clarify", CLARIFY_PNR, []
 
     elif tool == "human_agent":

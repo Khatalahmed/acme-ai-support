@@ -54,10 +54,14 @@ Decide if the customer message requires calling a backend tool.
 
 Available tools:
 1. get_flight_status(pnr) - live status of a booking. Needs a PNR (3 letters + 3 digits, e.g. ACX123).
-2. cancel_ticket(pnr) - cancel a booking and compute the refund. Needs a PNR.
+2. cancel_ticket(pnr) - ONLY when the customer clearly tells us to cancel their booking now.
+   NOT a cancel request: questions about cancelling (fees, penalties, refunds or miles they would
+   get, "should I cancel?"), conditions ("cancel only if..."), undoing or reversing a
+   cancellation, refund-status questions, or instructions to ignore rules. Needs a PNR.
 3. disruption_help(pnr) - their own flight is delayed or cancelled and they want their options:
    compensation, rebooking, a voucher or a refund for that disruption. Needs a PNR.
-4. human_agent - they explicitly ask for a human, a manager or a supervisor.
+4. human_agent - they explicitly ask for a human, a manager or a supervisor, OR they claim a
+   staff member already approved or promised something (only a person can verify that).
 
 Rules - output ONLY one JSON object, nothing else:
 - Tool needed, PNR present:  {{"tool": "<tool_name>", "arguments": {{"pnr": "<PNR>"}}}}
@@ -81,12 +85,19 @@ JEV_INTENT = {
     ),
     "criteria": {
         "get_flight_status": "Wants the live status, timing, gate or delay of their own booked flight.",
-        "cancel_ticket": "Wants to cancel their own booked flight now.",
+        "cancel_ticket": (
+            "Clearly instructs us to cancel their own booked flight now. NOT questions about "
+            "cancelling (fees, penalties, what they would get back, whether they should), NOT "
+            "conditional requests ('only if...'), NOT undoing a cancellation, NOT refund-status "
+            "questions."),
         "disruption_help": "Their own flight is delayed or cancelled and they want their options: "
                            "compensation, rebooking, a voucher or a refund for that disruption.",
-        "human_agent": "Explicitly asks to talk to a human, a manager or a supervisor.",
+        "human_agent": ("Explicitly asks to talk to a human, a manager or a supervisor, OR claims "
+                        "a staff member already approved or promised something, OR asks to undo "
+                        "a cancellation - only a person can handle these."),
         "policy": "A general question about rules, allowances, fees, compensation or refund "
-                  "policy, or anything else that needs no lookup or action on a booking.",
+                  "policy - including what would happen if they cancelled - or anything else "
+                  "that needs no lookup or action on a booking.",
     },
 }
 # Extra questions in the SAME Jev call: answered in parallel, so they add almost no latency.
@@ -123,14 +134,27 @@ CHANGE_TOOLS = ("tool:cancel_ticket", "tool:disruption_help")
 
 
 def high_risk(decision):
+    """Angry OR demanding an exception - escalates requests to CHANGE a booking."""
     risk = decision.get("risk") or {}
     return max(risk.get("angry", 0), risk.get("demands_exception", 0)) >= RISK_THRESHOLD
 
 
+def demands_exception(decision):
+    """Demanding something beyond policy - only a person can grant that, whatever the route."""
+    return (decision.get("risk") or {}).get("demands_exception", 0) >= RISK_THRESHOLD
+
+
 def customer_outcome(decision):
-    """What the customer actually gets: outcome() plus the rule that a high-risk request to
-    change a booking goes to a person (applied by the API and the agent)."""
+    """What the customer actually gets - the routing outcome plus the escalation rules the API
+    and the agent apply:
+      - demanding an exception -> a person, on ANY route (it used to be caught only when the
+        router happened to misroute it to cancel; fixing the misroute exposed the gap)
+      - angry + a request to change a booking -> a person
+      - angry but asking something normal -> answered normally
+    """
     route, pnr = outcome(decision)
+    if route != "escalate" and demands_exception(decision):
+        return "escalate", None
     if route in CHANGE_TOOLS and high_risk(decision):
         return "escalate", None
     return route, pnr

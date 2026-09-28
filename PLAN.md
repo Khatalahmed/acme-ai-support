@@ -127,7 +127,18 @@ free-form times ("the 8:30 one"). MCP approval trusts the client app to show the
       First run (3 runs each): prod 95.6% (95–96), Jev 94.4%, LLM 93.1%; consistency prod 148/150,
       Jev 149/150, LLM 133/150; wrongful cancel decisions ~5 per run for every router (all stopped
       by the confirmation step); escalation recall 100% for all; p50 prod 422 ms, LLM 2.7 s;
-      Jev→LLM fallback 10%
+      Jev→LLM fallback 10%. Label review done (i15 kept; tm09 accepts disruption or escalate).
+- [x] **C3b Fix the wrong-cancel pattern (measure → change → re-measure)** — held-out sets written
+      and baselined BEFORE each change (`routing_set_holdout.jsonl`: 8 genuine cancels + 12
+      lookalikes; `routing_set_holdout_exception.jsonl`: 8 exception/anger cases). Changes: cancel
+      only on a clear instruction (questions, conditions, undo, refund-status, claimed approvals are
+      not cancels) in both routers; demanding an exception → a person on ANY route (the old rule only
+      caught it when the router misrouted it to cancel - fixing the misroute exposed that).
+      **Production, before → after:** held-out 81.7% → 100% (wrongful cancels 3.7 → 0/run, genuine
+      cancels still 100%); exception held-out 91.7% → 100%; 150-case set 95.6% → 98.4%, wrongful
+      cancels 4.7 → 1.3/run, escalation precision 92% → 100%, recall 100%. Remaining: the JSON-
+      injection case (i02) and "refund to my other card" (tm07) - both still stopped by the
+      confirmation step; "canel ACX-456" (t13) still misses (hyphen PNR regex, known limit)
 
       | Category | Cases | | Category | Cases |
       |---|---|---|---|---|
@@ -188,3 +199,5 @@ retraining the fine-tuned model. New ideas go to a v2 list, not this plan.
 | 2026-09-28 | MCP: no confirm tool; human approval via elicitation (MCP SDK 2.x `MCPServer`) |
 | 2026-09-28 | Drop the LLM disruption intro (A): traced at 97% of latency, discarded every time |
 | 2026-09-28 | Persona is opt-in per call, not auto-added to every call without a system prompt |
+| 2026-09-28 | Router changes are validated on held-out cases written before the change (no tuning to the 150) |
+| 2026-09-28 | Demanding an exception escalates on any route; anger alone only escalates change requests |

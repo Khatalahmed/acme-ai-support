@@ -96,6 +96,9 @@ def summarise(name, rows, runs):
 
     wrong_cancel = [r for r in rows if r["got"] == "tool:cancel_ticket"
                     and "tool:cancel_ticket" not in r["expected"].split("|")]
+    # the downside check: genuine cancel requests must still reach cancel
+    must_cancel = [r for r in rows if r["expected"] == "tool:cancel_ticket"]
+    cancel_hit = sum(1 for r in must_cancel if r["got"] == "tool:cancel_ticket")
     esc = [r for r in rows if r["got"] == "escalate"]
     esc_ok = [r for r in esc if "escalate" in r["expected"].split("|")]
     must_esc = [r for r in rows if r["expected"] == "escalate"]
@@ -109,7 +112,8 @@ def summarise(name, rows, runs):
     print(f"{name.upper()}  accuracy {acc_txt}  over {n} cases x {runs} run(s)")
     if runs > 1:
         print(f"  consistency: {consistent}/{n} cases got the same outcome on every run")
-    print(f"  wrongful cancels: {len(wrong_cancel)}   "
+    print(f"  wrongful cancels: {len(wrong_cancel)} ({len(wrong_cancel) / runs:.1f}/run)   "
+          f"cancel recall {pct(cancel_hit, len(must_cancel))} ({cancel_hit}/{len(must_cancel)})   "
           f"escalation precision {pct(len(esc_ok), len(esc))} ({len(esc_ok)}/{len(esc)})   "
           f"recall {pct(sum(1 for r in must_esc if r['got'] == 'escalate'), len(must_esc))}")
     if name == "prod":
@@ -124,7 +128,9 @@ def summarise(name, rows, runs):
         print(f"    WRONGFUL CANCEL [{r['id']}] {r['message'][:70]!r}")
     return {"router": name, "accuracy": statistics.mean(accs), "acc_min": min(accs),
             "acc_max": max(accs), "consistent": consistent, "n": n, "runs": runs,
-            "wrongful_cancels": len(wrong_cancel), "esc_precision": (len(esc_ok) / len(esc)) if esc else None,
+            "wrongful_cancels": len(wrong_cancel),
+            "cancel_recall": cancel_hit / len(must_cancel) if must_cancel else None,
+            "esc_precision": (len(esc_ok) / len(esc)) if esc else None,
             "esc_recall": (sum(1 for r in must_esc if r["got"] == "escalate") / len(must_esc))
             if must_esc else None,
             "fallback_rate": len(fallback) / len(rows) if name == "prod" else None,
@@ -194,14 +200,15 @@ def main():
         json.dumps(summaries, indent=2), encoding="utf-8")
 
     print("\n" + "=" * 78)
-    print("| Router | Accuracy | Consistent | Wrongful cancels | Esc. precision | Esc. recall "
-          "| Fallback | p50 | p95 |")
-    print("|---|---|---|---|---|---|---|---|---|")
+    print("| Router | Accuracy | Consistent | Wrongful cancels/run | Cancel recall | Esc. precision "
+          "| Esc. recall | Fallback | p50 | p95 |")
+    print("|---|---|---|---|---|---|---|---|---|---|")
     for s in summaries:
         f = lambda v: "-" if v is None else f"{100 * v:.0f}%"  # noqa: E731
         acc = f"{100 * s['accuracy']:.1f}%" + (f" ({100 * s['acc_min']:.0f}-{100 * s['acc_max']:.0f})"
                                               if s["runs"] > 1 else "")
-        print(f"| {s['router']} | {acc} | {s['consistent']}/{s['n']} | {s['wrongful_cancels']} | "
+        print(f"| {s['router']} | {acc} | {s['consistent']}/{s['n']} | "
+              f"{s['wrongful_cancels'] / s['runs']:.1f} | {f(s['cancel_recall'])} | "
               f"{f(s['esc_precision'])} | {f(s['esc_recall'])} | {f(s['fallback_rate'])} | "
               f"{s['p50_ms']} ms | {s['p95_ms']} ms |")
     print(f"\nper-case results -> {out}")

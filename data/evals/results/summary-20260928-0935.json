@@ -1,0 +1,50 @@
+[
+  {
+    "router": "llm",
+    "accuracy": 0.8666666666666667,
+    "acc_min": 0.85,
+    "acc_max": 0.9,
+    "consistent": 17,
+    "n": 20,
+    "runs": 3,
+    "wrongful_cancels": 8,
+    "cancel_recall": 1.0,
+    "esc_precision": 1.0,
+    "esc_recall": null,
+    "fallback_rate": null,
+    "p50_ms": 3138,
+    "p95_ms": 6755
+  },
+  {
+    "router": "jev",
+    "accuracy": 0.75,
+    "acc_min": 0.75,
+    "acc_max": 0.75,
+    "consistent": 20,
+    "n": 20,
+    "runs": 3,
+    "wrongful_cancels": 15,
+    "cancel_recall": 1.0,
+    "esc_precision": null,
+    "esc_recall": null,
+    "fallback_rate": null,
+    "p50_ms": 418,
+    "p95_ms": 864
+  },
+  {
+    "router": "prod",
+    "accuracy": 0.8166666666666667,
+    "acc_min": 0.8,
+    "acc_max": 0.85,
+    "consistent": 18,
+    "n": 20,
+    "runs": 3,
+    "wrongful_cancels": 11,
+    "cancel_recall": 1.0,
+    "esc_precision": 1.0,
+    "esc_recall": null,
+    "fallback_rate": 0.26666666666666666,
+    "p50_ms": 441,
+    "p95_ms": 6798
+  }
+]

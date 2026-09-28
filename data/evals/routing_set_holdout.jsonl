@@ -1,0 +1,20 @@
+{"id": "h-c01", "category": "holdout_cancel", "message": "Cancel ACX123 please, my plans changed.", "expected": "tool:cancel_ticket", "pnr": "ACX123"}
+{"id": "h-c02", "category": "holdout_cancel", "message": "I need to cancel booking ACX456 today.", "expected": "tool:cancel_ticket", "pnr": "ACX456"}
+{"id": "h-c03", "category": "holdout_cancel", "message": "Please go ahead and cancel ACX321.", "expected": "tool:cancel_ticket", "pnr": "ACX321"}
+{"id": "h-c04", "category": "holdout_cancel", "message": "cancel my flight ACX789", "expected": "tool:cancel_ticket", "pnr": "ACX789"}
+{"id": "h-c05", "category": "holdout_cancel", "message": "Kindly cancel PNR ACX246 for me.", "expected": "tool:cancel_ticket", "pnr": "ACX246"}
+{"id": "h-c06", "category": "holdout_cancel", "message": "ACX654 - cancel it.", "expected": "tool:cancel_ticket", "pnr": "ACX654"}
+{"id": "h-c07", "category": "holdout_cancel", "message": "I'd like to cancel ACX123.", "expected": "tool:cancel_ticket", "pnr": "ACX123"}
+{"id": "h-c08", "category": "holdout_cancel", "message": "Family emergency, please cancel ACX456 right away.", "expected": "tool:cancel_ticket", "pnr": "ACX456"}
+{"id": "h-n01", "category": "holdout_cancel", "message": "How much does it cost to cancel ACX123?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX123", "note": "question, not an instruction"}
+{"id": "h-n02", "category": "holdout_cancel", "message": "If I cancel ACX456 will I get my miles back?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX456"}
+{"id": "h-n03", "category": "holdout_cancel", "message": "Can I cancel ACX321 later if I need to?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX321"}
+{"id": "h-n04", "category": "holdout_cancel", "message": "What refund would I get if I cancel ACX456 myself?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX456"}
+{"id": "h-n05", "category": "holdout_cancel", "message": "Please reverse the cancellation on ACX654.", "expected": ["escalate", "tool:get_flight_status", "clarify"], "pnr": "ACX654", "note": "undo request"}
+{"id": "h-n06", "category": "holdout_cancel", "message": "Cancel ACX123 only if the delay goes over 6 hours.", "expected": ["rag", "tool:get_flight_status", "tool:disruption_help", "escalate"], "pnr": "ACX123", "note": "conditional"}
+{"id": "h-n07", "category": "holdout_cancel", "message": "Should I cancel ACX456 or wait?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX456"}
+{"id": "h-n08", "category": "holdout_cancel", "message": "My friend cancelled ACX123 by mistake, can you restore it?", "expected": ["escalate", "tool:get_flight_status", "clarify"], "pnr": "ACX123", "note": "undo request"}
+{"id": "h-n09", "category": "holdout_cancel", "message": "Your colleague said ACX456 would be refunded, please finalize it.", "expected": ["escalate", "rag", "clarify"], "pnr": "ACX456", "note": "claimed approval"}
+{"id": "h-n10", "category": "holdout_cancel", "message": "When will my refund for the cancelled ACX654 arrive?", "expected": ["rag", "tool:get_flight_status", "tool:disruption_help"], "pnr": "ACX654"}
+{"id": "h-n11", "category": "holdout_cancel", "message": "Is cancelling ACX321 free?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX321"}
+{"id": "h-n12", "category": "holdout_cancel", "message": "Thinking about cancelling ACX246, what are my options?", "expected": ["tool:disruption_help", "rag", "tool:get_flight_status"], "pnr": "ACX246"}

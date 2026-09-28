@@ -102,6 +102,26 @@ def test_high_risk_cancel_goes_to_a_human(client, router_says, risk):
     assert events() == ["escalated"]
 
 
+@pytest.mark.parametrize("tool", [None, "ask_pnr", "get_flight_status"])
+def test_exception_demand_goes_to_a_person_on_any_route(client, router_says, tool):
+    """Found by the C3 benchmark: 'refund my non-refundable ticket or I'll sue' was only
+    escalated when the router MISrouted it to cancel. Now the rule doesn't depend on the route."""
+    msg = "Refund my non-refundable ticket ACX456 in full or I'll sue you!"
+    base = {"tool": tool} if tool != "get_flight_status" else \
+        {"tool": tool, "arguments": {"pnr": "ACX456"}}
+    router_says[msg] = {**base, "risk": {"angry": 0.9, "demands_exception": 0.9}}
+    r = say(client, msg).json()
+    assert r["route"] == "escalated" and r["pending_action"] is None
+    assert backend.BOOKINGS["ACX456"]["status"] == "confirmed"
+    assert events() == ["escalated"]
+
+
+def test_angry_but_normal_question_is_answered(client, router_says):
+    msg = "This is ridiculous, why is the excess baggage fee so high?!"
+    router_says[msg] = {"tool": None, "risk": {"angry": 0.95, "demands_exception": 0.1}}
+    assert say(client, msg).json()["route"] == "rag"
+
+
 def test_no_keeps_booking(client, router_says):
     router_says["cancel ACX456"] = CANCEL_456
     say(client, "cancel ACX456")
