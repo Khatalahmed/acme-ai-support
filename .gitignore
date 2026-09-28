@@ -24,5 +24,6 @@ data/audit/
 .pytest_cache/
 # local dev tooling
 .claude/
+.playwright-mcp/
 # local quality-gate runs (CI keeps its own as workflow artifacts)
 data/evals/results/gate-*/
