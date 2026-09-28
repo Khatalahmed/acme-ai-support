@@ -197,7 +197,8 @@ precision/recall · Jev→LLM fallback rate · Jev/LLM disagreement rate · p50/
       call's real time and tokens, risk signals, safety checks, sources). `/insights`: measured results
       computed from committed eval files (`build_insights.py`, drift-tested) + numbers-only live stats
 - [ ] 60-second demo: disruption → options → confirm → audit trail → Langfuse trace
-- [ ] README rewrite: architecture diagram, benchmark tables, trace screenshot, honest limitations
+- [x] **D5 README rewrite:** architecture diagram, measured results with sources, benchmark tables,
+      live-site screenshots, honest limitations. AI quality gate first run on GitHub: 14/14 passed
 
 ## Risks
 

@@ -90,3 +90,17 @@ def test_shared_stylesheet_is_served_and_the_github_link_is_gone():
     for page in ("/", "/insights"):
         html = client.get(page).text
         assert '/static/site.css' in html and "github.com" not in html
+
+
+def test_favicon_served_and_linked():
+    for path in ("/favicon.ico", "/static/favicon.svg"):
+        r = client.get(path)
+        assert r.status_code == 200 and "svg" in r.headers["content-type"]
+    for page in ("/", "/insights"):
+        assert "/static/favicon.svg" in client.get(page).text
+
+
+def test_insights_page_has_a_loading_state():
+    """Found in a screenshot: before the data arrived the page showed empty cards and a '-'."""
+    page = client.get("/insights").text
+    assert "Loading the measured results" in page and 'class="card measured"' in page

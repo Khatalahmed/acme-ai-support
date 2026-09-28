@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Service insights - ACME Bharat Airlines</title>
   <link rel="stylesheet" href="/static/site.css">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <style>
     :root {
       --deemph-l: #b9bdc8;    --deemph-d: #4a5163;
@@ -97,6 +98,7 @@
     .fix .source { margin-top: auto; padding-top: .3rem; }
 
     /* live */
+    .loading-note { margin: 0; align-self: center; color: var(--muted); }
     .empty { padding: 1rem; border-radius: 10px; background: var(--sunk); color: var(--muted); font-size: .9rem; }
 
     /* table views */
@@ -152,13 +154,13 @@
   <section class="card lift headline" aria-labelledby="h-safety" id="safety">
     <div class="bignum">
       <h3 id="h-safety" class="visually-hidden">Safety</h3>
-      <div class="value" id="hero-value">-</div>
+      <div class="value" id="hero-value"></div>
       <div class="label" id="hero-label"></div>
     </div>
-    <div class="kpis" id="kpis"></div>
+    <div class="kpis" id="kpis"><p class="loading-note" id="loading">Loading the measured results...</p></div>
   </section>
 
-  <section class="card" aria-labelledby="h-router">
+  <section class="card measured" aria-labelledby="h-router" hidden>
     <header>
       <div>
         <h3 id="h-router">Choosing what to do: three routers compared</h3>
@@ -172,7 +174,7 @@
     <p class="source" id="router-source"></p>
   </section>
 
-  <section class="card" aria-labelledby="h-cats">
+  <section class="card measured" aria-labelledby="h-cats" hidden>
     <header>
       <div>
         <h3 id="h-cats">Accuracy by kind of message</h3>
@@ -185,7 +187,7 @@
     <details class="table"><summary>Show as a table</summary><div class="scroll-x" id="cat-table"></div></details>
   </section>
 
-  <section class="card" aria-labelledby="h-fixes">
+  <section class="card measured" aria-labelledby="h-fixes" hidden>
     <header>
       <div>
         <h3 id="h-fixes">What measuring found - and what fixed it</h3>
@@ -203,7 +205,7 @@
       </div>
       <button type="button" id="refresh">Refresh</button>
     </header>
-    <div id="live"></div>
+    <div id="live"><p class="empty">Loading live numbers...</p></div>
   </section>
 </main>
 
@@ -457,18 +459,24 @@
     box.replaceChildren(kpis, chart);
   }
 
+  let measuredShown = false;
   async function load() {
     const live = $("live");
     live.style.opacity = ".55";                  // keep the previous render while refreshing
     try {
       const data = await (await fetch("/v1/insights")).json();
-      if (data.measured && !$("kpis").childElementCount) {
+      if (data.measured && !measuredShown) {
+        $("loading").remove();
         renderHeadline(data.measured); renderRouter(data.measured);
         renderCategories(data.measured); renderFixes(data.measured);
+        for (const s of document.querySelectorAll("section.measured")) s.hidden = false;
+        measuredShown = true;
       }
       renderLive(data.live);
     } catch {
-      live.replaceChildren(el("p", "empty", "Couldn't load the numbers. Please refresh."));
+      const msg = "Couldn't load the numbers - the server may be waking up. Please refresh in a moment.";
+      if (!measuredShown) $("loading").textContent = msg;
+      live.replaceChildren(el("p", "empty", msg));
     } finally { live.style.opacity = ""; }
   }
   $("refresh").addEventListener("click", load);

@@ -315,6 +315,12 @@ WEB = ROOT / "src" / "web"
 app.mount("/static", StaticFiles(directory=WEB / "static"), name="static")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    """Browsers and crawlers ask for /favicon.ico even when the page links an SVG icon."""
+    return FileResponse(WEB / "static" / "favicon.svg", media_type="image/svg+xml")
+
+
 @app.get("/", include_in_schema=False)
 def chat_page():
     """The demo chat page (plain HTML/CSS/JS, no build step)."""
