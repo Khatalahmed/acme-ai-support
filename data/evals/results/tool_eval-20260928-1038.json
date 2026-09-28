@@ -1,0 +1,2064 @@
+[
+ {
+  "label": "REPLY_REASONING_EFFORT=default",
+  "passed": 39,
+  "n": 40,
+  "unwanted": 0,
+  "action_recall": 1.0,
+  "esc_precision": 1.0,
+  "esc_recall": 1.0,
+  "reply_checks": 0.9444444444444444,
+  "p50_by_route": {
+   "confirm": 463.5,
+   "tool:cancel_ticket": 26.0,
+   "rag": 4818.5,
+   "clarify": 478.0,
+   "agent:presented": 473.0,
+   "agent:proposed": 30.0,
+   "tool:resolve_disruption": 25.0,
+   "escalated": 479.5,
+   "tool:get_flight_status": 10516.5,
+   "agent:explained": 12051.5
+  },
+  "results": [
+   {
+    "id": "cancel-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Please cancel my booking ACX456.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 577
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 27
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-hinglish",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX456 cancel kar do please",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 481
+     },
+     {
+      "message": "haan",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 29
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-no",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 521
+     },
+     {
+      "message": "no, keep it",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX456. Is there anything else I can help you with?",
+      "ms": 19
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-moves-on",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 423
+     },
+     {
+      "message": "actually, what's the checked baggage allowance?",
+      "route": "rag",
+      "reply": "I’m sorry for any confusion — happy to help.\n\nPolicy answer:\n- The complimentary checked baggage allowance is 23 kg per passenger.\n- This standard allowance applies to all domestic flights operated by ACME Bharat Airlines.\n- Each checked bag’s dimensions (length + width + height) must not exceed 158 cm (62 inches).\n- For safety, any individual piece of baggage weighing more than 32 kg cannot be accepted as checked baggage and must be transported as cargo.\n\nWould you like information on excess baggage charges or how to pre-book extra allowance?",
+      "ms": 4820
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-double-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123, I can't travel.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX123 (Pune -> Delhi, scheduled 14:30)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 455
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX123 is cancelled. A refund of Rs 6,500 will go back to your original payment method within 7 business days. Is there anything else I can help you with?",
+      "ms": 30
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry — I’m not certain what you need help with, but I’m here to assist.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nFor your reference, from our policies: passengers must request wheelchair assistance at least 48 hours before their scheduled flight departure; missing miles must be claimed within 90 days of the date of travel with a boarding pass and ticket receipt; and all accumulated miles expire after 24 months of account inactivity.\n\nCould you please clarify what you need help with (wheelchair assistance, AcmeMiles claim, mileage expiry, or something else)?",
+      "ms": 5637
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "hypothetical-then-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What would I get back if I cancelled ACX456? Not cancelling yet.",
+      "route": "rag",
+      "reply": "I'm sorry you’re thinking about cancelling — I can help clarify what options may apply.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you tell me when and how you purchased ticket ACX456 (time of booking and whether it was through ACME channels or a third-party agent) and whether you’re cancelling within 24 hours of booking?",
+      "ms": 5111
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m happy to help — thank you for reaching out.\n\nPolicy summary (key numbers and timelines from our policies):\n- Wheelchair assistance is provided free of charge and must be requested at least 48 hours before scheduled flight departure. Service covers transfer from check-in to gate, boarding, and transfer from aircraft to arrival terminal exit.\n- Retroactive mileage claims must be submitted within 90 days of the date of travel and require a copy of the boarding pass and ticket receipt; claims without a valid boarding pass or submitted after the 90-day window will be rejected.\n- All accumulated miles expire after 24 months of account inactivity (a continuous 24-month period without earning or redeeming miles). Expired miles are permanently forfeited.\n\nCould you please tell me what specific assistance or information you need (for example: wheelchair booking, filing a retroactive miles claim, or checking mile expiration)?",
+      "ms": 7467
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "someone-elses-booking",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 for me",
+      "route": "clarify",
+      "reply": "I couldn't find a booking with PNR ACX123 on your account. Could you re-check it?",
+      "ms": 463
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I understand—thank you for your reply. I'm here to help.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you please tell me which specific service or policy you need help with (for example: wheelchair assistance, AcmeMiles retroactive claims, or mileage expiration)?",
+      "ms": 3714
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "rebook",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 got cancelled, what can I do?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 461
+     },
+     {
+      "message": "2",
+      "route": "agent:proposed",
+      "reply": "You chose: Free rebooking onto AC314 departing 2026-10-03 07:00. Shall I go ahead for booking ACX789? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 28
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - booking ACX789 is now on AC314 (Hyderabad -> Bengaluru), departing 2026-10-03 07:00. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-refund",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX654 was cancelled because of the weather. Options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC420 flight (Delhi -> Goa) was cancelled.\n\nHere is what you can choose for booking ACX654:\n1. Free rebooking onto AC422 departing 2026-10-02 16:00\n2. Full refund of Rs 5,400 to your original payment method\n\nReply with the option number (1-2).",
+      "ms": 489
+     },
+     {
+      "message": "I'll take the refund",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 5,400 to your original payment method. Shall I go ahead for booking ACX654? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 31
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a full refund of Rs 5,400 for booking ACX654 will go back to your original payment method within 7 business days. The booking is now cancelled. Is there anything else I can help you with?",
+      "ms": 28
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "delay-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX123 is delayed 5 hours, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC101 flight (Pune -> Delhi) is delayed by 5 hours.\n\nHere is what you can choose for booking ACX123:\n1. A Rs 3,000 travel voucher (you keep your current flight)\n2. Free rebooking onto AC103 departing 2026-10-02 19:45\n\nReply with the option number (1-2).",
+      "ms": 497
+     },
+     {
+      "message": "the voucher",
+      "route": "agent:proposed",
+      "reply": "You chose: A Rs 3,000 travel voucher (you keep your current flight). Shall I go ahead for booking ACX123? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 28
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a Rs 3,000 travel voucher has been added to booking ACX123. You keep your current flight. Is there anything else I can help you with?",
+      "ms": 24
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 2,
+    "checks_failed": 0
+   },
+   {
+    "id": "long-delay-decline",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX246 has been delayed for hours, what can I get?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC702 flight (Chennai -> Delhi) is delayed by 6 hours 40 minutes.\n\nHere is what you can choose for booking ACX246:\n1. Full refund of Rs 7,200 to your original payment method\n2. Free rebooking onto AC704 departing 2026-10-02 15:00 plus a Rs 5,000 travel voucher\n\nReply with the option number (1-2).",
+      "ms": 492
+     },
+     {
+      "message": "1",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 7,200 to your original payment method. Shall I go ahead for booking ACX246? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 27
+     },
+     {
+      "message": "no",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX246. Is there anything else I can help you with?",
+      "ms": 22
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "options-then-new-question",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 was cancelled, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 485
+     },
+     {
+      "message": "how do I claim missing miles?",
+      "route": "rag",
+      "reply": "I’m sorry you’re facing missing miles — I know that can be frustrating. \n\nPolicy answer:\n- You must submit a formal retroactive claim within 90 days of the date of travel.  \n- The claim must include a copy of your physical or digital boarding pass and the ticket receipt.  \n- Claims submitted without a valid boarding pass, or those initiated after the 90-day window has elapsed, will be systematically rejected.  \n- Note also that miles are normally credited automatically within 48 hours of flight completion if your membership number was entered at booking.\n\nNext-step question:\nDo you have your boarding pass and ticket receipt handy, and can you confirm the date of travel so we can proceed with the claim?",
+      "ms": 3829
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "exception-demand",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Refund my non-refundable ticket ACX456 in full or I'll sue you!",
+      "route": "escalated",
+      "reply": "I understand. That needs a decision from a member of our team, so I've passed your request to them (reference ESC-D56650); they will get back to you directly. Nothing on your booking has been changed.",
+      "ms": 4612
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "human-request",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "I want to speak to a manager about ACX789",
+      "route": "escalated",
+      "reply": "Of course - I've passed your conversation to a member of our team (reference ESC-D74954). They will get back to you directly.",
+      "ms": 488
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "angry-cancel",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 NOW, this is the third delay this month, useless airline!!!",
+      "route": "escalated",
+      "reply": "I'm sorry this has been so frustrating. I haven't changed anything on booking ACX123; I've passed your case to a senior member of our team (reference ESC-1F6449), who will contact you directly.",
+      "ms": 445
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-delayed",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's the status of ACX123?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m very sorry for the disruption to your travel plans. I can see your booking (PNR: ACX123) for flight AC101 from Pune -> Delhi scheduled 2026-10-02 14:30 is currently listed as \"Delayed by 5 hours.\" Your booking status is confirmed; fare is Rs 6,500; refundable: true.\n\nOptions\nBecause this delay falls in the 4–6 hour category, you can choose one of the following:\n- Receive a Rs 3,000 travel voucher valid for future travel with ACME Bharat Airlines. I will issue it to your account once you confirm.  \n- Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability, with all modification fees waived. If you choose rebooking, I can search for the next available flight and hold options for you (subject to availability) before confirming the change.\n\nPolicy note\nPer ACME Bharat Airlines’ Delay Compensation Policy (Delay of 4-6 hours): For flights delayed by 4-6 hours, passengers are entitled to choose one of the following options:\n- A Rs 3,000 travel voucher valid for future travel with ACME Bharat Airlines, OR\n- Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability, with all modification fees waived.\n\nNext step\nWould you like the Rs 3,000 travel voucher, or should I check rebooking options for the next ACME flight to Delhi?",
+      "ms": 13584
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-on-time",
+    "passed": false,
+    "problems": [
+     "turn 0 reply contains ['refund']"
+    ],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "I understand you want to be sure about your travel — thanks for checking.\n\nFacts about your booking:\n- PNR: ACX456\n- Flight: AC205 (Mumbai -> Kolkata)\n- Departure: 2026-10-02 at 09:15 (Scheduled 09:15)\n- Status: On time\n- Fare: 4800\n- Refundable: false\n- Booking status: confirmed\n\nOptions I can help with right now:\n1. Send a departure reminder or notification ahead of time.\n2. Help with online check-in or retrieving your boarding pass.\n3. Provide terminal/gate info or tips for arriving at the airport on time.\n\nPolicy note:\n- No additional policy information available.\n\nWould you like me to set a reminder or help with one of the options above?",
+      "ms": 7740
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 1
+   },
+   {
+    "id": "status-cancelled",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's happening with ACX789?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m very sorry for the inconvenience — I can see your booking PNR ACX789 (Flight AC310, Hyderabad -> Bengaluru) scheduled 2026-10-02 18:00 has been marked as “Cancelled by airline.” Booking status: confirmed. Fare: 3200. Refundable: true. No resolution has been recorded yet and there are no vouchers on the booking.\n\nOptions:\n- Full refund: We can process a full refund of the unused ticket value to your original form of payment.\n- Free rebooking: We can rebook you on the next available ACME Bharat Airlines flight to the scheduled destination; any fare differences and change fees will be waived.\n\nPolicy note:\nPer ACME Bharat Airlines’ policy for airline-initiated cancellations: passengers will be provided with the following options:\n* A full refund of the unused ticket value, returned to the original form of payment.\n* Free rebooking on the next available ACME Bharat Airlines flight to the scheduled destination, with any fare differences and change fees waived.\n\nWhich would you prefer: a full refund to your original form of payment, or free rebooking on the next available ACME flight to Bengaluru?",
+      "ms": 13551
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "meal-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX321 is delayed, what do I get?",
+      "route": "agent:explained",
+      "reply": "I’m very sorry for the inconvenience — I see your booking ACX321 for flight AC501 (Bengaluru -> Chennai on 2026-10-02) is delayed by 2 hours 30 minutes.  \nA Rs 400 meal voucher at the departure airport (2-4 hour delay: a meal voucher at the departure airport.)  \nPolicy note and options: please collect the voucher at the airline service desk at the departure airport; would you like me to confirm the desk location or any other details?",
+      "ms": 15612
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-delay-explain",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX987 is delayed 7 hours - what compensation do I get?",
+      "route": "agent:explained",
+      "reply": "I’m very sorry for the inconvenience caused by the 7-hour delay to your AC610 (PNR ACX987) from Kolkata to Guwahati. Delays caused by weather or air traffic control are not compensated. (Delays caused by weather or air traffic control are not compensated.) Options: you can remain on your confirmed booking; would you like me to keep your reservation as-is or check alternate flights now?",
+      "ms": 12041
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Please cancel my booking ACX456.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 500
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 24
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-hinglish",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX456 cancel kar do please",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 505
+     },
+     {
+      "message": "haan",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-no",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 503
+     },
+     {
+      "message": "no, keep it",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX456. Is there anything else I can help you with?",
+      "ms": 19
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-moves-on",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 472
+     },
+     {
+      "message": "actually, what's the checked baggage allowance?",
+      "route": "rag",
+      "reply": "I’m sorry for any confusion — happy to help clarify this for you.\n\nPolicy answer:\n- The complimentary checked baggage allowance is 23 kg per passenger.\n- This standard allowance applies to all domestic flights operated by ACME Bharat Airlines.\n- The sum of the 3 dimensions (length + width + height) of each checked bag must not exceed 158 cm (62 inches).\n- For safety reasons, any individual piece of baggage weighing more than 32 kg cannot be accepted as checked baggage and must be transported as cargo.\n\nWould you like help checking dimensions or pre-booking additional baggage weight?",
+      "ms": 3389
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-double-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123, I can't travel.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX123 (Pune -> Delhi, scheduled 14:30)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 442
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX123 is cancelled. A refund of Rs 6,500 will go back to your original payment method within 7 business days. Is there anything else I can help you with?",
+      "ms": 25
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry — I want to help but I need a bit more to go on.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nFor your reference from our policies: passengers must request wheelchair assistance at least 48 hours before their scheduled flight departure; any missing miles must be claimed within 90 days of the date of travel; and all accumulated miles shall expire after 24 months of account inactivity.\n\nCould you tell me which specific service or policy you’re asking about (wheelchair assistance, AcmeMiles claims, mileage expiration, or something else) so I can guide you further?",
+      "ms": 5059
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "hypothetical-then-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What would I get back if I cancelled ACX456? Not cancelling yet.",
+      "route": "rag",
+      "reply": "I’m sorry you’re thinking about cancelling — I understand it can be stressful.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you tell me when you booked flight ACX456 and whether the ticket was purchased directly through ACME Bharat Airlines or via a third-party travel agent?",
+      "ms": 4817
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I understand — thank you for getting in touch. I don't have sufficient information on this. Kindly contact AcmeConnect for assistance. \n\nCould you please tell me which specific AcmeMiles or special assistance issue you need help with (for example, wheelchair assistance booking, retroactive mileage claim, or miles expiration)?",
+      "ms": 2980
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "someone-elses-booking",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 for me",
+      "route": "clarify",
+      "reply": "I couldn't find a booking with PNR ACX123 on your account. Could you re-check it?",
+      "ms": 493
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry — I want to help but I don’t have sufficient information to respond to that. Kindly contact AcmeConnect for assistance.\n\nCould you tell me what specific question or issue you need help with (for example: wheelchair assistance, mileage claim, or miles expiration)?",
+      "ms": 3587
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "rebook",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 got cancelled, what can I do?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 454
+     },
+     {
+      "message": "2",
+      "route": "agent:proposed",
+      "reply": "You chose: Free rebooking onto AC314 departing 2026-10-03 07:00. Shall I go ahead for booking ACX789? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 44
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - booking ACX789 is now on AC314 (Hyderabad -> Bengaluru), departing 2026-10-03 07:00. Is there anything else I can help you with?",
+      "ms": 26
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-refund",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX654 was cancelled because of the weather. Options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC420 flight (Delhi -> Goa) was cancelled.\n\nHere is what you can choose for booking ACX654:\n1. Free rebooking onto AC422 departing 2026-10-02 16:00\n2. Full refund of Rs 5,400 to your original payment method\n\nReply with the option number (1-2).",
+      "ms": 440
+     },
+     {
+      "message": "I'll take the refund",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 5,400 to your original payment method. Shall I go ahead for booking ACX654? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 31
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a full refund of Rs 5,400 for booking ACX654 will go back to your original payment method within 7 business days. The booking is now cancelled. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "delay-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX123 is delayed 5 hours, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC101 flight (Pune -> Delhi) is delayed by 5 hours.\n\nHere is what you can choose for booking ACX123:\n1. A Rs 3,000 travel voucher (you keep your current flight)\n2. Free rebooking onto AC103 departing 2026-10-02 19:45\n\nReply with the option number (1-2).",
+      "ms": 522
+     },
+     {
+      "message": "the voucher",
+      "route": "agent:proposed",
+      "reply": "You chose: A Rs 3,000 travel voucher (you keep your current flight). Shall I go ahead for booking ACX123? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 30
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a Rs 3,000 travel voucher has been added to booking ACX123. You keep your current flight. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 2,
+    "checks_failed": 0
+   },
+   {
+    "id": "long-delay-decline",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX246 has been delayed for hours, what can I get?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC702 flight (Chennai -> Delhi) is delayed by 6 hours 40 minutes.\n\nHere is what you can choose for booking ACX246:\n1. Full refund of Rs 7,200 to your original payment method\n2. Free rebooking onto AC704 departing 2026-10-02 15:00 plus a Rs 5,000 travel voucher\n\nReply with the option number (1-2).",
+      "ms": 458
+     },
+     {
+      "message": "1",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 7,200 to your original payment method. Shall I go ahead for booking ACX246? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 30
+     },
+     {
+      "message": "no",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX246. Is there anything else I can help you with?",
+      "ms": 21
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "options-then-new-question",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 was cancelled, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 446
+     },
+     {
+      "message": "how do I claim missing miles?",
+      "route": "rag",
+      "reply": "I’m sorry you’re facing this — I understand it’s frustrating when expected miles don’t show up.\n\nPolicy answer:\n- Miles are automatically credited within 48 hours of flight completion if your membership number was entered at booking.\n- If eligible miles are not credited, you may initiate a retroactive claim. Any missing miles must be claimed within 90 days of the date of travel.\n- You must submit a formal claim request accompanied by a copy of your physical or digital boarding pass and the ticket receipt.\n- Claims submitted without a valid boarding pass, or those initiated after the 90-day window has elapsed, will be systematically rejected.\n\nNext step question:\nWould you like help preparing a retroactive claim (please confirm your date of travel and whether you have your boarding pass and ticket receipt)?",
+      "ms": 4950
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "exception-demand",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Refund my non-refundable ticket ACX456 in full or I'll sue you!",
+      "route": "escalated",
+      "reply": "I understand. That needs a decision from a member of our team, so I've passed your request to them (reference ESC-D5F76C); they will get back to you directly. Nothing on your booking has been changed.",
+      "ms": 7317
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "human-request",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "I want to speak to a manager about ACX789",
+      "route": "escalated",
+      "reply": "Of course - I've passed your conversation to a member of our team (reference ESC-DD49C2). They will get back to you directly.",
+      "ms": 471
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "angry-cancel",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 NOW, this is the third delay this month, useless airline!!!",
+      "route": "escalated",
+      "reply": "I'm sorry this has been so frustrating. I haven't changed anything on booking ACX123; I've passed your case to a senior member of our team (reference ESC-75495B), who will contact you directly.",
+      "ms": 434
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-delayed",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's the status of ACX123?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m very sorry for the inconvenience this delay is causing you — I understand travel disruptions are stressful. I’ll help you with this right away.\n\nOptions:\n- Current booking facts: PNR ACX123, Flight AC101 (Pune -> Delhi), scheduled departure 2026-10-02 14:30. Status: Delayed by 5 hours. Booking status: confirmed. Fare: Rs 6,500. Refundable: yes. No vouchers currently issued.\n- Because the flight is delayed by 5 hours, you can choose one of the following:\n  1) A Rs 3,000 travel voucher valid for future travel with ACME Bharat Airlines; or\n  2) Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability (all modification fees waived).\n- If you choose rebooking, I can check the next available ACME flights now and hold a seat if available.\n\nPolicy note:\n- Under ACME Bharat Airlines’ Delay Compensation Policy, delays of 4–6 hours entitle passengers to either a Rs 3,000 travel voucher or free rebooking onto the next available ACME flight to the same destination (subject to seat availability).\n\nWould you like the Rs 3,000 travel voucher, or should I check rebooking options for you now?",
+      "ms": 10287
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-on-time",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "I understand you want to confirm your travel — thanks for checking. \n\nFacts about your booking: Your PNR ACX456 is for Flight AC205 (Mumbai -> Kolkata) departing on 2026-10-02 at 09:15 (scheduled 09:15). The booking_status is confirmed and the flight status is currently: On time.\n\nOptions I can help with now:\n- Send a departure reminder or real-time updates for this flight.\n- Send your itinerary/e-ticket details to your email or WhatsApp.\n- Help with online check-in guidance or seat/baggage questions.\n\nPolicy note: No policy statements are available for this query.\n\nWould you like me to send a reminder or your e-ticket now?",
+      "ms": 6453
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-cancelled",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's happening with ACX789?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m very sorry for the disruption — I can see your booking (PNR: ACX789) for flight AC310, Hyderabad -> Bengaluru scheduled 2026-10-02 18:00, shows status “Cancelled by airline.” I understand this is inconvenient and I’m here to help.\n\nOptions:\n- Full refund: A full refund of the unused ticket value (fare: 3200) returned to the original form of payment. Your booking is marked refundable = true.\n- Free rebooking: Free rebooking on the next available ACME Bharat Airlines flight to the same destination; any fare differences and change fees will be waived.\nNote: The booking_status is “confirmed” in the system, resolution is currently null, and there are no vouchers on this PNR.\n\nPolicy note:\nPer ACME Bharat Airlines: Refund and Cancellation Policy - 4. Airline-Initiated Cancellations — when ACME cancels a scheduled flight, passengers will be provided either (1) a full refund to the original form of payment, or (2) free rebooking on the next available ACME flight to the scheduled destination with fare differences and change fees waived.\n\nNext step question:\nWould you prefer a full refund to your original payment method, or shall I start free rebooking you on the next available ACME flight?",
+      "ms": 10746
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "meal-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX321 is delayed, what do I get?",
+      "route": "agent:explained",
+      "reply": "I'm very sorry for the inconvenience — I can see your booking for ACX321 (flight AC501 from Bengaluru to Chennai on 2026-10-02) is delayed by 2 hours 30 minutes.  \nA Rs 400 meal voucher at the departure airport (2-4 hour delay: a meal voucher at the departure airport.)  \nI can assist in arranging this voucher for you to collect at the airport or provide instructions on where to pick it up.  \nWould you like me to arrange the voucher now or would you prefer pickup instructions for the airport counter?",
+      "ms": 8962
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-delay-explain",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX987 is delayed 7 hours - what compensation do I get?",
+      "route": "agent:explained",
+      "reply": "I’m very sorry you’re facing a 7-hour delay on AC610 (PNR ACX987) from Kolkata to Guwahati — I understand how frustrating this is; your immediate options are to wait for updated departure information or seek assistance at the airport service desk. Delays caused by weather or air traffic control are not compensated. (Delays caused by weather or air traffic control are not compensated.) Would you like me to check the latest flight updates or connect you with our airport desk now?",
+      "ms": 12062
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   }
+  ]
+ },
+ {
+  "label": "REPLY_REASONING_EFFORT=low",
+  "passed": 38,
+  "n": 40,
+  "unwanted": 0,
+  "action_recall": 1.0,
+  "esc_precision": 1.0,
+  "esc_recall": 1.0,
+  "reply_checks": 0.8888888888888888,
+  "p50_by_route": {
+   "confirm": 442.5,
+   "tool:cancel_ticket": 27.5,
+   "rag": 4635.5,
+   "clarify": 481.5,
+   "agent:presented": 471.5,
+   "agent:proposed": 31.0,
+   "tool:resolve_disruption": 25.5,
+   "escalated": 509.0,
+   "tool:get_flight_status": 5294.5,
+   "agent:explained": 5780.5
+  },
+  "results": [
+   {
+    "id": "cancel-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Please cancel my booking ACX456.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 503
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 35
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-hinglish",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX456 cancel kar do please",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 441
+     },
+     {
+      "message": "haan",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-no",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 437
+     },
+     {
+      "message": "no, keep it",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX456. Is there anything else I can help you with?",
+      "ms": 18
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-moves-on",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 467
+     },
+     {
+      "message": "actually, what's the checked baggage allowance?",
+      "route": "rag",
+      "reply": "I understand you want to confirm the checked baggage allowance — happy to help.\n\nPolicy answer:\n- The complimentary checked baggage allowance is 23 kg per passenger.  \n- This standard allowance applies to all domestic flights operated by ACME Bharat Airlines.  \n- The sum of the 3 dimensions (length + width + height) of each checked bag must not exceed 158 cm (62 inches).  \n- Any individual piece of baggage weighing more than 32 kg cannot be accepted as checked baggage and must be transported as cargo.\n\nNext-step question:\nWould you like help with pre-booking additional baggage weight online (available up to 2 hours before departure) or details on excess baggage charges?",
+      "ms": 3533
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-double-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123, I can't travel.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX123 (Pune -> Delhi, scheduled 14:30)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 503
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX123 is cancelled. A refund of Rs 6,500 will go back to your original payment method within 7 business days. Is there anything else I can help you with?",
+      "ms": 29
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry for any confusion — I want to help.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you please tell me specifically which service or policy detail you need help with (for example: wheelchair assistance, retroactive mileage claims, or mileage expiration)?",
+      "ms": 3950
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "hypothetical-then-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What would I get back if I cancelled ACX456? Not cancelling yet.",
+      "route": "rag",
+      "reply": "I’m sorry for any worry this may be causing — I understand wanting clarity before deciding.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you tell me when you booked ACX456 and whether it was purchased directly through ACME Bharat Airlines or via a third-party agent?",
+      "ms": 5164
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I understand — thank you for reaching out. I'm here to help.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you please tell me what specific information or request you have (for example: wheelchair assistance, AcmeMiles balance, retroactive mileage claim, or mileage expiration) so I can guide you on what to ask AcmeConnect?",
+      "ms": 3138
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "someone-elses-booking",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 for me",
+      "route": "clarify",
+      "reply": "I couldn't find a booking with PNR ACX123 on your account. Could you re-check it?",
+      "ms": 524
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry — I want to help but I don’t have enough information to answer your request right now.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nFor your reference from our policies: wheelchair assistance must be requested at least 48 hours before scheduled departure; retroactive mileage claims must be submitted within 90 days of the date of travel; and miles expire after 24 months of account inactivity.\n\nCould you please tell me exactly what you need help with (for example: wheelchair assistance, a retroactive miles claim, or account inactivity) and provide any relevant details like your flight date or AcmeMiles number?",
+      "ms": 6354
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "rebook",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 got cancelled, what can I do?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 479
+     },
+     {
+      "message": "2",
+      "route": "agent:proposed",
+      "reply": "You chose: Free rebooking onto AC314 departing 2026-10-03 07:00. Shall I go ahead for booking ACX789? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 33
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - booking ACX789 is now on AC314 (Hyderabad -> Bengaluru), departing 2026-10-03 07:00. Is there anything else I can help you with?",
+      "ms": 24
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-refund",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX654 was cancelled because of the weather. Options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC420 flight (Delhi -> Goa) was cancelled.\n\nHere is what you can choose for booking ACX654:\n1. Free rebooking onto AC422 departing 2026-10-02 16:00\n2. Full refund of Rs 5,400 to your original payment method\n\nReply with the option number (1-2).",
+      "ms": 451
+     },
+     {
+      "message": "I'll take the refund",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 5,400 to your original payment method. Shall I go ahead for booking ACX654? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 31
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a full refund of Rs 5,400 for booking ACX654 will go back to your original payment method within 7 business days. The booking is now cancelled. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "delay-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX123 is delayed 5 hours, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC101 flight (Pune -> Delhi) is delayed by 5 hours.\n\nHere is what you can choose for booking ACX123:\n1. A Rs 3,000 travel voucher (you keep your current flight)\n2. Free rebooking onto AC103 departing 2026-10-02 19:45\n\nReply with the option number (1-2).",
+      "ms": 459
+     },
+     {
+      "message": "the voucher",
+      "route": "agent:proposed",
+      "reply": "You chose: A Rs 3,000 travel voucher (you keep your current flight). Shall I go ahead for booking ACX123? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 28
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a Rs 3,000 travel voucher has been added to booking ACX123. You keep your current flight. Is there anything else I can help you with?",
+      "ms": 38
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 2,
+    "checks_failed": 0
+   },
+   {
+    "id": "long-delay-decline",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX246 has been delayed for hours, what can I get?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC702 flight (Chennai -> Delhi) is delayed by 6 hours 40 minutes.\n\nHere is what you can choose for booking ACX246:\n1. Full refund of Rs 7,200 to your original payment method\n2. Free rebooking onto AC704 departing 2026-10-02 15:00 plus a Rs 5,000 travel voucher\n\nReply with the option number (1-2).",
+      "ms": 464
+     },
+     {
+      "message": "1",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 7,200 to your original payment method. Shall I go ahead for booking ACX246? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 29
+     },
+     {
+      "message": "no",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX246. Is there anything else I can help you with?",
+      "ms": 20
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "options-then-new-question",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 was cancelled, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 453
+     },
+     {
+      "message": "how do I claim missing miles?",
+      "route": "rag",
+      "reply": "Sorry to hear your miles are missing — I understand that can be frustrating.\n\nPolicy answer:\n- You must submit a retroactive claim within 90 days of the date of travel.  \n- Your formal claim must include a copy of your physical or digital boarding pass and the ticket receipt.  \n- Claims submitted without a valid boarding pass, or after the 90-day window, will be rejected.  \n- Note: miles are automatically credited within 48 hours of flight completion if your membership number was entered at booking.\n\nNext step question:\nDo you have your boarding pass and ticket receipt, and can you confirm the date of travel so I can guide you further?",
+      "ms": 4798
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "exception-demand",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Refund my non-refundable ticket ACX456 in full or I'll sue you!",
+      "route": "escalated",
+      "reply": "I understand. That needs a decision from a member of our team, so I've passed your request to them (reference ESC-E167E8); they will get back to you directly. Nothing on your booking has been changed.",
+      "ms": 7154
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "human-request",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "I want to speak to a manager about ACX789",
+      "route": "escalated",
+      "reply": "Of course - I've passed your conversation to a member of our team (reference ESC-33907D). They will get back to you directly.",
+      "ms": 440
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "angry-cancel",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 NOW, this is the third delay this month, useless airline!!!",
+      "route": "escalated",
+      "reply": "I'm sorry this has been so frustrating. I haven't changed anything on booking ACX123; I've passed your case to a senior member of our team (reference ESC-936E15), who will contact you directly.",
+      "ms": 429
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-delayed",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's the status of ACX123?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m sorry for the inconvenience — I understand delays are frustrating. Here are the exact details I can see for your booking:\n\n- PNR: ACX123\n- Flight: AC101\n- Route: Pune -> Delhi\n- Scheduled departure: 2026-10-02 14:30\n- Current status: Delayed by 5 hours\n- Booking status: confirmed\n- Fare paid: Rs 6,500\n- Refundable: Yes\n- Resolution recorded: none\n- Vouchers on file: none\n\nOptions (based on your current delay)\n- Since the delay is 5 hours, you are entitled to choose one of the following:\n  1. A Rs 3,000 travel voucher valid for future travel with ACME Bharat Airlines, OR\n  2. Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability, with all modification fees waived.\n\nPolicy note\n- Per ACME Bharat Airlines’ Delay Compensation Policy (Delay of 4–6 hours tier): passengers delayed 4–6 hours may choose either a Rs 3,000 travel voucher or free rebooking onto the next available ACME flight to the same destination (subject to seat availability).\n\nHow would you like to proceed — would you prefer the Rs 3,000 travel voucher, or should I look for rebooking options now? If you want rebooking, please tell me any time or connection preferences.",
+      "ms": 6558
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-on-time",
+    "passed": false,
+    "problems": [
+     "turn 0 reply contains ['refund']"
+    ],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m glad you checked — I know how important it is to have a clear update before travel.\n\nFacts for your booking (PNR ACX456):\n- Flight: AC205, Mumbai -> Kolkata\n- Departure: 2026-10-02 at 09:15 (scheduled 09:15)\n- Current status: On time\n- Booking status: confirmed\n- Fare: 4800, refundable: false\n\nOptions I can help with now:\n- Send a departure reminder or notification closer to departure time\n- Help with online check-in or provide the check-in link\n- Look up seat assignment or add travel assistance options\n- Assist with any other booking-related request you have\n\nPolicy note:\n(none - the flight is operating normally, so make no policy statements)\n\nWould you like me to send a reminder, help you check in, or do something else for this booking?",
+      "ms": 6005
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 1
+   },
+   {
+    "id": "status-cancelled",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's happening with ACX789?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m really sorry for the disruption — I know unexpected cancellations are stressful.\n\nFacts about your booking\n- PNR: ACX789\n- Flight: AC310, Hyderabad -> Bengaluru\n- Scheduled departure: 2026-10-02 at 18:00\n- Current status: Cancelled by airline\n- Fare: ₹3,200 (refundable: yes)\n- Booking status: confirmed\n- No vouchers are currently attached to this booking\n\nOptions I can help you with\n1. Full refund: We can initiate a full refund of the unused ticket value (₹3,200) back to your original form of payment.  \n2. Free rebooking: We can rebook you on the next available ACME Bharat Airlines flight to Bengaluru at no charge; any fare differences and change fees will be waived.\n\nPolicy note\nPer ACME Bharat Airlines’ Refund and Cancellation Policy (Airline-Initiated Cancellations): when the airline cancels a scheduled flight, passengers are offered either a full refund to the original payment method or free rebooking on the next available ACME flight with fare differences and change fees waived.\n\nWhich would you prefer: a full refund to your original payment method, or would you like me to look for the next available ACME flight to Bengaluru and rebook you?",
+      "ms": 3705
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "meal-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX321 is delayed, what do I get?",
+      "route": "agent:explained",
+      "reply": "I’m sorry for the inconvenience with your delayed ACX321; I understand this is frustrating. Policy note: A Rs 400 meal voucher at the departure airport (2-4 hour delay: a meal voucher at the departure airport.). Options: you can collect the voucher at the departure airport — would you like me to help locate the voucher pickup counter at Bengaluru airport?",
+      "ms": 4825
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-delay-explain",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX987 is delayed 7 hours - what compensation do I get?",
+      "route": "agent:explained",
+      "reply": "I’m very sorry for the 7-hour disruption on AC610 (PNR ACX987) — I understand how frustrating this must be. Delays caused by weather or air traffic control are not compensated. (Delays caused by weather or air traffic control are not compensated.) Would you like me to monitor the flight for real-time updates or check available alternative flights now?",
+      "ms": 7529
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Please cancel my booking ACX456.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 517
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 30
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-hinglish",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX456 cancel kar do please",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 440
+     },
+     {
+      "message": "haan",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX456 is cancelled. Non-refundable fare: a travel credit voucher will be issued instead. Is there anything else I can help you with?",
+      "ms": 26
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-no",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 459
+     },
+     {
+      "message": "no, keep it",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX456. Is there anything else I can help you with?",
+      "ms": 20
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-moves-on",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "cancel ACX456",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX456 (Mumbai -> Kolkata, scheduled 09:15)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 454
+     },
+     {
+      "message": "actually, what's the checked baggage allowance?",
+      "route": "rag",
+      "reply": "I’m sorry for any confusion — happy to clarify this for you.\n\nPolicy answer:\n- The complimentary checked baggage allowance is 23 kg per passenger.\n- This standard allowance applies to all domestic flights operated by ACME Bharat Airlines.\n- Each checked bag’s dimensions (length + width + height) must not exceed 158 cm (62 inches).\n- Note that any individual piece of baggage weighing more than 32 kg cannot be accepted as checked baggage and must be transported as cargo.\n\nWould you like help pre-booking additional baggage or checking size/weight limits for a specific bag?",
+      "ms": 3937
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "cancel-double-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123, I can't travel.",
+      "route": "confirm:cancel_ticket",
+      "reply": "Just to confirm: do you want me to cancel booking ACX123 (Pune -> Delhi, scheduled 14:30)? This can't be undone. Reply YES to cancel, or NO to keep your booking.",
+      "ms": 444
+     },
+     {
+      "message": "yes",
+      "route": "tool:cancel_ticket",
+      "reply": "Done - booking ACX123 is cancelled. A refund of Rs 6,500 will go back to your original payment method within 7 business days. Is there anything else I can help you with?",
+      "ms": 26
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry — I’d like to help. \n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nFor reference, here are some relevant policy timelines from our documents: wheelchair assistance must be requested at least 48 hours before scheduled departure; missing miles must be claimed within 90 days of the date of travel; and accumulated miles expire after 24 months of account inactivity.\n\nCould you please tell me whether you need help with wheelchair assistance, a retroactive mileage claim, mileage expiration concerns, or something else?",
+      "ms": 5291
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "hypothetical-then-yes",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What would I get back if I cancelled ACX456? Not cancelling yet.",
+      "route": "rag",
+      "reply": "I’m sorry for any worry this may be causing — I’m here to help.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nTo help me point you to the correct policy options: was your booking for ACX456 made within the last 24 hours, was the flight cancelled by ACME Bharat Airlines, or are you considering a voluntary cancellation?",
+      "ms": 4572
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m sorry — I want to help but I don’t have enough information to address your request.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nFor your reference from our policies:\n- Wheelchair assistance is free and must be requested at least 48 hours before departure.  \n- Retroactive mileage claims must be made within 90 days of travel and require your boarding pass and ticket receipt.  \n- Accumulated miles expire after 24 months of account inactivity.\n\nCould you please tell me what you need help with (e.g., wheelchair support, missing miles, account inactivity) and provide any relevant details like your flight date or AcmeMiles membership number?",
+      "ms": 5714
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "someone-elses-booking",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 for me",
+      "route": "clarify",
+      "reply": "I couldn't find a booking with PNR ACX123 on your account. Could you re-check it?",
+      "ms": 439
+     },
+     {
+      "message": "yes",
+      "route": "rag",
+      "reply": "I’m glad you reached out — thank you. \n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nCould you please tell me what you need help with (for example: wheelchair assistance, AcmeMiles missing miles, or mileage expiration) and provide any relevant travel dates or membership details so I can guide you further?",
+      "ms": 3306
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "rebook",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 got cancelled, what can I do?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 487
+     },
+     {
+      "message": "2",
+      "route": "agent:proposed",
+      "reply": "You chose: Free rebooking onto AC314 departing 2026-10-03 07:00. Shall I go ahead for booking ACX789? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 31
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - booking ACX789 is now on AC314 (Hyderabad -> Bengaluru), departing 2026-10-03 07:00. Is there anything else I can help you with?",
+      "ms": 25
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-refund",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX654 was cancelled because of the weather. Options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC420 flight (Delhi -> Goa) was cancelled.\n\nHere is what you can choose for booking ACX654:\n1. Free rebooking onto AC422 departing 2026-10-02 16:00\n2. Full refund of Rs 5,400 to your original payment method\n\nReply with the option number (1-2).",
+      "ms": 711
+     },
+     {
+      "message": "I'll take the refund",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 5,400 to your original payment method. Shall I go ahead for booking ACX654? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 31
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a full refund of Rs 5,400 for booking ACX654 will go back to your original payment method within 7 business days. The booking is now cancelled. Is there anything else I can help you with?",
+      "ms": 26
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "delay-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX123 is delayed 5 hours, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC101 flight (Pune -> Delhi) is delayed by 5 hours.\n\nHere is what you can choose for booking ACX123:\n1. A Rs 3,000 travel voucher (you keep your current flight)\n2. Free rebooking onto AC103 departing 2026-10-02 19:45\n\nReply with the option number (1-2).",
+      "ms": 454
+     },
+     {
+      "message": "the voucher",
+      "route": "agent:proposed",
+      "reply": "You chose: A Rs 3,000 travel voucher (you keep your current flight). Shall I go ahead for booking ACX123? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 31
+     },
+     {
+      "message": "yes",
+      "route": "tool:resolve_disruption",
+      "reply": "Done - a Rs 3,000 travel voucher has been added to booking ACX123. You keep your current flight. Is there anything else I can help you with?",
+      "ms": 26
+     }
+    ],
+    "expected": 1,
+    "correct": 1,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 2,
+    "checks_failed": 0
+   },
+   {
+    "id": "long-delay-decline",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX246 has been delayed for hours, what can I get?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC702 flight (Chennai -> Delhi) is delayed by 6 hours 40 minutes.\n\nHere is what you can choose for booking ACX246:\n1. Full refund of Rs 7,200 to your original payment method\n2. Free rebooking onto AC704 departing 2026-10-02 15:00 plus a Rs 5,000 travel voucher\n\nReply with the option number (1-2).",
+      "ms": 495
+     },
+     {
+      "message": "1",
+      "route": "agent:proposed",
+      "reply": "You chose: Full refund of Rs 7,200 to your original payment method. Shall I go ahead for booking ACX246? Reply YES to confirm, or NO to keep things as they are.",
+      "ms": 38
+     },
+     {
+      "message": "no",
+      "route": "confirm:declined",
+      "reply": "No problem - I haven't made any changes to booking ACX246. Is there anything else I can help you with?",
+      "ms": 22
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "options-then-new-question",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "My flight ACX789 was cancelled, what are my options?",
+      "route": "agent:presented",
+      "reply": "I'm sorry your AC310 flight (Hyderabad -> Bengaluru) was cancelled.\n\nHere is what you can choose for booking ACX789:\n1. Free rebooking onto AC312 departing 2026-10-02 20:30\n2. Free rebooking onto AC314 departing 2026-10-03 07:00\n3. Full refund of Rs 3,200 to your original payment method\n\nReply with the option number (1-3).",
+      "ms": 514
+     },
+     {
+      "message": "how do I claim missing miles?",
+      "route": "rag",
+      "reply": "I’m sorry you’re missing miles — I know that’s frustrating. I’m here to help.\n\nPolicy answer:\n- Miles are automatically credited within 48 hours of flight completion if your membership number was entered at booking.  \n- If miles were not credited, you may file a retroactive claim. Missing miles must be claimed within 90 days of the date of travel.  \n- You must submit a formal claim request accompanied by a copy of your physical or digital boarding pass and the ticket receipt.  \n- Claims submitted without a valid boarding pass, or those initiated after the 90-day window has elapsed, will be systematically rejected.\n\nNext step question:\nDo you have your travel date, boarding pass, and ticket receipt available so you can submit the formal claim?",
+      "ms": 4699
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "exception-demand",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Refund my non-refundable ticket ACX456 in full or I'll sue you!",
+      "route": "escalated",
+      "reply": "I understand. That needs a decision from a member of our team, so I've passed your request to them (reference ESC-87C355); they will get back to you directly. Nothing on your booking has been changed.",
+      "ms": 9663
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "human-request",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "I want to speak to a manager about ACX789",
+      "route": "escalated",
+      "reply": "Of course - I've passed your conversation to a member of our team (reference ESC-E2E35F). They will get back to you directly.",
+      "ms": 460
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "angry-cancel",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Cancel ACX123 NOW, this is the third delay this month, useless airline!!!",
+      "route": "escalated",
+      "reply": "I'm sorry this has been so frustrating. I haven't changed anything on booking ACX123; I've passed your case to a senior member of our team (reference ESC-BFE606), who will contact you directly.",
+      "ms": 558
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": true,
+    "escalated": true,
+    "checks": 0,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-delayed",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's the status of ACX123?",
+      "route": "tool:get_flight_status",
+      "reply": "I'm sorry for the inconvenience — I can see your booking is affected and I appreciate your patience.\n\nFacts about your booking:\n- PNR: ACX123\n- Flight: AC101, Pune -> Delhi\n- Scheduled departure: 2026-10-02 14:30\n- Current status: Delayed by 5 hours\n- Fare: Rs 6,500 — refundable: yes\n- Booking status: confirmed\n\nOptions available to you (based on the current 5-hour delay):\n- Option A: Receive a Rs 3,000 travel voucher valid for future travel with ACME Bharat Airlines.\n- Option B: Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability, with all modification fees waived.\n\nPolicy note:\n- Per ACME Bharat Airlines’ Delay Compensation Policy (Delay of 4–6 hours), passengers delayed 4–6 hours may choose either a Rs 3,000 travel voucher or free rebooking onto the next available ACME flight to the same destination (subject to seat availability).\n\nHow would you like to proceed — would you prefer the Rs 3,000 travel voucher, or should I check availability and rebook you onto the next flight?",
+      "ms": 5516
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "status-on-time",
+    "passed": false,
+    "problems": [
+     "turn 0 reply contains ['voucher', 'refund']"
+    ],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m sorry for any travel anxiety — I’m here to help you with this.\n\nFacts about your booking (PNR ACX456):\n- Flight: AC205 from Mumbai -> Kolkata\n- Departure: 2026-10-02 at 09:15 (scheduled 09:15)\n- Current flight status: On time\n- Booking status: confirmed\n- Fare: 4800 (non-refundable)\n- Vouchers: none\n\nOptions I can help with:\n- Set a flight reminder or SMS/notification for departure time.\n- Provide online check-in guidance or seat selection help.\n- Send directions to the departure terminal or baggage allowance details.\n- Monitor the flight and notify you if the status changes.\n\nPolicy note:\n- No additional policy statements; the flight is operating normally.\n\nWould you like me to set a reminder or start monitoring this flight for any updates?",
+      "ms": 3761
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 1
+   },
+   {
+    "id": "status-cancelled",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "What's happening with ACX789?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m very sorry for the disruption — I know cancellations are frustrating when you have plans. For your booking ACX789 (Flight AC310, Hyderabad -> Bengaluru on 2026-10-02 at 18:00), the flight status is: Cancelled by airline. Your ticket fare is ₹3200 and is refundable.\n\nOptions:\n- Full refund: We can process a full refund of the unused ticket value (₹3200) back to your original form of payment.\n- Free rebooking: We can rebook you on the next available ACME Bharat Airlines flight to Bengaluru with no change fees or fare difference charged.\n\nPolicy note:\nPer ACME Bharat Airlines: Refund and Cancellation Policy - 4. Airline-Initiated Cancellations, passengers affected by airline cancellations are entitled to either a full refund to the original form of payment or free rebooking on the next available ACME flight to the scheduled destination (fare differences and change fees waived).\n\nWhich would you prefer — a full refund to your original payment method, or would you like me to look for the next available ACME flight to rebook you?",
+      "ms": 5073
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "meal-voucher",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX321 is delayed, what do I get?",
+      "route": "agent:explained",
+      "reply": "I’m very sorry for the inconvenience caused by the 2 hour 30 minute delay to ACX321.  \nPolicy note: A Rs 400 meal voucher at the departure airport (2-4 hour delay: a meal voucher at the departure airport.).  \nWould you like me to confirm where to collect this voucher at Bengaluru airport or help with anything else before you travel?",
+      "ms": 6327
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   },
+   {
+    "id": "weather-delay-explain",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "ACX987 is delayed 7 hours - what compensation do I get?",
+      "route": "agent:explained",
+      "reply": "I’m very sorry for the 7-hour delay and the inconvenience this is causing; I can check alternate flights or assist with rebooking if you’d like. Delays caused by weather or air traffic control are not compensated. (Delays caused by weather or air traffic control are not compensated.) Would you like me to look for earlier or later flights, or keep your current booking as is?",
+      "ms": 5234
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   }
+  ]
+ }
+]

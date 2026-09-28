@@ -15,8 +15,7 @@ from pathlib import Path
 
 import yaml
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+from openai import OpenAI
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -43,44 +42,47 @@ def load_settings():
 
     cfg = yaml.safe_load((ROOT / "config" / "bot.yaml").read_text(encoding="utf-8"))
     return {
-        "project": os.environ["GCP_PROJECT_ID"],
-        "location": os.environ.get("VERTEX_LOCATION", "global"),
-        "model": os.environ.get("VERTEX_MODEL", "gemini-2.5-flash"),
+        "endpoint": os.environ["AZURE_OPENAI_ENDPOINT"],
+        "api_key": os.environ["AZURE_OPENAI_API_KEY"],
+        "model": os.environ["AZURE_OPENAI_DEPLOYMENT"],
         "system_prompt": cfg["system_prompt"],
-        "temperature": float(cfg.get("temperature", 0.7)),
     }
 
 
 def make_client(settings):
-    return genai.Client(
-        vertexai=True, project=settings["project"], location=settings["location"]
+    # Azure OpenAI v1 API: plain OpenAI client pointed at <endpoint>/openai/v1/, no api-version.
+    return OpenAI(
+        base_url=settings["endpoint"].rstrip("/") + "/openai/v1/",
+        api_key=settings["api_key"],
     )
 
 
-def make_chat(client, settings):
-    # The client must outlive the chat: if the Client object is garbage-collected,
-    # its HTTP connection closes and every send_message fails.
-    return client.chats.create(
-        model=settings["model"],
-        config=types.GenerateContentConfig(
-            system_instruction=settings["system_prompt"],
-            temperature=settings["temperature"],
-        ),
-    )
+def make_chat(settings):
+    # Azure OpenAI is stateless: the "chat" is just the message history we resend each turn.
+    return [{"role": "system", "content": settings["system_prompt"]}]
+
+
+def send_message(client, settings, chat, text):
+    chat.append({"role": "user", "content": text})
+    # No temperature: reasoning deployments (gpt-5+/o-series) only accept the default.
+    resp = client.chat.completions.create(model=settings["model"], messages=chat)
+    reply = resp.choices[0].message.content
+    chat.append({"role": "assistant", "content": reply})
+    return reply
 
 
 def run_demo(settings):
-    print(f"Model: {settings['model']} | temperature: {settings['temperature']}")
+    print(f"Model: {settings['model']}")
     print("Persona loaded from config/bot.yaml\n")
     client = make_client(settings)
     for title, question, commentary in DEMO_TESTS:
-        chat = make_chat(client, settings)  # fresh conversation per test
+        chat = make_chat(settings)  # fresh conversation per test
         print("=" * 70)
         print(title)
         print("=" * 70)
         print(f"CUSTOMER: {question}\n")
-        reply = chat.send_message(question)
-        print(f"BOT: {reply.text.strip()}\n")
+        reply = send_message(client, settings, chat, question)
+        print(f"BOT: {reply.strip()}\n")
         print(commentary)
         print()
 
@@ -88,7 +90,7 @@ def run_demo(settings):
 def run_chat(settings):
     print("ACME support bot - interactive mode. Type 'exit' to quit.\n")
     client = make_client(settings)
-    chat = make_chat(client, settings)
+    chat = make_chat(settings)
     while True:
         try:
             user = input("You: ").strip()
@@ -96,8 +98,8 @@ def run_chat(settings):
             break
         if not user or user.lower() in {"exit", "quit"}:
             break
-        reply = chat.send_message(user)
-        print(f"Bot: {reply.text.strip()}\n")
+        reply = send_message(client, settings, chat, user)
+        print(f"Bot: {reply.strip()}\n")
 
 
 def main():

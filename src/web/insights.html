@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Service insights - ACME Bharat Airlines</title>
+  <link rel="stylesheet" href="/static/site.css">
+  <style>
+    :root {
+      --deemph-l: #b9bdc8;    --deemph-d: #4a5163;
+      /* router identity: reference categorical slots 1-3, validated on these surfaces
+         (light #ffffff, dark #141a24) with dataviz/scripts/validate_palette.js --pairs all */
+      --s1-l: #2a78d6; --s1-d: #3987e5;
+      --s2-l: #eb6834; --s2-d: #d95926;
+      --s3-l: #1baf7a; --s3-d: #199e70;
+      --deemph: var(--deemph-l); --s1: var(--s1-l); --s2: var(--s2-l); --s3: var(--s3-l);
+      @media (prefers-color-scheme: dark) {
+        --deemph: var(--deemph-d); --s1: var(--s1-d); --s2: var(--s2-d); --s3: var(--s3-d);
+      }
+      @supports (color: light-dark(white, black)) {
+        --deemph: light-dark(var(--deemph-l), var(--deemph-d));
+        --s1: light-dark(var(--s1-l), var(--s1-d));
+        --s2: light-dark(var(--s2-l), var(--s2-d));
+        --s3: light-dark(var(--s3-l), var(--s3-d));
+      }
+    }
+    button { padding: .4rem .8rem; }
+
+    .page { display: grid; gap: 1.25rem; }
+    section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; }
+    .card > header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem; }
+    .card h3 { margin: 0; font-size: 1.05rem; }
+    .card .sub { margin: .15rem 0 0; font-size: .85rem; color: var(--muted); }
+    .takeaway { margin: .9rem 0 0; font-size: .88rem; padding: .6rem .8rem; border-radius: 9px; background: var(--brand-soft); }
+    .source { font-size: .75rem; color: var(--muted); margin: .6rem 0 0; overflow-wrap: anywhere; }
+
+    /* hero + KPI row */
+    .headline { display: grid; grid-template-columns: minmax(15rem, 1.1fr) 3fr; gap: 1rem; align-items: stretch; }
+    @media (max-width: 54rem) { .headline { grid-template-columns: 1fr; } }
+    .bignum { display: flex; flex-direction: column; justify-content: center; padding: .4rem .6rem; }
+    .bignum .value { font-size: 4rem; font-weight: 700; line-height: 1; color: var(--text); }
+    .bignum .label { font-size: .95rem; margin-top: .4rem; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .75rem; }
+    .tile { background: var(--sunk); border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; }
+    .tile .label { font-size: .8rem; color: var(--muted); }
+    .tile .value { font-size: 1.7rem; font-weight: 650; margin: .15rem 0; }
+    .tile .note { font-size: .78rem; color: var(--muted); }
+
+    /* legend */
+    .legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; list-style: none; padding: 0; margin: 0; font-size: .82rem; }
+    .legend li { display: flex; align-items: center; gap: .4rem; }
+    .key { inline-size: .8rem; block-size: .8rem; border-radius: 3px; background: var(--c); }
+    .key.dot { border-radius: 50%; }
+
+    /* small-multiple bar charts */
+    .multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.1rem; }
+    .minichart h4 { margin: 0 0 .1rem; font-size: .88rem; }
+    .minichart .hint { margin: 0 0 .6rem; font-size: .75rem; color: var(--muted); }
+    .bars { display: grid; gap: 6px; }
+    .barrow { display: grid; grid-template-columns: 1fr; gap: 2px; }
+    .barrow .name { font-size: .75rem; color: var(--muted); }
+    .barline { display: flex; align-items: center; gap: .45rem; }
+    .bar { block-size: 16px; border-radius: 0 4px 4px 0; background: var(--c); min-inline-size: 2px; }
+    .bar:hover, .bar:focus-visible { filter: brightness(1.12); }
+    .barval { font-size: .8rem; font-weight: 600; white-space: nowrap; }
+
+    /* dot plot */
+    .dotplot { display: grid; gap: 0; }
+    .dprow { display: grid; grid-template-columns: 11rem 1fr; gap: .75rem; align-items: center;
+             border-block-start: 1px solid var(--grid); padding-block: 4px; }
+    .dprow .cat { font-size: .82rem; }
+    .dprow .cat small { color: var(--muted); display: block; font-size: .72rem; }
+    .lanes { position: relative; block-size: 34px; }
+    .tick { position: absolute; inset-block: 0; inline-size: 1px; background: var(--grid); }
+    .pt { position: absolute; inline-size: 24px; block-size: 24px; margin-inline-start: -12px; margin-block-start: -12px;
+          display: grid; place-items: center; border: 0; padding: 0; background: transparent; cursor: default; }
+    .pt::after { content: ""; inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--c);
+                 box-shadow: 0 0 0 2px var(--panel); }
+    .pt:hover::after, .pt:focus-visible::after { inline-size: 13px; block-size: 13px; }
+    .axis { display: grid; grid-template-columns: 11rem 1fr; gap: .75rem; }
+    .axis .scale { position: relative; block-size: 1.2rem; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .axis .scale span { position: absolute; transform: translateX(-50%); }
+    @media (max-width: 40rem) { .dprow, .axis { grid-template-columns: 7rem 1fr; } }
+
+    /* fixes */
+    .fixes { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; list-style: none; margin: 0; padding: 0; }
+    .fix { background: var(--sunk); border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; display: flex; flex-direction: column; gap: .35rem; }
+    .fix .phase { font-size: .7rem; font-weight: 700; letter-spacing: .05em; color: var(--brand); }
+    .fix h4 { margin: 0; font-size: .92rem; }
+    .fix p { margin: 0; font-size: .8rem; }
+    .fix .problem { color: var(--muted); }
+    .fix .ba { display: grid; grid-template-columns: 3.4rem 1fr; gap: 4px .5rem; align-items: center; margin-top: .3rem; font-size: .75rem; }
+    .fix .ba .bar.before { background: var(--deemph); }
+    .fix .ba .bar.after { background: var(--brand); }
+    .fix .metric { font-size: .75rem; color: var(--muted); }
+    .fix .source { margin-top: auto; padding-top: .3rem; }
+
+    /* live */
+    .empty { padding: 1rem; border-radius: 10px; background: var(--sunk); color: var(--muted); font-size: .9rem; }
+
+    /* table views */
+    details.table { margin-top: .8rem; font-size: .82rem; }
+    details.table summary { cursor: pointer; color: var(--brand); }
+    table { border-collapse: collapse; margin-top: .5rem; width: 100%; }
+    th, td { text-align: start; padding: .3rem .5rem; border-bottom: 1px solid var(--grid); }
+    td.num, th.num { text-align: end; font-variant-numeric: tabular-nums; }
+    .scroll-x { overflow-x: auto; }
+
+    #tip { position: fixed; pointer-events: none; z-index: 10; background: var(--panel); color: var(--text);
+           border: 1px solid var(--line); border-radius: 8px; padding: .35rem .55rem; font-size: .8rem;
+           box-shadow: 0 6px 20px rgb(0 0 0 / .15); max-width: 16rem; }
+    #tip strong { display: block; font-size: .95rem; }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+      <span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+      <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/#trips">My trips</a></li>
+        <li><a href="/">Help &amp; support</a></li>
+        <li><a href="/insights" aria-current="page">Service insights</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="page-title">
+  <svg class="art" viewBox="0 0 600 260" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+    <g fill="none" stroke="rgb(255 255 255 / .35)" stroke-width="2" stroke-linecap="round">
+      <path d="M60 220 L160 170 L260 185 L360 110 L460 125 L560 60"/>
+    </g>
+    <g fill="#f5a524"><circle cx="160" cy="170" r="4"/><circle cx="260" cy="185" r="4"/><circle cx="360" cy="110" r="4"/><circle cx="460" cy="125" r="4"/><circle cx="560" cy="60" r="6"/></g>
+    <g fill="rgb(255 255 255 / .08)"><ellipse cx="470" cy="215" rx="120" ry="26"/></g>
+  </svg>
+  <div class="wrap">
+    <p class="eyebrow">Service insights</p>
+    <h1 id="page-title">How well does ACME Assist work?</h1>
+    <p class="lead">Every number on this page comes from an evaluation run committed to the repository,
+      or from live traffic on this server. Nothing is estimated, and no message text is stored.</p>
+  </div>
+</section>
+
+<main class="wrap page">
+
+
+  <section class="card lift headline" aria-labelledby="h-safety" id="safety">
+    <div class="bignum">
+      <h3 id="h-safety" class="visually-hidden">Safety</h3>
+      <div class="value" id="hero-value">-</div>
+      <div class="label" id="hero-label"></div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-router">
+    <header>
+      <div>
+        <h3 id="h-router">Choosing what to do: three routers compared</h3>
+        <p class="sub" id="router-about"></p>
+      </div>
+      <ul class="legend" id="router-legend"></ul>
+    </header>
+    <div class="multiples" id="router-charts"></div>
+    <p class="takeaway" id="router-takeaway"></p>
+    <details class="table"><summary>Show as a table</summary><div class="scroll-x" id="router-table"></div></details>
+    <p class="source" id="router-source"></p>
+  </section>
+
+  <section class="card" aria-labelledby="h-cats">
+    <header>
+      <div>
+        <h3 id="h-cats">Accuracy by kind of message</h3>
+        <p class="sub">Each dot is one router on one category. The axis starts at 70% so the differences are visible.</p>
+      </div>
+      <ul class="legend" id="cat-legend"></ul>
+    </header>
+    <div class="dotplot" id="dotplot"></div>
+    <p class="takeaway" id="cat-takeaway"></p>
+    <details class="table"><summary>Show as a table</summary><div class="scroll-x" id="cat-table"></div></details>
+  </section>
+
+  <section class="card" aria-labelledby="h-fixes">
+    <header>
+      <div>
+        <h3 id="h-fixes">What measuring found - and what fixed it</h3>
+        <p class="sub">Each problem was measured first, changed, then measured again on the same set.</p>
+      </div>
+    </header>
+    <ul class="fixes" id="fixes"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="h-live">
+    <header>
+      <div>
+        <h3 id="h-live">Live on this server</h3>
+        <p class="sub" id="live-about"></p>
+      </div>
+      <button type="button" id="refresh">Refresh</button>
+    </header>
+    <div id="live"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+        <span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+        <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+      </a>
+      <p>Changes to a booking always need your "yes", and every action is recorded in an audit log.</p>
+    </div>
+    <div>
+      <h2>Help</h2>
+      <ul>
+        <li><a href="/#trips">My trips</a></li>
+        <li><a href="/">Chat with ACME Assist</a></li>
+        <li><a href="/insights">Service insights</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>About these numbers</h2>
+      <p>Measured with deterministic checks (no AI grading AI) on labelled test sets, and re-run by a
+        quality gate with fixed limits.</p>
+    </div>
+    <p class="legal">ACME Bharat Airlines is a fictional airline built for a portfolio project. Flights, bookings
+      and sign-in are simulated; no real payments or personal data are processed.</p>
+  </div>
+</footer>
+<div id="tip" role="tooltip" hidden></div>
+
+<script>
+{
+  const ROUTERS = [["llm", "LLM router", "--s1"], ["jev", "Jev classifier", "--s2"],
+                   ["prod", "Production (Jev + LLM fallback)", "--s3"]];
+  const $ = (id) => document.getElementById(id);
+  const tip = $("tip");
+
+  // All text from the API goes in with textContent - never innerHTML.
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  const fmt = (n, d = 0) => n == null ? "-" : Number(n).toLocaleString("en-IN", { maximumFractionDigits: d });
+  const sec = (ms) => ms == null ? "-" : ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${fmt(ms)} ms`;
+
+  // One tooltip for every mark; the same readout on hover and keyboard focus.
+  function tooltip(node, value, label) {
+    node.tabIndex = 0;
+    node.setAttribute("aria-label", `${label}: ${value}`);
+    const show = (x, y) => {
+      tip.replaceChildren(el("strong", null, value), el("span", null, label));
+      tip.hidden = false;
+      tip.style.left = `${Math.min(x + 12, innerWidth - tip.offsetWidth - 8)}px`;
+      tip.style.top = `${y + 14}px`;
+    };
+    node.addEventListener("pointermove", (e) => show(e.clientX, e.clientY));
+    node.addEventListener("focus", () => { const r = node.getBoundingClientRect(); show(r.left, r.bottom); });
+    for (const ev of ["pointerleave", "blur"]) node.addEventListener(ev, () => { tip.hidden = true; });
+  }
+
+  function legend(target, dots) {
+    const ul = $(target);
+    for (const [, name, color] of ROUTERS) {
+      const li = el("li");
+      const key = el("span", dots ? "key dot" : "key");
+      key.style.setProperty("--c", `var(${color})`);
+      li.append(key, el("span", null, name));
+      ul.append(li);
+    }
+  }
+
+  function table(target, head, rows, numeric) {
+    const t = el("table"), tr = el("tr");
+    head.forEach((h, i) => { const th = el("th", numeric.includes(i) ? "num" : null, h); th.scope = "col"; tr.append(th); });
+    const thead = el("thead"); thead.append(tr);
+    const tbody = el("tbody");
+    for (const r of rows) {
+      const row = el("tr");
+      r.forEach((c, i) => row.append(el("td", numeric.includes(i) ? "num" : null, c)));
+      tbody.append(row);
+    }
+    t.append(thead, tbody);
+    $(target).replaceChildren(t);
+  }
+
+  function tile(label, value, note) {
+    const d = el("div", "tile");
+    d.append(el("div", "label", label), el("div", "value", value), el("div", "note", note));
+    return d;
+  }
+
+  // ------------------------------------------------------------ measured
+  function renderHeadline(m) {
+    $("hero-value").textContent = fmt(m.tool.unwanted_actions);
+    $("hero-label").textContent = `unwanted booking changes in ${m.tool.conversations} end-to-end test conversations`;
+    const prod = m.router.routers.find((r) => r.key === "prod");
+    $("kpis").append(
+      tile("Routing accuracy", `${prod.accuracy}%`, `${prod.n} hard messages, ${m.router.categories.length} categories`),
+      tile("Policy answers", `${m.rag.fact_recall}%`, `fact recall on ${m.rag.questions} questions; ${m.rag.grounded_numbers}% of numbers grounded`),
+      tile("Conversations passing", `${m.tool.passed}/${m.tool.conversations}`, "real router, model, safety layer and airline"),
+      tile("Automated quality checks", fmt(m.gate.checks), "limits the CI quality gate enforces"));
+  }
+
+  function barChart(title, hint, key, unit, digits) {
+    const box = el("div", "minichart");
+    box.append(el("h4", null, title), el("p", "hint", hint));
+    return [box, (routers) => {
+      const max = Math.max(...routers.map((r) => r[key]));
+      const bars = el("div", "bars");
+      for (const [k, name, color] of ROUTERS) {
+        const r = routers.find((x) => x.key === k);
+        const value = `${fmt(r[key], digits)}${unit}`;
+        const row = el("div", "barrow"), line = el("div", "barline"), bar = el("div", "bar");
+        bar.style.setProperty("--c", `var(${color})`);
+        bar.style.inlineSize = `${Math.max(1, (80 * r[key]) / max)}%`;   // 80%: leaves room for the label
+        tooltip(bar, value, `${name} - ${title}`);
+        line.append(bar, el("span", "barval", value));
+        row.append(el("span", "name", name), line);
+        bars.append(row);
+      }
+      box.append(bars);
+      return box;
+    }];
+  }
+
+  function renderRouter(m) {
+    const R = m.router, routers = R.routers;
+    $("router-about").textContent = R.about + ".";
+    legend("router-legend");
+    const charts = [
+      barChart("Accuracy", "higher is better", "accuracy", "%", 1),
+      barChart("Same answer on all 3 runs", `messages out of ${routers[0].n}; higher is better`, "consistent", "", 0),
+      barChart("Median time to decide", "lower is better", "p50_ms", " ms", 0),
+      barChart("Wrong cancel decisions", "per run; lower is better (all stopped by the YES step)", "wrongful_cancels_per_run", "", 1),
+    ];
+    $("router-charts").replaceChildren(...charts.map(([, draw]) => draw(routers)));
+    const p = routers.find((r) => r.key === "prod"), l = routers.find((r) => r.key === "llm"),
+          j = routers.find((r) => r.key === "jev");
+    $("router-takeaway").textContent =
+      `Production uses the Jev classifier first (${sec(j.p50_ms)} median) and asks the LLM ` +
+      `(${sec(l.p50_ms)} median) only when Jev is less than 60% sure - ${p.fallback_rate}% of messages. ` +
+      `That is more accurate than either alone (${p.accuracy}% vs ${l.accuracy}% and ${j.accuracy}%) ` +
+      `at close to Jev's speed. The LLM alone gave the same answer on all runs for only ` +
+      `${l.consistent} of ${l.n} messages.`;
+    table("router-table", ["Router", "Accuracy", "Consistent", "p50", "p95", "Wrong cancels / run", "Escalation precision", "Escalation recall"],
+          routers.map((r) => [ROUTERS.find(([k]) => k === r.key)[1], `${r.accuracy}%`, `${r.consistent}/${r.n}`,
+                              sec(r.p50_ms), sec(r.p95_ms), fmt(r.wrongful_cancels_per_run, 1),
+                              `${r.escalation_precision}%`, `${r.escalation_recall}%`]),
+          [1, 2, 3, 4, 5, 6, 7]);
+    $("router-source").textContent = `Source: ${R.source}`;
+  }
+
+  function renderCategories(m) {
+    const MIN = 70, pos = (v) => `${((v - MIN) / (100 - MIN)) * 100}%`;
+    legend("cat-legend", true);
+    const plot = $("dotplot");
+    for (const c of [...m.router.categories].reverse()) {
+      const row = el("div", "dprow"), cat = el("div", "cat", c.category), lanes = el("div", "lanes");
+      cat.append(el("small", null, `${c.cases} messages`));
+      for (const t of [70, 80, 90, 100]) { const k = el("div", "tick"); k.style.left = pos(t); lanes.append(k); }
+      ROUTERS.forEach(([k, name, color], i) => {
+        const dot = el("span", "pt");
+        dot.style.setProperty("--c", `var(${color})`);
+        dot.style.left = pos(c[k]);
+        dot.style.top = `${7 + i * 10}px`;       // one lane per router, so equal values never hide each other
+        tooltip(dot, `${c[k]}%`, `${name} - ${c.category}`);
+        lanes.append(dot);
+      });
+      row.append(cat, lanes);
+      plot.append(row);
+    }
+    const axis = el("div", "axis"), scale = el("div", "scale");
+    for (const t of [70, 80, 90, 100]) { const s = el("span", null, `${t}%`); s.style.left = pos(t); scale.append(s); }
+    axis.append(el("div"), scale);
+    plot.append(axis);
+
+    const cats = m.router.categories;
+    const llmBetter = cats.filter((c) => c.llm > c.prod).map((c) => c.category.toLowerCase());
+    const prodBetter = cats.filter((c) => c.prod > c.llm && c.prod > c.jev).map((c) => c.category.toLowerCase());
+    $("cat-takeaway").textContent =
+      (llmBetter.length ? `Honest result: the LLM router alone is better on ${llmBetter.join(" and ")}. ` : "") +
+      (prodBetter.length ? `Production is best on ${prodBetter.join(", ")}.` : "");
+    table("cat-table", ["Category", "Messages", "LLM", "Jev", "Production"],
+          cats.map((c) => [c.category, c.cases, `${c.llm}%`, `${c.jev}%`, `${c.prod}%`]), [1, 2, 3, 4]);
+  }
+
+  function renderFixes(m) {
+    const ul = $("fixes");
+    for (const f of m.fixes) {
+      const li = el("li", "fix");
+      const unit = f.unit === "%" ? "%" : f.unit === "s" ? " s" : f.unit === "ms" ? " ms" : f.unit;
+      li.append(el("span", "phase", `PHASE ${f.phase}`), el("h4", null, f.title),
+                el("p", "problem", f.problem), el("p", null, `Fix: ${f.fix}`));
+      const ba = el("div", "ba"), max = Math.max(f.before, f.after, 1e-9);
+      for (const [label, v, cls] of [["Before", f.before, "before"], ["After", f.after, "after"]]) {
+        const line = el("div", "barline"), bar = el("div", `bar ${cls}`);
+        bar.style.inlineSize = `${Math.max(1, (70 * v) / max)}%`;
+        tooltip(bar, `${fmt(v, 2)}${unit}`, `${f.title} - ${label.toLowerCase()} (${f.metric})`);
+        line.append(bar, el("span", "barval", `${fmt(v, 2)}${unit}`));
+        ba.append(el("span", null, label), line);
+      }
+      li.append(ba, el("span", "metric", `${f.metric}${f.better === "lower" ? " - lower is better" : ""}` +
+                                         (f.extra ? ` · ${f.extra}` : "")),
+                el("p", "source", `Source: ${f.source}`));
+      ul.append(li);
+    }
+  }
+
+  // ------------------------------------------------------------ live
+  function renderLive(L) {
+    const since = new Date(L.since);
+    $("live-about").textContent =
+      `Since the server last started (${since.toLocaleString()}). It sleeps when nobody is using it, ` +
+      `which resets these counts. Numbers only: no messages, users or sessions are stored.`;
+    const box = $("live");
+    if (!L.requests) {
+      const p = el("p", "empty", "No conversations since the server started. ");
+      const a = el("a", null, "Try the chat");
+      a.href = "/";
+      p.append(a, document.createTextNode(" - then refresh this page to see your requests counted here."));
+      box.replaceChildren(p);
+      return;
+    }
+    const kpis = el("div", "kpis");
+    const a = L.actions;
+    kpis.append(
+      tile("Requests", fmt(L.requests), `median ${sec(L.latency.p50_ms)}, 95th percentile ${sec(L.latency.p95_ms)}`),
+      tile("Replies with no model call", `${Math.round((100 * L.no_model_replies) / L.requests)}%`,
+           `${L.no_model_replies} written by code: instant and free`),
+      tile("Changes proposed", fmt(a.proposed), `${a.executed} confirmed, ${a.declined} declined, ${a.expired} expired`),
+      tile("Handed to a person", fmt(L.escalations), `${L.blocked_access} attempts on someone else's booking blocked`),
+      tile("Router shadow check", L.shadow.compared ? `${Math.round((100 * L.shadow.agree) / L.shadow.compared)}%` : "-",
+           L.shadow.compared ? `agreement over ${L.shadow.compared} compared messages` : "no comparisons yet"));
+    const chart = el("div", "minichart");
+    chart.style.marginTop = "1rem";
+    chart.append(el("h4", null, "What people asked for"), el("p", "hint", "requests by route"));
+    const bars = el("div", "bars"), max = Math.max(...L.routes.map((r) => r.count));
+    for (const r of L.routes) {
+      const row = el("div", "barrow"), line = el("div", "barline"), bar = el("div", "bar");
+      bar.style.setProperty("--c", "var(--s1)");
+      bar.style.inlineSize = `${Math.max(1, (80 * r.count) / max)}%`;
+      tooltip(bar, `${r.count} requests`, `${r.family} - median ${sec(r.p50_ms)}`);
+      line.append(bar, el("span", "barval", `${r.count} · ${sec(r.p50_ms)} median`));
+      row.append(el("span", "name", r.family), line);
+      bars.append(row);
+    }
+    chart.append(bars);
+    box.replaceChildren(kpis, chart);
+  }
+
+  async function load() {
+    const live = $("live");
+    live.style.opacity = ".55";                  // keep the previous render while refreshing
+    try {
+      const data = await (await fetch("/v1/insights")).json();
+      if (data.measured && !$("kpis").childElementCount) {
+        renderHeadline(data.measured); renderRouter(data.measured);
+        renderCategories(data.measured); renderFixes(data.measured);
+      }
+      renderLive(data.live);
+    } catch {
+      live.replaceChildren(el("p", "empty", "Couldn't load the numbers. Please refresh."));
+    } finally { live.style.opacity = ""; }
+  }
+  $("refresh").addEventListener("click", load);
+  load();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+# Gate 1: deterministic tests on every PR and every push to main.
+# No model calls, no secrets, no cost - AI evaluations are gate 2 (see PLAN.md, Phase C).
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read   # least privilege: the job only needs to read the code
+
+concurrency:        # a new push cancels the still-running check for the same branch
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    # Pinned image (ubuntu-latest moves to Ubuntu 26 on 2026-10-19); the Python version comes
+    # from .python-version, the same file uv uses locally - one source of truth.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Third-party action pinned to a commit hash (tags can be moved; hashes can't).
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (exactly as locked)
+        run: uv sync --locked
+
+      - name: Run tests
+        run: uv run pytest -q

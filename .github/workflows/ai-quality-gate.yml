@@ -1,0 +1,69 @@
+# Gate 2: the AI quality gate. Re-runs the real evaluations against the real models and fails if
+# any metric crosses its limit in data/evals/gate.json - catching regressions that aren't in our
+# code (model updates, Jev versions, policy edits). Costs ~$0.15 and ~10 min per run, and needs
+# API keys, so it runs weekly / on demand / on release tags - never on pull requests.
+name: ai-quality-gate
+
+on:
+  schedule:
+    - cron: "30 3 * * 1"        # Mondays 03:30 UTC (09:00 IST)
+  workflow_dispatch:            # "Run workflow" button on the Actions tab
+  push:
+    tags: ["v*"]                # every release
+
+permissions:
+  contents: read
+
+concurrency:                    # never two paid runs at once
+  group: ai-quality-gate
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      # Production configuration (settings, not secrets)
+      LLM_BACKEND: azure
+      ROUTER_BACKEND: jev
+      RAG_REASONING_EFFORT: low
+      REPLY_REASONING_EFFORT: low
+      LANGFUSE_TRACING_ENABLED: "false"   # ~5,000 Langfuse units per run otherwise
+      # Secrets (Settings -> Secrets and variables -> Actions)
+      AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+      AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+      AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+      TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Third-party action pinned to a commit hash (tags can be moved; hashes can't).
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (exactly as locked)
+        run: uv sync --locked
+
+      - name: Check the secrets are configured
+        run: |
+          missing=0
+          for v in AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_KEY AZURE_OPENAI_DEPLOYMENT TYPESAFE_API_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::Repository secret $v is not set"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Build the policy index
+        run: uv run python src/rag/build_index.py
+
+      - name: Run the AI quality gate
+        run: uv run python src/evals/gate.py
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-quality-gate-results
+          path: data/evals/results/gate-*
+          retention-days: 90

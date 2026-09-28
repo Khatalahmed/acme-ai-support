@@ -3,11 +3,13 @@
 import argparse
 import json
 import re
+import sys
+from pathlib import Path
 
-import ollama
 from backend import get_flight_status, cancel_ticket
 
-MODEL = "acme-support"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import llm_backend
 
 TOOL_REGISTRY = {
     "get_flight_status": get_flight_status,
@@ -55,8 +57,7 @@ def valid_pnr(pnr):
 
 
 def chat(prompt):
-    resp = ollama.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
-    return resp["message"]["content"].strip()
+    return llm_backend.chat([{"role": "user", "content": prompt}]).strip()
 
 
 def main():
@@ -83,6 +84,13 @@ def main():
     pnr = decision.get("arguments", {}).get("pnr", "")
     if not valid_pnr(pnr):
         print(f"\n[bot] '{pnr}' is not a valid PNR format. Could you re-check it?")
+        return
+
+    if tool == "cancel_ticket":
+        # Read-only demo: irreversible actions need an authenticated user and a confirmed,
+        # unexpired pending action - that path lives in src/actions.py (via the API).
+        print(f"\n[bot] Router chose cancel_ticket('{pnr}'). This demo is read-only: "
+              "cancellations go through the API, which asks the customer to confirm.")
         return
 
     print(f"[2] EXECUTING {tool}('{pnr}') in Python (not in the model)...")

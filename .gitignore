@@ -9,3 +9,20 @@ merged_model*/
 .ipynb_checkpoints/
 *.zip
 data/chroma/
+
+# local secrets and runtime state - this repo is public
+.env.*
+!.env.example
+data/audit/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-*
+.pytest_cache/
+# local dev tooling
+.claude/
+# local quality-gate runs (CI keeps its own as workflow artifacts)
+data/evals/results/gate-*/

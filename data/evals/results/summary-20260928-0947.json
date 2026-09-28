@@ -1,0 +1,50 @@
+[
+  {
+    "router": "llm",
+    "accuracy": 0.9533333333333334,
+    "acc_min": 0.94,
+    "acc_max": 0.9666666666666667,
+    "consistent": 133,
+    "n": 150,
+    "runs": 3,
+    "wrongful_cancels": 2,
+    "cancel_recall": 0.9166666666666666,
+    "esc_precision": 0.82,
+    "esc_recall": 0.8095238095238095,
+    "fallback_rate": null,
+    "p50_ms": 3116,
+    "p95_ms": 6396
+  },
+  {
+    "router": "jev",
+    "accuracy": 0.9644444444444444,
+    "acc_min": 0.96,
+    "acc_max": 0.9666666666666667,
+    "consistent": 149,
+    "n": 150,
+    "runs": 3,
+    "wrongful_cancels": 9,
+    "cancel_recall": 0.9166666666666666,
+    "esc_precision": 0.9411764705882353,
+    "esc_recall": 1.0,
+    "fallback_rate": null,
+    "p50_ms": 436,
+    "p95_ms": 1162
+  },
+  {
+    "router": "prod",
+    "accuracy": 0.9755555555555556,
+    "acc_min": 0.9733333333333334,
+    "acc_max": 0.98,
+    "consistent": 142,
+    "n": 150,
+    "runs": 3,
+    "wrongful_cancels": 3,
+    "cancel_recall": 0.9166666666666666,
+    "esc_precision": 0.9767441860465116,
+    "esc_recall": 0.8095238095238095,
+    "fallback_rate": 0.13111111111111112,
+    "p50_ms": 428,
+    "p95_ms": 5906
+  }
+]

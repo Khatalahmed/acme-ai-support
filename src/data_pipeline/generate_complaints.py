@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from google import genai
+from openai import OpenAI
 
 # This file lives at src/data_pipeline/, so project root is 3 levels up
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -63,21 +63,23 @@ def parse_complaints(text):
 
 def main():
     load_dotenv(ROOT / ".env")
-    client = genai.Client(
-        vertexai=True,
-        project=os.environ["GCP_PROJECT_ID"],
-        location=os.environ.get("VERTEX_LOCATION", "global"),
+    # Azure OpenAI v1 API: plain OpenAI client pointed at <endpoint>/openai/v1/, no api-version.
+    client = OpenAI(
+        base_url=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/") + "/openai/v1/",
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
     )
-    model = os.environ.get("VERTEX_MODEL", "gemini-2.5-flash")
+    model = os.environ["AZURE_OPENAI_DEPLOYMENT"]
 
     out_path = ROOT / "data" / "raw" / "complaints.jsonl"
     kept, dropped = 0, 0
     with open(out_path, "w", encoding="utf-8") as f:
         for bucket, topic in BUCKETS.items():
             prompt = PROMPT_TEMPLATE.format(n=PER_BUCKET, topic=topic)
-            resp = client.models.generate_content(model=model, contents=prompt)
+            resp = client.chat.completions.create(
+                model=model, messages=[{"role": "user", "content": prompt}]
+            )
             bucket_kept = 0
-            for complaint in parse_complaints(resp.text):
+            for complaint in parse_complaints(resp.choices[0].message.content):
                 if len(complaint) < MIN_CHARS:
                     dropped += 1
                     continue

@@ -1,0 +1,37 @@
+[
+ {
+  "label": "REPLY_REASONING_EFFORT=default",
+  "passed": 1,
+  "n": 1,
+  "unwanted": 0,
+  "action_recall": null,
+  "esc_precision": null,
+  "esc_recall": null,
+  "reply_checks": 1.0,
+  "p50_by_route": {
+   "tool:get_flight_status": 9420
+  },
+  "results": [
+   {
+    "id": "status-on-time",
+    "passed": true,
+    "problems": [],
+    "turns": [
+     {
+      "message": "Is ACX456 on time?",
+      "route": "tool:get_flight_status",
+      "reply": "I’m glad you checked — I know how important it is to have the latest flight info.\n\nFacts for your booking:\n- PNR: ACX456 (Flight AC205)\n- Route: Mumbai -> Kolkata\n- Scheduled departure: 2026-10-02 at 09:15\n- Current status: On time\n- Booking status: confirmed\n\nOptions I can help with:\n1) Set up a flight status alert so you get notified of any changes.  \n2) Assist with online check-in or locating your boarding pass.  \n3) Help with seat or baggage requests.  \n4) Provide airport guidance (arrival time, terminal info) or other travel assistance.\n\nPolicy note:\nNo additional policy information is available.\n\nWhich of the options above would you like me to help with right now?",
+      "ms": 9420
+     }
+    ],
+    "expected": 0,
+    "correct": 0,
+    "unwanted": 0,
+    "escalation_expected": false,
+    "escalated": false,
+    "checks": 1,
+    "checks_failed": 0
+   }
+  ]
+ }
+]

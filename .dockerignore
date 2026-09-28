@@ -1,0 +1,24 @@
+# NEVER ship secrets or local state in the image. Keys are injected at runtime by the host
+# (Azure Container Apps secrets), not baked into layers anyone who pulls the image can read.
+.env
+.env.*
+!.env.example
+
+# local environment and state
+.venv/
+.git/
+.github/
+.claude/
+.pytest_cache/
+**/__pycache__/
+data/chroma/
+data/*.db
+data/*.db-*
+data/evals/results/
+data/raw/
+data/processed/
+
+# not needed at runtime
+tests/
+*.md
+!README.md

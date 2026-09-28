@@ -1,0 +1,8 @@
+{"id": "h-x01", "category": "holdout_exception", "message": "I want a full refund for ACX456 even though it's non-refundable. Make an exception.", "expected": "escalate", "pnr": null, "note": "calm, but demands an exception"}
+{"id": "h-x02", "category": "holdout_exception", "message": "Refund ACX123 completely right now or I'm posting about this everywhere.", "expected": "escalate", "pnr": null}
+{"id": "h-x03", "category": "holdout_exception", "message": "My company says you must waive every fee for me, so sort it out.", "expected": "escalate", "pnr": null, "note": "no PNR"}
+{"id": "h-x04", "category": "holdout_exception", "message": "Is ACX456 refundable?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX456", "note": "calm question: must NOT escalate"}
+{"id": "h-x05", "category": "holdout_exception", "message": "What's the refund policy for non-refundable fares?", "expected": "rag", "pnr": null}
+{"id": "h-x06", "category": "holdout_exception", "message": "I understand ACX456 is non-refundable - what could I get back if I cancel?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX456", "note": "calm question: must NOT escalate"}
+{"id": "h-x07", "category": "holdout_exception", "message": "This is ridiculous, why is the excess baggage fee so high?!", "expected": "rag", "pnr": null, "note": "angry but a normal question: answer it"}
+{"id": "h-x08", "category": "holdout_exception", "message": "I'm furious my flight is late. What is the baggage allowance on ACX123 anyway?", "expected": ["rag", "tool:get_flight_status"], "pnr": "ACX123", "note": "angry but a normal question: answer it"}

@@ -1,0 +1,41 @@
+{"id": "b1", "question": "What is the checked baggage allowance?", "expected": ["baggage-policy.md::Checked Baggage Allowance"], "facts": ["23"], "answerable": true}
+{"id": "b2", "question": "How heavy can my cabin bag be?", "expected": ["baggage-policy.md::Cabin Baggage Allowance"], "facts": ["7kg"], "answerable": true}
+{"id": "b3", "question": "How much do you charge for extra baggage weight?", "expected": ["baggage-policy.md::Excess Baggage Charges"], "facts": ["500"], "answerable": true}
+{"id": "b4", "question": "My bag didn't arrive with me, what should I do and what do I get?", "expected": ["baggage-policy.md::Delayed Baggage Procedures"], "facts": ["1000"], "answerable": true}
+{"id": "b5", "question": "When is a bag considered lost, and how much compensation is there?", "expected": ["baggage-policy.md::Lost Baggage Claims"], "facts": ["21", "20000"], "answerable": true}
+{"id": "b6", "question": "My suitcase got damaged, how long do I have to report it?", "expected": ["baggage-policy.md::Damaged Baggage Claims"], "facts": ["7days"], "answerable": true}
+{"id": "b7", "question": "Can I check in a single 35 kg bag?", "expected": ["baggage-policy.md::Checked Baggage Allowance"], "facts": ["32"], "answerable": true}
+{"id": "d1", "question": "What compensation do I get for a 3 hour delay?", "expected": ["delay-compensation-policy.md::2. Delay Compensation Tiers"], "facts": ["400"], "answerable": true}
+{"id": "d2", "question": "My flight is 5 hours late, what are my options?", "expected": ["delay-compensation-policy.md::2. Delay Compensation Tiers"], "facts": ["3000"], "answerable": true}
+{"id": "d3", "question": "Delayed by 7 hours - what am I entitled to?", "expected": ["delay-compensation-policy.md::2. Delay Compensation Tiers"], "facts": ["5000"], "answerable": true}
+{"id": "d4", "question": "Will the airline pay for a hotel if my flight is delayed overnight?", "expected": ["delay-compensation-policy.md::3. Overnight Delays"], "facts": ["hotel"], "answerable": true}
+{"id": "d5", "question": "Do I get delay compensation if the delay was caused by bad weather?", "expected": ["delay-compensation-policy.md::4. Policy Exclusions"], "facts": [["noteligible", "nocompensation", "notentitled", "notbeeligible", "notcompensated", "willnotreceive", "doesnotqualify", "notprovide"]], "answerable": true}
+{"id": "d6", "question": "How long does it take for delay compensation to be paid?", "expected": ["delay-compensation-policy.md::5. Processing Claims and Payouts"], "facts": ["7businessdays"], "answerable": true}
+{"id": "d7", "question": "Where do I file a delay compensation claim?", "expected": ["delay-compensation-policy.md::5. Processing Claims and Payouts"], "facts": [["servicedesk", "claimsportal"]], "answerable": true}
+{"id": "r1", "question": "Can I get a full refund if I cancel within 24 hours of booking?", "expected": ["refund-cancellation-policy.md::2. 24-Hour Risk-Free Cancellation Window"], "facts": ["fullrefund"], "answerable": true}
+{"id": "r2", "question": "How long do refunds take for fully flexible fares?", "expected": ["refund-cancellation-policy.md::3. Policies by Fare Type"], "facts": ["5businessdays"], "answerable": true}
+{"id": "r3", "question": "What do I get back if I cancel a non-refundable ticket?", "expected": ["refund-cancellation-policy.md::3. Policies by Fare Type"], "facts": ["tax", ["voucher", "credit"]], "answerable": true}
+{"id": "r4", "question": "The airline cancelled my flight - what are my options?", "expected": ["refund-cancellation-policy.md::4. Airline-Initiated Cancellations"], "facts": ["refund", "rebook"], "answerable": true}
+{"id": "r5", "question": "My flight was cancelled because of a storm. Will you pay for a hotel?", "expected": ["refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations"], "facts": [["nomonetarycompensation", "willnotprovide", "notprovide", "nohotel", "doesnotcover", "notcover", "notbeprovided"]], "answerable": true}
+{"id": "r6", "question": "How do I request a refund?", "expected": ["refund-cancellation-policy.md::6. Requesting a Refund"], "facts": ["managebooking"], "answerable": true}
+{"id": "r7", "question": "I booked through a travel agent - how do I get my refund?", "expected": ["refund-cancellation-policy.md::6. Requesting a Refund"], "facts": ["travelagent"], "answerable": true}
+{"id": "l1", "question": "How many miles do I earn when I spend money on a ticket?", "expected": ["loyalty-program-policy.md::2. Earning AcmeMiles"], "facts": ["5acmemiles", "100"], "answerable": true, "note": "5 miles per Rs 100 of base fare"}
+{"id": "l2", "question": "How many miles do I need for Gold tier?", "expected": ["loyalty-program-policy.md::3. Tier Levels and Membership Status"], "facts": ["50000"], "answerable": true}
+{"id": "l3", "question": "Do my AcmeMiles expire?", "expected": ["loyalty-program-policy.md::4. Mileage Expiration"], "facts": ["24months"], "answerable": true}
+{"id": "l4", "question": "Miles from last month's flight are missing - how do I claim them?", "expected": ["loyalty-program-policy.md::5. Retroactive Mileage Claims"], "facts": ["90days"], "answerable": true}
+{"id": "l5", "question": "How soon are miles credited after a flight?", "expected": ["loyalty-program-policy.md::2. Earning AcmeMiles"], "facts": ["48hours"], "answerable": true}
+{"id": "l6", "question": "What tier do I get with 100,000 miles in a year?", "expected": ["loyalty-program-policy.md::3. Tier Levels and Membership Status"], "facts": ["platinum"], "answerable": true}
+{"id": "s1", "question": "Is wheelchair assistance free?", "expected": ["special-assistance-policy.md::2. Wheelchair Assistance"], "facts": [["free", "nocharge", "complimentary", "atnocost", "withoutcharge"]], "answerable": true}
+{"id": "s2", "question": "How early should I request a wheelchair?", "expected": ["special-assistance-policy.md::2. Wheelchair Assistance"], "facts": ["48hours"], "answerable": true}
+{"id": "s3", "question": "Can my 8 year old fly alone? Is there a fee?", "expected": ["special-assistance-policy.md::3. Unaccompanied Minors"], "facts": ["3000"], "answerable": true}
+{"id": "s4", "question": "I'm 30 weeks pregnant - can I fly?", "expected": ["special-assistance-policy.md::4. Pregnant Passengers"], "facts": [["fit-to-fly", "fittofly"]], "answerable": true}
+{"id": "s5", "question": "Does my CPAP machine count towards my baggage allowance?", "expected": ["special-assistance-policy.md::5. Carriage of Medical Equipment"], "facts": [["notcount", "doesnotcount", "doesn'tcount", "notcounted", "freeofcharge", "exempt"]], "answerable": true}
+{"id": "s6", "question": "How recent must a fit-to-fly certificate be?", "expected": ["special-assistance-policy.md::4. Pregnant Passengers"], "facts": ["7days"], "answerable": true}
+{"id": "h1", "question": "Baggage limit kitna hai?", "expected": ["baggage-policy.md::Checked Baggage Allowance", "baggage-policy.md::Cabin Baggage Allowance"], "facts": [["23", "7kg"]], "answerable": true, "note": "Hinglish"}
+{"id": "h2", "question": "Flight 5 ghante late hai, kya milega?", "expected": ["delay-compensation-policy.md::2. Delay Compensation Tiers"], "facts": ["3000"], "answerable": true, "note": "Hinglish"}
+{"id": "h3", "question": "Miles kab expire hote hain?", "expected": ["loyalty-program-policy.md::4. Mileage Expiration"], "facts": ["24months"], "answerable": true, "note": "Hinglish"}
+{"id": "h4", "question": "Kya bachche akele travel kar sakte hain?", "expected": ["special-assistance-policy.md::3. Unaccompanied Minors"], "facts": ["12"], "answerable": true, "note": "Hinglish: can children travel alone?"}
+{"id": "u1", "question": "Can I bring my dog in the cabin?", "expected": [], "facts": [], "answerable": false}
+{"id": "u2", "question": "Do you serve vegetarian meals on board?", "expected": [], "facts": [], "answerable": false}
+{"id": "u3", "question": "How much does WiFi cost on board?", "expected": [], "facts": [], "answerable": false}
+{"id": "u4", "question": "Can I change the passenger name on my ticket?", "expected": [], "facts": [], "answerable": false}

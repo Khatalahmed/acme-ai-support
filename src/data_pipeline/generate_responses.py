@@ -13,8 +13,7 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-from google import genai
-from google.genai import errors, types
+from openai import APIStatusError, OpenAI
 
 # This file lives at src/data_pipeline/, so project root is 3 levels up
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -51,53 +50,54 @@ def load_done():
     return done
 
 
-def generate_with_retry(client, model, prompt, config, max_retries=3):
-    """Call one model; on 429/500/503 wait and retry with doubling delays."""
+def generate_with_retry(client, model, prompt, max_retries=3):
+    """Call one deployment; on 429/500/503 wait and retry with doubling delays."""
     delay = 10
     for attempt in range(max_retries):
         try:
-            return client.models.generate_content(
-                model=model, contents=prompt, config=config
+            # No temperature: reasoning deployments (gpt-5+/o-series) only accept the default.
+            return client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
             )
-        except errors.APIError as e:
-            retryable = getattr(e, "code", None) in (429, 500, 503)
+        except APIStatusError as e:
+            retryable = e.status_code in (429, 500, 503)
             if retryable and attempt < max_retries - 1:
-                print(f"  {model}: {e.code} - waiting {delay}s (retry {attempt + 1}/{max_retries})")
+                print(f"  {model}: {e.status_code} - waiting {delay}s (retry {attempt + 1}/{max_retries})")
                 time.sleep(delay)
                 delay *= 2
             else:
                 raise
 
 
-def generate_with_fallback(client, models, prompt, config):
-    """Try each model in order. Returns (response, model_that_answered)."""
+def generate_with_fallback(client, models, prompt):
+    """Try each deployment in order. Returns (response, model_that_answered)."""
     last_err = None
     for m in models:
         try:
-            return generate_with_retry(client, m, prompt, config), m
-        except errors.APIError as e:
-            print(f"  {m} exhausted retries ({getattr(e, 'code', '?')}) - falling back")
+            return generate_with_retry(client, m, prompt), m
+        except APIStatusError as e:
+            print(f"  {m} exhausted retries ({e.status_code}) - falling back")
             last_err = e
     raise last_err
 
 
 def main():
     load_dotenv(ROOT / ".env")
-    client = genai.Client(
-        vertexai=True,
-        project=os.environ["GCP_PROJECT_ID"],
-        location=os.environ.get("VERTEX_LOCATION", "global"),
+    # Azure OpenAI v1 API: plain OpenAI client pointed at <endpoint>/openai/v1/, no api-version.
+    client = OpenAI(
+        base_url=os.environ["AZURE_OPENAI_ENDPOINT"].rstrip("/") + "/openai/v1/",
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
     )
-    models = [
-        os.environ.get("VERTEX_MODEL", "gemini-3.5-flash"),
-        os.environ.get("VERTEX_MODEL_FALLBACK", "gemini-2.5-flash"),
-    ]
-    config = types.GenerateContentConfig(temperature=0.4)
+    # Azure "model" = your deployment name. The fallback deployment is optional.
+    models = [os.environ["AZURE_OPENAI_DEPLOYMENT"]]
+    if os.environ.get("AZURE_OPENAI_DEPLOYMENT_FALLBACK"):
+        models.append(os.environ["AZURE_OPENAI_DEPLOYMENT_FALLBACK"])
 
     done = load_done()
     records = [json.loads(line) for line in open(IN_PATH, encoding="utf-8")]
     print(f"{len(records)} complaints | {len(done)} already answered (will skip)")
-    print(f"primary model: {models[0]} | fallback: {models[1]}")
+    print(f"primary model: {models[0]} | fallback: {models[1] if len(models) > 1 else 'none'}")
 
     with open(OUT_PATH, "a", encoding="utf-8") as f:
         for i, rec in enumerate(records, 1):
@@ -106,10 +106,9 @@ def main():
             resp, used = generate_with_fallback(
                 client, models,
                 RESPONSE_PROMPT.format(complaint=rec["complaint"]),
-                config,
             )
             time.sleep(1.5)  # pacing: ~40 requests/min, stays under quota
-            rec["response"] = resp.text.strip()
+            rec["response"] = resp.choices[0].message.content.strip()
             rec["model"] = used
             f.write(json.dumps(rec) + "\n")
             f.flush()

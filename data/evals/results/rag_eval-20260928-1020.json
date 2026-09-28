@@ -1,0 +1,793 @@
+{
+ "retrieval": [
+  {
+   "id": "b1",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Cabin Baggage Allowance",
+    "baggage-policy.md::Excess Baggage Charges",
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "special-assistance-policy.md::5. Carriage of Medical Equipment"
+   ]
+  },
+  {
+   "id": "b2",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Cabin Baggage Allowance",
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Excess Baggage Charges",
+    "baggage-policy.md::Damaged Baggage Claims",
+    "baggage-policy.md::Lost Baggage Claims"
+   ]
+  },
+  {
+   "id": "b3",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Excess Baggage Charges",
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Cabin Baggage Allowance",
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "special-assistance-policy.md::5. Carriage of Medical Equipment"
+   ]
+  },
+  {
+   "id": "b4",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "baggage-policy.md::Lost Baggage Claims",
+    "baggage-policy.md::Damaged Baggage Claims",
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Cabin Baggage Allowance"
+   ]
+  },
+  {
+   "id": "b5",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Lost Baggage Claims",
+    "baggage-policy.md::Damaged Baggage Claims",
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "baggage-policy.md::Checked Baggage Allowance",
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations"
+   ]
+  },
+  {
+   "id": "b6",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Damaged Baggage Claims",
+    "baggage-policy.md::Lost Baggage Claims",
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims"
+   ]
+  },
+  {
+   "id": "b7",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Cabin Baggage Allowance",
+    "baggage-policy.md::Excess Baggage Charges",
+    "baggage-policy.md::Lost Baggage Claims",
+    "baggage-policy.md::Damaged Baggage Claims"
+   ]
+  },
+  {
+   "id": "d1",
+   "rank": 2,
+   "retrieved": [
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "delay-compensation-policy.md::4. Policy Exclusions"
+   ]
+  },
+  {
+   "id": "d2",
+   "rank": 1,
+   "retrieved": [
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::4. Policy Exclusions",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts"
+   ]
+  },
+  {
+   "id": "d3",
+   "rank": 1,
+   "retrieved": [
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "delay-compensation-policy.md::4. Policy Exclusions"
+   ]
+  },
+  {
+   "id": "d4",
+   "rank": 1,
+   "retrieved": [
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "delay-compensation-policy.md::4. Policy Exclusions",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts"
+   ]
+  },
+  {
+   "id": "d5",
+   "rank": 1,
+   "retrieved": [
+    "delay-compensation-policy.md::4. Policy Exclusions",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "baggage-policy.md::Delayed Baggage Procedures"
+   ]
+  },
+  {
+   "id": "d6",
+   "rank": 1,
+   "retrieved": [
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "delay-compensation-policy.md::3. Overnight Delays"
+   ]
+  },
+  {
+   "id": "d7",
+   "rank": 1,
+   "retrieved": [
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "delay-compensation-policy.md::4. Policy Exclusions",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers"
+   ]
+  },
+  {
+   "id": "r1",
+   "rank": 1,
+   "retrieved": [
+    "refund-cancellation-policy.md::2. 24-Hour Risk-Free Cancellation Window",
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations",
+    "refund-cancellation-policy.md::3. Policies by Fare Type",
+    "refund-cancellation-policy.md::6. Requesting a Refund",
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations"
+   ]
+  },
+  {
+   "id": "r2",
+   "rank": 1,
+   "retrieved": [
+    "refund-cancellation-policy.md::3. Policies by Fare Type",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "refund-cancellation-policy.md::2. 24-Hour Risk-Free Cancellation Window",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations"
+   ]
+  },
+  {
+   "id": "r3",
+   "rank": 4,
+   "retrieved": [
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations",
+    "refund-cancellation-policy.md::1. Introduction",
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations",
+    "refund-cancellation-policy.md::3. Policies by Fare Type",
+    "refund-cancellation-policy.md::6. Requesting a Refund"
+   ]
+  },
+  {
+   "id": "r4",
+   "rank": 1,
+   "retrieved": [
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations",
+    "refund-cancellation-policy.md::1. Introduction",
+    "refund-cancellation-policy.md::2. 24-Hour Risk-Free Cancellation Window",
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations",
+    "refund-cancellation-policy.md::6. Requesting a Refund"
+   ]
+  },
+  {
+   "id": "r5",
+   "rank": 1,
+   "retrieved": [
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "refund-cancellation-policy.md::2. 24-Hour Risk-Free Cancellation Window",
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations",
+    "refund-cancellation-policy.md::1. Introduction"
+   ]
+  },
+  {
+   "id": "r6",
+   "rank": 1,
+   "retrieved": [
+    "refund-cancellation-policy.md::6. Requesting a Refund",
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations",
+    "refund-cancellation-policy.md::1. Introduction",
+    "refund-cancellation-policy.md::3. Policies by Fare Type",
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations"
+   ]
+  },
+  {
+   "id": "r7",
+   "rank": 1,
+   "retrieved": [
+    "refund-cancellation-policy.md::6. Requesting a Refund",
+    "refund-cancellation-policy.md::5. Weather and Force Majeure Cancellations",
+    "refund-cancellation-policy.md::1. Introduction",
+    "refund-cancellation-policy.md::4. Airline-Initiated Cancellations",
+    "refund-cancellation-policy.md::2. 24-Hour Risk-Free Cancellation Window"
+   ]
+  },
+  {
+   "id": "l1",
+   "rank": 1,
+   "retrieved": [
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::3. Tier Levels and Membership Status",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers"
+   ]
+  },
+  {
+   "id": "l2",
+   "rank": 1,
+   "retrieved": [
+    "loyalty-program-policy.md::3. Tier Levels and Membership Status",
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "baggage-policy.md::Checked Baggage Allowance"
+   ]
+  },
+  {
+   "id": "l3",
+   "rank": 1,
+   "retrieved": [
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::1. Program Overview",
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "loyalty-program-policy.md::3. Tier Levels and Membership Status"
+   ]
+  },
+  {
+   "id": "l4",
+   "rank": 1,
+   "retrieved": [
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "baggage-policy.md::Lost Baggage Claims",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts"
+   ]
+  },
+  {
+   "id": "l5",
+   "rank": 2,
+   "retrieved": [
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "delay-compensation-policy.md::5. Processing Claims and Payouts",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers"
+   ]
+  },
+  {
+   "id": "l6",
+   "rank": 1,
+   "retrieved": [
+    "loyalty-program-policy.md::3. Tier Levels and Membership Status",
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::1. Program Overview"
+   ]
+  },
+  {
+   "id": "s1",
+   "rank": 1,
+   "retrieved": [
+    "special-assistance-policy.md::2. Wheelchair Assistance",
+    "special-assistance-policy.md::1. Introduction",
+    "special-assistance-policy.md::5. Carriage of Medical Equipment",
+    "special-assistance-policy.md::3. Unaccompanied Minors",
+    "refund-cancellation-policy.md::3. Policies by Fare Type"
+   ]
+  },
+  {
+   "id": "s2",
+   "rank": 1,
+   "retrieved": [
+    "special-assistance-policy.md::2. Wheelchair Assistance",
+    "special-assistance-policy.md::4. Pregnant Passengers",
+    "special-assistance-policy.md::3. Unaccompanied Minors",
+    "special-assistance-policy.md::1. Introduction",
+    "special-assistance-policy.md::5. Carriage of Medical Equipment"
+   ]
+  },
+  {
+   "id": "s3",
+   "rank": 1,
+   "retrieved": [
+    "special-assistance-policy.md::3. Unaccompanied Minors",
+    "special-assistance-policy.md::4. Pregnant Passengers",
+    "special-assistance-policy.md::2. Wheelchair Assistance",
+    "special-assistance-policy.md::1. Introduction",
+    "refund-cancellation-policy.md::3. Policies by Fare Type"
+   ]
+  },
+  {
+   "id": "s4",
+   "rank": 1,
+   "retrieved": [
+    "special-assistance-policy.md::4. Pregnant Passengers",
+    "special-assistance-policy.md::3. Unaccompanied Minors",
+    "special-assistance-policy.md::5. Carriage of Medical Equipment",
+    "special-assistance-policy.md::1. Introduction",
+    "delay-compensation-policy.md::1. Purpose and Scope"
+   ]
+  },
+  {
+   "id": "s5",
+   "rank": 1,
+   "retrieved": [
+    "special-assistance-policy.md::5. Carriage of Medical Equipment",
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Excess Baggage Charges",
+    "baggage-policy.md::Cabin Baggage Allowance",
+    "special-assistance-policy.md::2. Wheelchair Assistance"
+   ]
+  },
+  {
+   "id": "s6",
+   "rank": 1,
+   "retrieved": [
+    "special-assistance-policy.md::4. Pregnant Passengers",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::3. Tier Levels and Membership Status",
+    "baggage-policy.md::Lost Baggage Claims",
+    "loyalty-program-policy.md::4. Mileage Expiration"
+   ]
+  },
+  {
+   "id": "h1",
+   "rank": 1,
+   "retrieved": [
+    "baggage-policy.md::Checked Baggage Allowance",
+    "baggage-policy.md::Cabin Baggage Allowance",
+    "baggage-policy.md::Excess Baggage Charges",
+    "baggage-policy.md::Delayed Baggage Procedures",
+    "baggage-policy.md::Lost Baggage Claims"
+   ]
+  },
+  {
+   "id": "h2",
+   "rank": 2,
+   "retrieved": [
+    "special-assistance-policy.md::4. Pregnant Passengers",
+    "delay-compensation-policy.md::2. Delay Compensation Tiers",
+    "delay-compensation-policy.md::1. Purpose and Scope",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "special-assistance-policy.md::2. Wheelchair Assistance"
+   ]
+  },
+  {
+   "id": "h3",
+   "rank": 1,
+   "retrieved": [
+    "loyalty-program-policy.md::4. Mileage Expiration",
+    "loyalty-program-policy.md::5. Retroactive Mileage Claims",
+    "loyalty-program-policy.md::2. Earning AcmeMiles",
+    "loyalty-program-policy.md::3. Tier Levels and Membership Status",
+    "loyalty-program-policy.md::1. Program Overview"
+   ]
+  },
+  {
+   "id": "h4",
+   "rank": 5,
+   "retrieved": [
+    "special-assistance-policy.md::4. Pregnant Passengers",
+    "special-assistance-policy.md::1. Introduction",
+    "special-assistance-policy.md::2. Wheelchair Assistance",
+    "delay-compensation-policy.md::3. Overnight Delays",
+    "special-assistance-policy.md::3. Unaccompanied Minors"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "effort": "low",
+   "fact_recall": 1.0,
+   "grounded": 1.0,
+   "refusals": 1.0,
+   "false_refusals": 0,
+   "p50_ms": 4314,
+   "p95_ms": 6546,
+   "rows": [
+    {
+     "id": "b1",
+     "answerable": true,
+     "ms": 4567,
+     "reply": "I’m sorry for any confusion — happy to help with that.\n\nPolicy answer:\n- The complimentary checked baggage allowance is 23 kg per passenger.\n- This standard allowance applies to all domestic flights operated by ACME Bharat Airlines.\n- Each checked bag’s dimensions (length + width + height) must not exceed 158 cm (62 inches).\n- For safety reasons, any individual piece of baggage weighing more than 32 kg cannot be accepted as checked baggage and must be transported as cargo.\n\nWould you like help checking whether your specific bag meets the size/weight limits or assistance with pre-booking extra allowance?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "b2",
+     "answerable": true,
+     "ms": 4709,
+     "reply": "I'm happy to help — I know packing limits can be stressful before a flight.\n\nPolicy answer: Each passenger is permitted exactly one piece of cabin baggage with a maximum weight of 7 kg. You may also carry one small personal item (e.g., laptop bag, small handbag, or infant food bag) that must fit under the seat in front of you. Any cabin baggage exceeding the 7 kg weight limit must be checked in at the airport counter and will be subject to applicable baggage policies.\n\nWould you like assistance estimating your bag weight or guidance on checking in an overweight cabin bag?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "b3",
+     "answerable": true,
+     "ms": 4880,
+     "reply": "I’m sorry for any worry about extra baggage — I’m happy to help.\n\nPolicy answer:\n- Excess baggage is charged at a flat rate of Rs 500 per kg.  \n- Charges must be paid in full at the airport check-in counter before a boarding pass can be issued.  \n- You may pre-book additional baggage weight online through the ACME Bharat Airlines website or mobile app up to 2 hours before departure to access discounted rates.\n\nWould you like me to check how much your excess will cost for a specific bag weight so I can help you estimate the total?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "b4",
+     "answerable": true,
+     "ms": 5276,
+     "reply": "I’m sorry this happened — I understand how stressful it is when your baggage doesn’t arrive.\n\nPolicy answer:\n- You must report the delayed baggage and file a Property Irregularity Report (PIR) at the airport baggage service desk within 4 hours of arrival.\n- ACME Bharat Airlines provides interim compensation of Rs 1,000 per day to cover essential items. This interim compensation is payable for up to a maximum of 5 days, or until the baggage is delivered, whichever is earlier.\n- If the baggage remains untraced after 21 days from the date of flight arrival, it will be formally classified as lost. Passengers are eligible to claim compensation up to Rs 20,000 for lost baggage. To initiate a lost-baggage claim you must submit the PIR, the original baggage tag, and an itemized list of the contents with supporting receipts.\n\nNext step question:\nHave you already filed the PIR at the airport baggage service desk and do you have your original baggage tag and arrival time?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "b5",
+     "answerable": true,
+     "ms": 3335,
+     "reply": "I’m sorry you’re dealing with this — I understand how stressful lost baggage can be.\n\nPolicy answer:\n- A bag is formally classified as lost if it remains untraced after 21 days from the date of flight arrival.  \n- Passengers are eligible to claim compensation up to Rs 20,000 for lost baggage.\n\nWould you like help with the claim process (PIR, original baggage tag, and an itemized list with supporting receipts)?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "b6",
+     "answerable": true,
+     "ms": 4137,
+     "reply": "I’m sorry to hear your suitcase was damaged — I understand how upsetting that can be.\n\nPolicy answer:\nYou must file a damage report at the airport baggage service desk within 7 days of your arrival. The claim must include the original baggage tag and clear photos of the damage. Note that ACME Bharat Airlines is not liable for minor wear and tear, scratches, scuffs, damage from over-packing, or inherent defects.\n\nWould you like help with the next steps — do you have the original baggage tag and photos ready, and when did you arrive?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "b7",
+     "answerable": true,
+     "ms": 4451,
+     "reply": "I’m sorry for the inconvenience — I understand carrying heavier items can be stressful.\n\nPolicy answer: ACME Bharat Airlines does not accept any individual piece of baggage weighing more than 32 kg as checked baggage. The complimentary checked allowance is 23 kg per passenger, and any piece weighing over 32 kg must be transported as cargo.\n\nWould you like assistance with options—such as splitting the contents to meet the 32 kg limit or information on arranging cargo transport?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d1",
+     "answerable": true,
+     "ms": 6113,
+     "reply": "I’m sorry you experienced a delay — that’s frustrating. \n\nPolicy answer: For a delay of 2-4 hours, ACME Bharat Airlines provides complimentary meal vouchers worth Rs 400, redeemable at designated food and beverage outlets within the departure airport terminal. Eligible passengers can file a compensation claim at the airport service desk or online through the official ACME Bharat Airlines claims portal. All approved compensation payouts are processed within 7 business days from the date of claim verification and approval and refunds are credited to the original mode of payment.\n\nWould you like help with how to file the claim at the airport service desk or online?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d2",
+     "answerable": true,
+     "ms": 6621,
+     "reply": "I’m sorry you’re facing this disruption — I understand how frustrating a 5-hour delay can be.\n\nPolicy answer:\n- For a delay of 4-6 hours, you are entitled to choose one of the following options:\n  - A Rs 3,000 travel voucher valid for future travel with ACME Bharat Airlines, OR\n  - Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability, with all modification fees waived.\n- Please note the policy excludes compensation for delays caused by weather or air traffic control.\n- To claim, you can file at the airport service desk or online via the ACME Bharat Airlines claims portal. Approved compensation payouts are processed within 7 business days from the date of claim verification and approval.\n\nNext step question:\nWould you like the Rs 3,000 travel voucher or assistance with rebooking onto the next available ACME flight?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d3",
+     "answerable": true,
+     "ms": 4801,
+     "reply": "I’m sorry you had to experience a 7-hour delay — I understand how frustrating that can be.\n\nPolicy answer:\n- A 7-hour delay falls under “Delay over 6 hours.” You are entitled to choose one of the following options:\n  - A full refund of the ticket price for the affected flight sector, OR\n  - Free rebooking onto an alternative ACME Bharat Airlines flight, plus a Rs 5,000 travel voucher valid for future travel.\n- If the rescheduled departure requires an unscheduled overnight stay, ACME will provide complimentary hotel accommodation and cover ground transportation between the airport and the hotel.\n- To claim compensation, you can file at the airport service desk or online through the official ACME Bharat Airlines claims portal. Approved payouts are processed within 7 business days from the date of claim verification and approval.\n- Note: there is no compensation under this policy if the delay was caused by weather or air traffic control.\n\nWould you like to request a full refund or rebooking with the Rs 5,000 voucher, or do you need assistance filing the claim at the airport or online?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d4",
+     "answerable": true,
+     "ms": 5660,
+     "reply": "I’m sorry you’re facing an overnight delay — that’s frustrating.\n\nPolicy answer:\nYes. The policy states: “In the event of an overnight delay, where the rescheduled departure time requires an unscheduled overnight stay, complimentary hotel accommodation will be provided by the airline.” ACME Bharat Airlines will also “arrange and cover the cost of ground transportation between the airport and the hotel.”\n\nWould you like help with arranging the hotel now, or do you need guidance on filing a claim at the airport service desk or online?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d5",
+     "answerable": true,
+     "ms": 8075,
+     "reply": "I’m sorry you’re facing this — I understand delays are frustrating.\n\nPolicy answer:\nUnder ACME Bharat Airlines’ Flight Delay Compensation Policy, “there is no compensation for delays caused by weather or air traffic control. Passengers affected by delays resulting from these specific external factors will not be eligible for travel vouchers, monetary refunds, or meal coupons under this policy.”\n\nWould you like me to help you contact AcmeConnect for further assistance or explore other support options?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d6",
+     "answerable": true,
+     "ms": 4437,
+     "reply": "I’m sorry you’re dealing with this delay — I understand it can be frustrating.\n\nPolicy answer:\nAll approved compensation payouts are processed within 7 business days from the date of claim verification and approval. Eligible passengers can file a compensation claim at the airport service desk or online through the official ACME Bharat Airlines claims portal. Refund amounts will be credited back to the original mode of payment used during ticket purchase.\n\nNext-step question:\nHave you already filed a claim at the airport service desk or through the ACME Bharat Airlines claims portal?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "d7",
+     "answerable": true,
+     "ms": 4062,
+     "reply": "I’m sorry you’re facing a delay — I understand that’s frustrating.\n\nPolicy answer:\nEligible passengers can file a compensation claim at the airport service desk or online through the official ACME Bharat Airlines claims portal. All approved compensation payouts are processed within 7 business days from the date of claim verification and approval, and refund amounts will be credited back to the original mode of payment used during ticket purchase.\n\nWould you like help locating the nearest airport service desk or guidance on filing the claim online?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r1",
+     "answerable": true,
+     "ms": 4593,
+     "reply": "I’m sorry you’re needing to cancel — I understand that plans can change unexpectedly.\n\nPolicy answer:\nAny cancellation made within 24 hours of booking qualifies for a full refund of the entire ticket price. This policy applies regardless of the fare type purchased (including non-refundable and promotional fares). No cancellation fees or penalties will be levied for transactions cancelled within this 24-hour window.\n\nWould you like help with the next step — should I guide you to the \"Manage Booking\" section on our website, or would you prefer contact details for AcmeConnect?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r2",
+     "answerable": true,
+     "ms": 3647,
+     "reply": "I’m sorry you’re dealing with a cancellation— I understand wanting a clear timeline for your refund.\n\nPolicy answer:\nFor Fully-Flexible Fares, ACME Bharat Airlines processes a 100% refund of the ticket price, and the refund will be processed and returned to the original form of payment within 5 business days from the date the cancellation request is submitted.\n\nWould you like me to help with the next steps to submit or check the status of your cancellation request?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r3",
+     "answerable": true,
+     "ms": 4770,
+     "reply": "I’m sorry you’re having to cancel — I understand this can be frustrating.\n\nPolicy answer:\n- For non-refundable tickets, base fares and carrier-imposed charges are non-reimbursable.  \n- Government-mandated taxes and airport fees included in the ticket price will be refunded to you.  \n- The remaining eligible portion of the fare will be returned as a travel credit voucher, which is valid for 12 months from the date of issue.  \n- (These rules apply when cancelling outside the initial 24-hour window; for refund requests you should use the \"Manage Booking\" section on our website or contact customer support. If the ticket was purchased through a third-party travel agency, you must contact your travel agent.)\n\nWould you like me to help start the refund process — did you purchase your ticket directly from ACME Bharat Airlines or through a third-party travel agency?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r4",
+     "answerable": true,
+     "ms": 4973,
+     "reply": "I’m sorry your travel was disrupted — I understand this is frustrating.\n\nPolicy answer:\n- If ACME Bharat Airlines cancelled your scheduled flight due to operational issues, technical difficulties, or scheduling changes, you may choose either:\n  1. A full refund of the unused ticket value, returned to the original form of payment.\n  2. Free rebooking on the next available ACME Bharat Airlines flight to the scheduled destination, with any fare differences and change fees waived.\n- If the cancellation was due to adverse weather, natural disasters, or other force majeure, the same two options apply (free rebooking or full refund). Note that in weather/force majeure cases ACME Bharat Airlines will provide no monetary compensation for things like hotel accommodation or meals.\n- To request a refund or rebooking, visit the \"Manage Booking\" section on the ACME Bharat Airlines website or contact our customer support center. If your ticket was purchased through a third-party travel agency, you must contact your travel agent to initiate the refund or rebooking.\n\nNext-step question:\nWould you like me to guide you to the \"Manage Booking\" page or provide the customer support contact details so you can request a refund or free rebooking?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r5",
+     "answerable": true,
+     "ms": 4635,
+     "reply": "I’m sorry you’re dealing with this disruption — I understand how stressful that can be.\n\nPolicy answer:\n- For flights cancelled due to adverse weather (like a storm), ACME Bharat Airlines “will provide no monetary compensation (such as hotel accommodation or meals).”  \n- However, affected passengers are eligible for either “free rebooking on the next available flight” or “a full refund of their ticket value.”  \n- (For reference, ACME does provide complimentary hotel accommodation and ground transportation only “in the event of an overnight delay, where the rescheduled departure time requires an unscheduled overnight stay.”)\n\nNext step question:\nWould you prefer a free rebooking on the next available ACME Bharat Airlines flight or a full refund of your ticket value?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r6",
+     "answerable": true,
+     "ms": 4999,
+     "reply": "I’m sorry you’re dealing with this — I know refunds can be stressful and I’m here to help.\n\nPolicy answer:\n- To request a refund, please visit the \"Manage Booking\" section on the ACME Bharat Airlines website or contact our customer support center.\n- If your ticket was purchased through a third-party travel agency, you must contact your travel agent directly to initiate the refund process.\n- Relevant timelines and details from the policy: fully-flexible fares are refunded 100% and \"The refund will be processed and returned to the original form of payment within 5 business days from the date the cancellation request is submitted.\" Non-refundable fares will have government taxes/fees refunded and the remaining eligible portion issued as a travel credit voucher valid for \"12 months from the date of issue.\"\n- Additionally, if ACME cancels the flight, passengers may receive \"A full refund of the unused ticket value, returned to the original form of payment\" or free rebooking with fees waived. For weather/force majeure cancellations, affected passengers are eligible for either free rebooking or \"a full refund of their ticket value.\"\n\nNext-step question:\nDid you book directly with ACME Bharat Airlines (website, app, or ticketing office) or through a third-party travel agent?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "r7",
+     "answerable": true,
+     "ms": 6546,
+     "reply": "I’m sorry you’re dealing with this — I understand refunds can be stressful.\n\nPolicy answer:\n- According to the policy, \"For tickets purchased through third-party travel agencies, passengers must contact their travel agent directly to initiate the refund process.\"  \n- (Note: the policy also states passengers should visit the \"Manage Booking\" section or contact our customer support center to request a refund for tickets bought directly through ACME Bharat Airlines.)\n\nNext step question:\nWould you like help drafting a message to send to your travel agent, or do you want me to provide our customer support contact details for reference?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "l1",
+     "answerable": true,
+     "ms": 4025,
+     "reply": "I’m happy to help — thanks for asking.\n\nPolicy answer:\n- Members earn 5 AcmeMiles per Rs 100 spent on the base fare of an eligible ticket.\n- The base fare calculation strictly excludes government-imposed taxes, airport development fees, passenger service charges, fuel surcharges, and GST.\n- Miles are automatically credited to the member’s profile within 48 hours of flight completion, provided the membership number was entered at the time of booking.\n\nWould you like me to calculate the miles for a specific ticket base fare amount or check whether your membership number was recorded on a recent booking?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "l2",
+     "answerable": true,
+     "ms": 2941,
+     "reply": "I understand you're checking what it takes to reach Gold — happy to help.\n\nPolicy answer:\n- Gold Tier is attained upon earning 50,000 miles within a single calendar year (January 1 to December 31).\n- Once achieved, the Gold status remains valid for the remainder of the current calendar year plus the entirety of the subsequent calendar year.\n\nWould you like me to check how many qualifying miles you currently have toward Gold?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "l3",
+     "answerable": true,
+     "ms": 3778,
+     "reply": "I’m sorry for any worry this may cause — I understand wanting clarity about your hard‑earned AcmeMiles.\n\nPolicy answer:\n- All accumulated miles shall expire after 24 months of account inactivity.  \n- Account inactivity is defined as any continuous 24-month period during which a member does not record any qualifying transaction (for example, earning miles through a flight or redeeming miles for an eligible reward).  \n- Expired miles are permanently forfeited and cannot be reinstated, transferred, or exchanged for monetary compensation.\n\nNext step question:\nWould you like me to check whether there has been any qualifying activity on your account recently, or do you need help with how to record qualifying transactions to keep your account active?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "l4",
+     "answerable": true,
+     "ms": 4661,
+     "reply": "I’m sorry to hear your miles from last month are missing — I understand how frustrating that can be. I’ll explain how to get them credited.\n\nPolicy answer:\n- Miles are normally credited automatically within 48 hours of flight completion if your membership number was entered at booking.\n- If miles were not credited, you may file a retroactive claim; any missing miles must be claimed within 90 days of the date of travel.\n- You must submit a formal claim request accompanied by a copy of your physical or digital boarding pass and the ticket receipt.\n- Claims submitted without a valid boarding pass, or those initiated after the 90-day window has elapsed, will be rejected.\n(For reference, earning is 5 AcmeMiles per Rs 100 on the base fare, and the base fare excludes taxes and certain fees.)\n\nNext step question:\nCould you please confirm your date of travel and let me know if you have your boarding pass and ticket receipt handy so I can guide you on submitting the claim?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "l5",
+     "answerable": true,
+     "ms": 3523,
+     "reply": "I’m sorry for any uncertainty — I understand wanting to know when your miles will appear.\n\nPolicy answer:\n- Miles are automatically credited to your member profile within 48 hours of flight completion, provided the membership number was entered at the time of booking.  \n- If miles are not credited, you may initiate a retroactive claim within 90 days of the date of travel by submitting your boarding pass and ticket receipt; claims after 90 days or without a valid boarding pass will be rejected.  \n- Please note that accumulated miles expire after 24 months of account inactivity.\n\nWould you like help checking whether your membership number was added at booking or assistance with initiating a retroactive claim?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "l6",
+     "answerable": true,
+     "ms": 3315,
+     "reply": "I understand—congratulations on reaching such a high mileage! \n\nPolicy answer:\n- According to the AcmeMiles policy, earning 100,000 qualifying miles within a single calendar year (January 1 to December 31) attains the Platinum Tier.  \n- Once Platinum is achieved, the status remains valid for the remainder of the current calendar year plus the entirety of the subsequent calendar year.  \n- Platinum Tier benefits include priority check-in, additional baggage allowances, and complimentary lounge access.\n\nWould you like help checking your current AcmeMiles balance or confirming the date your Platinum status will become effective?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "s1",
+     "answerable": true,
+     "ms": 3133,
+     "reply": "I’m sorry you’re needing mobility support — I’m happy to help.\n\nPolicy answer: Wheelchair assistance is provided \"entirely free of charge\" to all passengers who require mobility support. Passengers must request wheelchair assistance \"at least 48 hours before their scheduled flight departure.\" The service covers transfer from the departure terminal check-in counter to the boarding gate, boarding the aircraft, and transfer from the aircraft to the arrival terminal exit.\n\nWould you like me to help arrange this for your booking? If yes, please share your booking reference and scheduled departure date/time.",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "s2",
+     "answerable": true,
+     "ms": 2666,
+     "reply": "I’m sorry you’re arranging this — I understand wanting to get it right.\n\nPolicy answer:\nYou must request wheelchair assistance at least 48 hours before your scheduled flight departure. The 48-hour notice allows our ground operations team to arrange the necessary personnel and equipment.\n\nWould you like me to help initiate the wheelchair request for a specific flight (please share your flight date and booking reference)?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "s3",
+     "answerable": true,
+     "ms": 3184,
+     "reply": "I understand this is important—thank you for checking.\n\nPolicy answer:\n- Yes. ACME Bharat Airlines' unaccompanied minor service is mandatory for children aged between 5 and 12 years who are traveling alone.  \n- A service fee of Rs 3,000 per unaccompanied minor per flight sector is applicable.  \n- A parent or guardian must accompany the child to the departure check-in counter, complete the required indemnity forms, and remain at the airport until the flight has departed. At the destination, the child will only be released to the authorized guardian specified in the booking documents.\n\nWould you like me to help arrange the unaccompanied minor service for the flight or provide the list of documents needed for drop-off?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "s4",
+     "answerable": true,
+     "ms": 3507,
+     "reply": "I’m glad you reached out — and congratulations. I understand this can feel stressful, especially late in pregnancy.\n\nPolicy answer:\n- As you have reached 30 weeks (which is after 28 weeks), a valid \"Fit-to-Fly\" certificate is mandatory.  \n- The certificate must be issued by a registered medical practitioner or obstetrician within 7 days of the scheduled departure date.  \n- It must clearly state the estimated date of delivery, confirm that the pregnancy is uncomplicated, and certify that you are fit to travel by air.\n\nNext step question:\nDo you have a scheduled departure date, or have you already obtained a Fit-to-Fly certificate from your doctor?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "s5",
+     "answerable": true,
+     "ms": 4982,
+     "reply": "I’m sorry for any worry about your CPAP—thank you for checking.\n\nPolicy answer: ACME Bharat Airlines’ Special Assistance Policy states that approved personal medical equipment, including CPAP machines, is carried free of charge and does not count toward your standard checked or cabin baggage allowance. Passengers must inform the airline at least 48 hours before departure regarding the specifications of any medical equipment they intend to bring on board, particularly if the device requires battery power.\n\nNext step question: Have you informed us at least 48 hours before departure with your CPAP specifications (especially if it uses batteries), or would you like guidance on how to notify AcmeConnect?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "s6",
+     "answerable": true,
+     "ms": 3384,
+     "reply": "I understand this can be stressful — thank you for checking the requirement.\n\nPolicy answer:\nFor passengers who have reached or exceeded 28 weeks of pregnancy, a valid \"Fit-to-Fly\" certificate is mandatory. The certificate must be issued by a registered medical practitioner or obstetrician within 7 days of the scheduled departure date. It must also state the estimated date of delivery, confirm the pregnancy is uncomplicated, and certify the passenger is fit to travel by air.\n\nWould you like help confirming whether your travel date falls within that 7-day window or guidance on submitting the certificate?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "h1",
+     "answerable": true,
+     "ms": 4060,
+     "reply": "Samvedana ke saath — aapka sawaal bilkul sahi hai. Yahan ACME Bharat Airlines ki policy ke muthabik mukhya limits hain:\n\nPolicy answer:\n- Checked baggage allowance: complimentary 23 kg per passenger (domestic flights). Har checked bag ki 3 dimensions ka yog 158 cm (62 inches) se adhik nahi hona chahiye. Koi bhi ek item jo 32 kg se zyada ho, checked baggage ke roop mein accepted nahi kiya jayega aur use cargo ke roop mein bhejna padega.\n- Cabin baggage: har passenger ko exactly 1 piece cabin baggage allowed hai, jiska maximum weight 7 kg hai. Iske alawa ek chhota personal item (laptop bag, small handbag, infant food bag) allowed hai jo seat ke neeche fit hona chahiye.\n- Agar checked baggage complimentary limit se adhik ho to excess charge airport par Rs 500 per kg lagega; extra weight online pre-book karne ka option departure se up to 2 hours pehle available hai.\n\nNext-step question:\nKya aap apni flight ka date/route bata sakte hain ya extra baggage pre-book karwana chahenge?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "h2",
+     "answerable": true,
+     "ms": 3938,
+     "reply": "Mujhe afsos hai ki aapko is deri ka samna karna pad raha hai.\n\nNiti ke mutabik, agar flight ki deri \"4-6 hours\" (4 se 6 ghante) hai, to aapko ek chunav diya jayega:\n- Ya to Rs 3,000 ka travel voucher future travel ke liye, YA\n- Free rebooking onto the next available ACME Bharat Airlines flight to the same destination, subject to seat availability, with all modification fees waived.\n\nKya aap Rs 3,000 voucher lena pasand karenge, ya aapko free rebooking chahiye? Agar rebooking chahte hain to kripya flight number aur scheduled departure date batayein.",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "h3",
+     "answerable": true,
+     "ms": 4314,
+     "reply": "Samvedansheel dhanyavaad — aapka sawal maayne rakhta hai, aur main madad karne ke liye yahan hoon.\n\nPolicy jawab:\n- Saare accumulated miles tab expire ho jaate hain agar account mein lagataar 24 months ki inactivity ho.  \n- Account inactivity ka arth hai koi bhi continuous 24-month period jismein member koi qualifying transaction (jaise flight se miles earn karna ya miles redeem karna) record nahi karta.  \n- Ek baar expired ho gaye miles permanently forfeited ho jaate hain aur unhein reinstate, transfer, ya monetary compensation ke liye exchange nahi kiya ja sakta.\n\nAapko aur kaise madad chahiye? Kya main aapke account ki activity period dekhne mein madad karun ya aapke recent flights ki dates bata sakte hain?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "h4",
+     "answerable": true,
+     "ms": 5761,
+     "reply": "Samvedana ke saath: Samajh sakta/ti hoon ki aap apne bachche ki suraksha aur safar ke bare mein chintit hain.\n\nPolicy ke anusar: \n- ACME Bharat Airlines ka unaccompanied minor service mandatory hai un bachchon ke liye jo 5 se 12 saal ke beech hain.  \n- Iske liye service fee Rs 3,000 per unaccompanied minor per flight sector lagu hoti hai.  \n- Parent/guardian ko departure check-in counter tak bachche ke saath aana hoga, required indemnity forms bharne honge, aur woh tab tak airport par rukna hoga jab tak flight depart na ho jaye.  \n- Destination par bachche ko keval booking documents mein specified authorized guardian ko hi release kiya jayega.\n\nAage ka sawal: Kya aap bata sakte hain aapka bachcha kitne saal ka hai aur flight ki tareekh kya hai, taaki main aapko madad karne ke liye agla kadam bata sakun?",
+     "facts_ok": true,
+     "refused": false,
+     "ungrounded": []
+    },
+    {
+     "id": "u1",
+     "answerable": false,
+     "ms": 2720,
+     "reply": "I understand wanting clarity about traveling with your dog — thank you for checking.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nWould you like me to help with anything else while you arrange that contact?",
+     "facts_ok": null,
+     "refused": true,
+     "ungrounded": []
+    },
+    {
+     "id": "u2",
+     "answerable": false,
+     "ms": 2764,
+     "reply": "I understand wanting to know about meal options—thank you for asking.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nWould you like me to help with anything else related to special assistance or flight delays?",
+     "facts_ok": null,
+     "refused": true,
+     "ungrounded": []
+    },
+    {
+     "id": "u3",
+     "answerable": false,
+     "ms": 3108,
+     "reply": "I’m sorry you couldn’t find that information — I understand wanting to know the WiFi cost before you travel.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nWould you like me to help with how to reach AcmeConnect or assist with any other policy question (baggage, delays, refunds, AcmeMiles, or medical equipment)?",
+     "facts_ok": null,
+     "refused": true,
+     "ungrounded": []
+    },
+    {
+     "id": "u4",
+     "answerable": false,
+     "ms": 2646,
+     "reply": "I’m sorry for any inconvenience—thank you for reaching out about this.\n\nI don't have sufficient information on this. Kindly contact AcmeConnect for assistance.\n\nWould you like me to help you with the AcmeConnect contact details or anything else related to your booking?",
+     "facts_ok": null,
+     "refused": true,
+     "ungrounded": []
+    }
+   ]
+  }
+ ]
+}

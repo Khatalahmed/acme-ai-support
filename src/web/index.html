@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Declare both themes early so the first paint already matches the user's system theme -->
+  <meta name="color-scheme" content="light dark">
+  <title>Help & support - ACME Bharat Airlines</title>
+  <link rel="stylesheet" href="/static/site.css">
+  <style>
+    /* ---------------------------------------------------------------- quick help */
+    .quick { padding: 1rem 1.1rem 1.1rem; }
+    .quick h2 { margin: 0 0 .7rem; font-size: 1rem; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .6rem; }
+    .tile {
+      display: grid; grid-template-columns: auto 1fr; gap: .15rem .65rem; align-items: start; text-align: start;
+      padding: .75rem .8rem; border-radius: 12px; background: var(--sunk); border: 1px solid var(--line);
+    }
+    .tile:hover { border-color: var(--brand); background: var(--brand-soft); }
+    .tile .icon {
+      grid-row: span 2; inline-size: 2.1rem; block-size: 2.1rem; border-radius: 10px; display: grid; place-items: center;
+      background: var(--brand-soft); color: var(--brand);
+    }
+    .tile b { font-size: .9rem; }
+    .tile small { font-size: .74rem; color: var(--muted); line-height: 1.3; }
+
+    /* ---------------------------------------------------------------- layout */
+    .layout { display: grid; grid-template-columns: 22rem 1fr; gap: 1.25rem; margin-top: 1.5rem; align-items: start; }
+    @media (max-width: 58rem) {
+      .layout { grid-template-columns: 1fr; }
+      #assist { order: -1; }                     /* phones: the chat first, trips below */
+    }
+
+    /* ---------------------------------------------------------------- boarding-pass trip cards */
+    .trips { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+    .trip {
+      --state-color: var(--line); position: relative; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgb(12 34 87 / .05);
+    }
+    .trip[data-state="ok"] { --state-color: var(--good); --state-bg: var(--ok); }
+    .trip[data-state="delayed"] { --state-color: var(--warning); --state-bg: var(--late); }
+    .trip[data-state="cancelled"] { --state-color: var(--critical); --state-bg: var(--off); }
+    .trip::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 4px; background: var(--state-color); }
+    .trip-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .7rem .9rem 0 1.1rem; }
+    .trip-top .pnr { font-size: .72rem; color: var(--muted); letter-spacing: .08em; }
+    .trip-top .pnr b { font-family: ui-monospace, monospace; font-size: .9rem; color: var(--text); letter-spacing: .02em; margin-inline-start: .3rem; }
+    .pill {
+      display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; font-weight: 600;
+      padding: .15rem .55rem; border-radius: 999px; background: var(--state-bg);
+    }
+    .pill .dot { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--state-color); }
+    .leg { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .6rem; padding: .55rem .9rem .7rem 1.1rem; }
+    .apt b { display: block; font-size: 1.55rem; letter-spacing: .02em; line-height: 1; }
+    .apt span { font-size: .75rem; color: var(--muted); }
+    .apt.end { text-align: end; }
+    .path { position: relative; display: grid; place-items: center; color: var(--muted); font-size: .7rem; }
+    .path::before { content: ""; position: absolute; inset-inline: 0; top: 50%; border-top: 2px dotted var(--line); }
+    /* no padding on the icon: with border-box sizing it would shrink the plane to ~10px */
+    .path svg { position: relative; background: var(--panel); box-shadow: 0 0 0 .3rem var(--panel); color: var(--brand); transform: rotate(90deg); }
+    .path span { position: absolute; top: calc(50% + .55rem); }
+    .trip-foot {
+      position: relative; display: flex; justify-content: space-between; gap: .5rem; padding: .55rem .9rem .65rem 1.1rem;
+      border-top: 2px dashed var(--line); font-size: .78rem; color: var(--muted);
+    }
+    /* ticket notches where the tear line meets the edges */
+    .trip-foot::before, .trip-foot::after {
+      content: ""; position: absolute; top: -8px; inline-size: 14px; block-size: 14px; border-radius: 50%; background: var(--bg);
+    }
+    .trip-foot::before { left: -8px; } .trip-foot::after { right: -8px; }
+    .trip-foot b { color: var(--text); font-weight: 600; }
+    .outcome { display: block; padding: .45rem 1.1rem; font-size: .78rem; font-weight: 600; background: var(--brand-soft); color: var(--brand); }
+
+    /* ---------------------------------------------------------------- account tabs */
+    .tabs { display: flex; gap: .25rem; margin-bottom: .8rem; border-bottom: 1px solid var(--line); }
+    .tabs [role="tab"] {
+      border: 0; border-radius: 0; background: transparent; padding: .55rem .7rem; font-weight: 600;
+      color: var(--muted); border-block-end: 3px solid transparent; margin-block-end: -1px;
+    }
+    .tabs [role="tab"][aria-selected="true"] { color: var(--brand); border-block-end-color: var(--saffron); }
+    .tabs .count {
+      display: inline-block; min-inline-size: 1.4rem; padding: 0 .35rem; border-radius: 999px; font-size: .72rem;
+      background: var(--brand-soft); color: var(--brand); text-align: center;
+    }
+    .tabs .count:empty { display: none; }
+    .panel-note { margin: 0 0 .7rem; font-size: .8rem; color: var(--muted); }
+    .empty { padding: .9rem; border: 1px dashed var(--line); border-radius: 12px; font-size: .85rem; color: var(--muted); list-style: none; }
+
+    .timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+    .timeline::before { content: ""; position: absolute; inset-block: .6rem; inset-inline-start: 13px; border-inline-start: 2px solid var(--line); }
+    .event { position: relative; display: grid; grid-template-columns: 28px 1fr; gap: .6rem; padding-block: .4rem; }
+    .event .dot {
+      position: relative; inline-size: 28px; block-size: 28px; border-radius: 50%; display: grid; place-items: center;
+      font-size: .8rem; font-weight: 700; background: var(--panel); border: 2px solid var(--kind); color: var(--kind);
+    }
+    .event[data-kind="done"] { --kind: var(--good); }
+    .event[data-kind="pending"] { --kind: var(--warning); }
+    .event[data-kind="stopped"], .event[data-kind="info"] { --kind: var(--muted); }
+    .event[data-kind="blocked"] { --kind: var(--critical); }
+    .event[data-kind="handoff"] { --kind: var(--brand); }
+    .event p { margin: 0; font-size: .86rem; }
+    .event small { color: var(--muted); font-size: .74rem; }
+
+    .requests { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+    .request { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .7rem .85rem; }
+    .request .top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .request .ref { font-family: ui-monospace, monospace; font-weight: 700; }
+    .request .open { font-size: .72rem; font-weight: 600; padding: .1rem .5rem; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+    .request p { margin: .3rem 0 0; font-size: .85rem; }
+    .request small { color: var(--muted); font-size: .74rem; }
+
+    /* ---------------------------------------------------------------- assistant */
+    #assist { display: grid; grid-template-rows: auto 1fr auto; block-size: min(82dvh, 48rem); overflow: hidden; }
+    .assist-head { display: flex; align-items: center; gap: .7rem; padding: .8rem 1rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .bot-avatar {
+      inline-size: 2.3rem; block-size: 2.3rem; border-radius: 50%; display: grid; place-items: center; flex: none;
+      background: var(--navy); color: #fff; box-shadow: inset 0 0 0 2px var(--saffron);
+    }
+    .assist-head h2 { margin: 0; font-size: 1rem; }
+    .assist-head .status { font-size: .76rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; }
+    .assist-head .live { inline-size: .5rem; block-size: .5rem; border-radius: 50%; background: var(--good); }
+    .toggle { margin-inline-start: auto; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; cursor: pointer; }
+
+    .log { list-style: none; margin: 0; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scrollbar-width: thin; }
+    .msg { display: flex; gap: .55rem; max-width: 90%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg .who {
+      inline-size: 1.9rem; block-size: 1.9rem; border-radius: 50%; display: grid; place-items: center; flex: none;
+      font-size: .78rem; font-weight: 700; background: var(--brand-soft); color: var(--brand);
+    }
+    .msg.bot .who { background: var(--navy); color: #fff; }
+    .bubble { padding: .65rem .85rem; border-radius: 14px; line-height: 1.5; min-width: 0; }
+    .bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .msg.user .bubble { background: var(--user); color: #fff; border-end-end-radius: 4px; }
+    .msg.bot .bubble { background: var(--sunk); border: 1px solid var(--line); border-end-start-radius: 4px; }
+    .msg.error .bubble { background: var(--late); }
+
+    .chips { margin-top: .55rem; display: flex; flex-wrap: wrap; gap: .3rem; font-size: .72rem; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .5rem; color: var(--muted); background: var(--panel); }
+    .chip.code { border-color: var(--good); }
+
+    .confirm { margin-top: .7rem; padding: .6rem .7rem; border-radius: 10px; background: var(--late); border-inline-start: 4px solid var(--warning); }
+    .confirm p { font-size: .82rem; margin: 0 0 .5rem; }
+    .confirm .buttons { display: flex; gap: .5rem; }
+
+    /* "How I decided" - native <details>: keyboard and screen-reader support built in */
+    details.trace { margin-top: .55rem; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    details.trace summary {
+      cursor: pointer; padding: .45rem .65rem; font-size: .8rem; font-weight: 600; color: var(--brand);
+      display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+    }
+    details.trace summary .sum { font-weight: 400; color: var(--muted); }
+    details.trace::details-content { block-size: 0; overflow: hidden; transition: block-size .25s ease, content-visibility .25s allow-discrete; }
+    details.trace[open]::details-content { block-size: auto; }
+    @media (prefers-reduced-motion: reduce) { details.trace::details-content { transition: none; } }
+    .trace-body { padding: .2rem .7rem .7rem; display: grid; gap: .7rem; font-size: .8rem; }
+    .trace-body h3 { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 .35rem; }
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+    .step { display: grid; grid-template-columns: 5.2rem 1fr auto; gap: .5rem; align-items: start; }
+    .step .name { font-weight: 600; }
+    .step .ms { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .step .bar { grid-column: 2 / 4; block-size: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+    .step .bar span { display: block; block-size: 100%; background: var(--brand); border-radius: 2px; }
+    .risks { display: grid; gap: .45rem; }
+    .risk { display: grid; grid-template-columns: 9rem 1fr 3.2rem; gap: .5rem; align-items: center; }
+    .risk .track { position: relative; block-size: 8px; border-radius: 4px; background: var(--brand-soft); }
+    .risk .fill { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 4px; background: var(--brand); }
+    .risk.flagged .fill { background: var(--critical); }
+    .risk .threshold { position: absolute; inset-block: -3px; inline-size: 2px; background: var(--text); }
+    .risk .val { font-variant-numeric: tabular-nums; text-align: end; }
+    .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: .25rem; }
+    .checks li::before { content: "\2713"; color: var(--good); font-weight: 700; margin-inline-end: .45rem; }
+    .sources { margin: 0; padding-inline-start: 1.1rem; color: var(--muted); }
+
+    .typing { display: none; align-items: center; gap: .5rem; padding: 0 1rem .6rem; color: var(--muted); font-size: .82rem; }
+    .typing.on { display: flex; }
+    .dots { display: inline-flex; gap: 3px; }
+    .dots span { inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+    .dots span:nth-child(2) { animation-delay: .2s; }
+    .dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: .6; } }
+
+    form { display: flex; gap: .5rem; padding: .75rem .9rem .4rem; border-top: 1px solid var(--line); }
+    form input {
+      flex: 1; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--sunk); color: var(--text);
+    }
+    .privacy { margin: 0; padding: 0 1rem .75rem; font-size: .74rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+      <span class="mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+      </span>
+      <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="#trips">My trips</a></li>
+        <li><a href="/" aria-current="page">Help &amp; support</a></li>
+        <li><a href="/insights">Service insights</a></li>
+      </ul>
+    </nav>
+    <div class="account">
+      <span class="avatar" id="initial" aria-hidden="true">A</span>
+      <div>
+        <label for="user">Signed in as</label>
+        <select id="user">
+          <option value="asha">Asha</option>
+          <option value="ravi">Ravi</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="greeting">
+  <svg class="art" viewBox="0 0 600 260" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+    <path d="M40 230 C 200 40, 420 20, 580 120" fill="none" stroke="rgb(255 255 255 / .45)" stroke-width="2" stroke-dasharray="2 9" stroke-linecap="round"/>
+    <circle cx="40" cy="230" r="5" fill="#f5a524"/><circle cx="580" cy="120" r="5" fill="#f5a524"/>
+    <g transform="translate(372 58) rotate(20)" fill="#fff"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="rotate(90 12 12) scale(1.6) translate(-4 -4)"/></g>
+    <g fill="rgb(255 255 255 / .08)"><ellipse cx="470" cy="215" rx="120" ry="26"/><ellipse cx="560" cy="200" rx="80" ry="20"/></g>
+  </svg>
+  <div class="wrap">
+    <p class="eyebrow">Help &amp; support</p>
+    <h1 id="greeting">Namaste, Asha. How can we help?</h1>
+    <p class="lead">Check a flight, sort out a delay or a cancellation, or ask about our policies.
+      ACME Assist, our AI agent, answers in seconds &mdash; and never changes a booking without your "yes".</p>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="card lift quick" aria-labelledby="quick-title">
+    <h2 id="quick-title">Quick help</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <div class="layout">
+    <section id="trips" aria-labelledby="trips-title">
+      <h2 id="trips-title" class="visually-hidden">My trips, activity and requests</h2>
+      <div class="tabs" role="tablist" aria-label="My account">
+        <button type="button" role="tab" id="tab-trips" aria-controls="panel-trips" aria-selected="true">
+          My trips <span class="count" id="n-trips"></span></button>
+        <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1">
+          Activity <span class="count" id="n-activity"></span></button>
+        <button type="button" role="tab" id="tab-requests" aria-controls="panel-requests" aria-selected="false" tabindex="-1">
+          Requests <span class="count" id="n-requests"></span></button>
+      </div>
+      <div role="tabpanel" id="panel-trips" aria-labelledby="tab-trips">
+        <ul class="trips" id="bookings"></ul>
+      </div>
+      <div role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden>
+        <p class="panel-note">Everything you asked us to change, what you confirmed or declined, and
+          anything we refused - straight from the audit log.</p>
+        <ol class="timeline" id="activity"></ol>
+      </div>
+      <div role="tabpanel" id="panel-requests" aria-labelledby="tab-requests" hidden>
+        <p class="panel-note">Cases handed to a member of our team.</p>
+        <ul class="requests" id="requests"></ul>
+      </div>
+    </section>
+
+    <section class="card" id="assist" aria-labelledby="assist-title">
+      <div class="assist-head">
+        <span class="bot-avatar" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 1 7 7v2.2l1.6 2.7A1.4 1.4 0 0 1 19.4 16H18v2a3 3 0 0 1-3 3h-1v-5h4V9a6 6 0 0 0-12 0v7h4v5H9a3 3 0 0 1-3-3v-2H4.6a1.4 1.4 0 0 1-1.2-2.1L5 11.2V9a7 7 0 0 1 7-7z"/></svg>
+        </span>
+        <div>
+          <h2 id="assist-title">ACME Assist</h2>
+          <span class="status"><span class="live" aria-hidden="true"></span>AI support agent &middot; online</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="auto-open"> Always show "How I decided"</label>
+      </div>
+      <!-- role="log": new messages are announced to screen readers politely -->
+      <ol class="log" id="log" role="log" aria-label="Conversation"></ol>
+      <div>
+        <div class="typing" id="typing" aria-live="polite">
+          <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span id="typing-text"></span>
+        </div>
+        <!-- A real form with a single-line input: Enter submits natively and IME input is safe -->
+        <form id="form">
+          <label for="message" class="visually-hidden">Message</label>
+          <input type="text" id="message" autocomplete="off" required maxlength="1000"
+                 placeholder="Ask about your booking or ACME policy...">
+          <button type="submit" class="primary" id="send">Send</button>
+        </form>
+        <p class="privacy">Please don't enter personal information: messages are logged to improve quality.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <a class="logo" href="/" aria-label="ACME Bharat Airlines - home">
+        <span class="mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+        </span>
+        <span class="name"><b>ACME Bharat</b><small>AIRLINES</small></span>
+      </a>
+      <p>Changes to a booking always need your "yes", and every action is recorded in an audit log.</p>
+    </div>
+    <div>
+      <h2>Help</h2>
+      <ul>
+        <li><a href="#trips">My trips</a></li>
+        <li><a href="#trips" id="footer-activity">My activity</a></li>
+        <li><a href="#assist">Chat with ACME Assist</a></li>
+        <li><a href="/insights">Service insights</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>This demo</h2>
+      <p>Visitors share one mock airline. Reset it any time.</p>
+      <button type="button" id="reset-demo" hidden>Reset demo data</button>
+    </div>
+    <p class="legal">ACME Bharat Airlines is a fictional airline built for a portfolio project. Flights, bookings
+      and sign-in are simulated; no real payments or personal data are processed.</p>
+  </div>
+</footer>
+
+<script>
+{
+  const ICONS = {   // 24x24 outline paths
+    status: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+    disruption: "M12 9v4m0 4h.01M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+    cancel: "M15 9l-6 6m0-6 6 6M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+    baggage: "M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M5 7h14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm4 0v13m6-13v13",
+    shield: "M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z",
+    person: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0",
+  };
+  const QUICK = {
+    asha: [["status", "Flight status", "Is ACX456 on time?"],
+           ["disruption", "Delayed flight", "ACX123 is delayed 5 hours, what are my options?"],
+           ["cancel", "Cancel a booking", "Cancel ACX456"],
+           ["baggage", "Baggage allowance", "What's the checked baggage allowance?"],
+           ["shield", "Try someone else's booking", "Cancel ACX789"]],
+    ravi: [["disruption", "Cancelled flight", "My flight ACX789 got cancelled, what can I do?"],
+           ["status", "Flight status", "What's happening with ACX654?"],
+           ["disruption", "Long delay", "ACX987 is delayed 7 hours - compensation?"],
+           ["baggage", "Baggage allowance", "What's the checked baggage allowance?"],
+           ["person", "Angry customer", "Refund ACX654 right now or I'll sue"]],
+  };
+  const FAMILIES = [["rag", "Policy answer"], ["tool:get_flight_status", "Booking status"],
+                    ["agent:", "Disruption agent"], ["confirm:", "Confirmation"],
+                    ["tool:", "Change completed"], ["escalated", "Handed to a person"],
+                    ["clarify", "Clarifying question"]];
+  const $ = (id) => document.getElementById(id);
+  const log = $("log"), form = $("form"), input = $("message"), send = $("send");
+  const typing = $("typing"), userSel = $("user"), autoOpen = $("auto-open");
+  const SVG = "http://www.w3.org/2000/svg";
+  let session = crypto.randomUUID();
+
+  // Per-viewer convenience only: may be unavailable (private mode), so never required.
+  try { autoOpen.checked = localStorage.getItem("acme-auto-open") === "1"; } catch {}
+  autoOpen.addEventListener("change", () => {
+    try { localStorage.setItem("acme-auto-open", autoOpen.checked ? "1" : "0"); } catch {}
+  });
+
+  const headers = () => ({ "Authorization": `Bearer demo-${userSel.value}`,
+                           "Content-Type": "application/json" });
+
+  // Untrusted text (customer input, LLM output, API fields) is only ever inserted with
+  // textContent: never innerHTML, so a message containing HTML/script can't run in this page.
+  function el(tag, cls, text) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  function icon(name, size = 18) {
+    const svg = document.createElementNS(SVG, "svg"), path = document.createElementNS(SVG, "path");
+    for (const [k, v] of [["width", size], ["height", size], ["viewBox", "0 0 24 24"], ["fill", "none"],
+                          ["stroke", "currentColor"], ["stroke-width", "1.8"], ["stroke-linecap", "round"],
+                          ["stroke-linejoin", "round"], ["aria-hidden", "true"]]) svg.setAttribute(k, v);
+    path.setAttribute("d", ICONS[name]);
+    svg.append(path);
+    return svg;
+  }
+  const planeIcon = () => {
+    const svg = document.createElementNS(SVG, "svg"), path = document.createElementNS(SVG, "path");
+    for (const [k, v] of [["width", 22], ["height", 22], ["viewBox", "0 0 24 24"], ["fill", "currentColor"], ["aria-hidden", "true"]])
+      svg.setAttribute(k, v);
+    path.setAttribute("d", "M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z");
+    svg.append(path);
+    return svg;
+  };
+  const seconds = (ms) => ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms} ms`;
+  const family = (route) => (FAMILIES.find(([p]) => route.startsWith(p)) || [null, route])[1];
+  const when = (dep) => {
+    const d = new Date(dep.replace(" ", "T"));
+    return isNaN(d) ? dep : `${d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} · ${dep.slice(11, 16)}`;
+  };
+
+  function add(node) {
+    log.append(node);
+    node.scrollIntoView({ block: "end", behavior: "smooth" });
+  }
+
+  function message(kind, initial, text) {
+    const li = el("li", `msg ${kind}`);
+    const bubble = el("div", "bubble");
+    bubble.append(el("p", null, text));
+    li.append(el("div", "who", initial), bubble);
+    return [li, bubble];
+  }
+
+  function addUser(text) {
+    add(message("user", userSel.value[0].toUpperCase(), text)[0]);
+  }
+
+  function traceView(t, total) {
+    const details = el("details", "trace");
+    details.open = autoOpen.checked;
+    const summary = el("summary");
+    const calls = t.model_calls === 1 ? "1 model call" : `${t.model_calls} model calls`;
+    summary.append(el("span", null, "How I decided"),
+                   el("span", "sum", `${t.steps.length} steps · ${calls} · ${seconds(total)}`));
+    const body = el("div", "trace-body");
+
+    const steps = el("ol", "steps");
+    for (const s of t.steps) {
+      const li = el("li", "step");
+      li.append(el("span", "name", s.step), el("span", null, s.detail),
+                el("span", "ms", s.ms == null ? "" : seconds(s.ms)));
+      if (s.ms) {
+        const bar = el("span", "bar"), fill = el("span");
+        fill.style.width = `${Math.min(100, (100 * s.ms) / Math.max(total, 1))}%`;
+        bar.append(fill);
+        li.append(bar);
+      }
+      steps.append(li);
+    }
+    const stepBox = el("section");
+    stepBox.append(el("h3", null, "Steps"), steps);
+    body.append(stepBox);
+
+    if (t.risk) {
+      const box = el("section"), risks = el("div", "risks");
+      box.append(el("h3", null, "Risk signals (a person takes over at 0.70)"));
+      for (const [key, label] of [["angry", "Anger"], ["demands_exception", "Demands an exception"]]) {
+        const v = t.risk[key] || 0, flagged = v >= 0.7;
+        const row = el("div", `risk${flagged ? " flagged" : ""}`);
+        const track = el("div", "track"), fill = el("div", "fill"), mark = el("div", "threshold");
+        track.setAttribute("role", "img");
+        track.setAttribute("aria-label", `${label}: ${v.toFixed(2)}${flagged ? ", flagged" : ""}`);
+        fill.style.width = `${v * 100}%`;
+        mark.style.insetInlineStart = "70%";
+        track.append(fill, mark);
+        row.append(el("span", null, label), track, el("span", "val", v.toFixed(2) + (flagged ? " !" : "")));
+        risks.append(row);
+      }
+      box.append(risks);
+      body.append(box);
+    }
+
+    if (t.safety.length) {
+      const box = el("section"), list = el("ul", "checks");
+      for (const s of t.safety) list.append(el("li", null, s));
+      box.append(el("h3", null, "Safety checks"), list);
+      body.append(box);
+    }
+    if (t.policy.length) {
+      const box = el("section"), list = el("ul", "sources");
+      for (const s of t.policy) list.append(el("li", null, s));
+      box.append(el("h3", null, "Policy sources"), list);
+      body.append(box);
+    }
+    details.append(summary, body);
+    return details;
+  }
+
+  function addBot(data) {
+    const [li, bubble] = message("bot", "A", data.reply);
+    if (data.pending_action) {
+      const box = el("div", "confirm");
+      box.append(el("p", null, "Waiting for your confirmation - nothing changes until you say yes."));
+      const buttons = el("div", "buttons");
+      const yes = el("button", "primary", "Yes, go ahead");
+      const no = el("button", null, "No");
+      for (const [btn, answer] of [[yes, "yes"], [no, "no"]]) {
+        btn.type = "button";
+        btn.addEventListener("click", () => { yes.disabled = no.disabled = true; ask(answer); });
+      }
+      buttons.append(yes, no);
+      box.append(buttons);
+      bubble.append(box);
+    }
+    const chips = el("div", "chips");
+    chips.append(el("span", "chip", family(data.route)), el("span", "chip", seconds(data.latency_ms)));
+    const t = data.trace;
+    if (t && t.router === "jev" && t.confidence != null)
+      chips.append(el("span", "chip", `Jev ${Math.round(t.confidence * 100)}%`));
+    else if (t && t.router === "jev->llm") chips.append(el("span", "chip", "LLM fallback"));
+    if (t && t.model_calls === 0) chips.append(el("span", "chip code", "No model call"));
+    bubble.append(chips);
+    if (t) bubble.append(traceView(t, data.latency_ms));
+    add(li);
+  }
+
+  function addError(text) {
+    add(message("error", "!", text)[0]);
+  }
+
+  async function ask(text) {
+    addUser(text);
+    send.disabled = true;
+    typing.classList.add("on");
+    $("typing-text").textContent = "ACME Assist is working...";
+    try {
+      const res = await fetch("/v1/chat", { method: "POST", headers: headers(),
+                                            body: JSON.stringify({ message: text, session_id: session }) });
+      if (res.status === 429) addError("Too many requests for this demo right now - please wait a minute.");
+      else if (!res.ok) addError(`Something went wrong (HTTP ${res.status}). Please try again.`);
+      else addBot(await res.json());
+    } catch {
+      addError("Couldn't reach the server. Is it running?");
+    } finally {
+      send.disabled = false;
+      typing.classList.remove("on");
+      $("typing-text").textContent = "";
+      if (matchMedia("(min-width: 58rem)").matches) input.focus();
+      loadBookings();   // a cancel or rebooking changes the trip cards, whichever button sent it
+      loadActivity();
+    }
+  }
+
+  function tripCard(b) {
+    const li = el("li", "trip");
+    li.dataset.state = b.state;
+    const top = el("div", "trip-top"), pnr = el("span", "pnr", "PNR");
+    pnr.append(el("b", null, b.pnr));
+    const pill = el("span", "pill");
+    pill.append(el("span", "dot"), el("span", null, b.status));
+    top.append(pnr, pill);
+
+    const leg = el("div", "leg");
+    const from = el("div", "apt"), to = el("div", "apt end"), path = el("div", "path");
+    from.append(el("b", null, b.origin), el("span", null, b.origin_city));
+    to.append(el("b", null, b.dest), el("span", null, b.dest_city));
+    path.append(planeIcon(), el("span", null, b.flight));
+    leg.append(from, path, to);
+
+    const foot = el("div", "trip-foot"), dep = el("span", null, "Departs "), fl = el("span", null, "Flight ");
+    dep.append(el("b", null, when(b.departure)));
+    fl.append(el("b", null, b.flight));
+    foot.append(dep, fl);
+    li.append(top, leg, foot);
+    if (b.outcome) li.append(el("span", "outcome", `✔ ${b.outcome}`));
+    return li;
+  }
+
+  async function loadBookings() {
+    const list = $("bookings");
+    try {
+      const res = await fetch("/v1/bookings", { headers: headers() });
+      const rows = await res.json();
+      list.replaceChildren(...rows.map(tripCard));   // swap in one go: no flicker while refreshing
+      $("n-trips").textContent = rows.length;
+    } catch { list.replaceChildren(el("li", null, "Couldn't load your trips.")); }
+  }
+
+  const KIND_MARK = { done: "✓", pending: "…", stopped: "–", blocked: "!", handoff: "→", info: "i" };
+  const KIND_LABEL = { done: "Done", pending: "Waiting for you", stopped: "Nothing changed", blocked: "Refused",
+                       handoff: "Handed to a person", info: "Note" };
+  const stamp = (ts) => {
+    const d = new Date(ts), today = new Date().toDateString() === d.toDateString();
+    const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    return today ? `Today, ${time}` : `${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}, ${time}`;
+  };
+
+  async function loadActivity() {
+    try {
+      const res = await fetch("/v1/activity", { headers: headers() });
+      const data = await res.json();
+      const events = data.activity.map((e) => {
+        const li = el("li", "event");
+        li.dataset.kind = e.kind;
+        const dot = el("span", "dot", KIND_MARK[e.kind] || "");
+        dot.setAttribute("aria-hidden", "true");
+        const body = el("div");
+        body.append(el("span", "visually-hidden", `${KIND_LABEL[e.kind] || ""}: `), el("p", null, e.text),
+                    el("small", null, stamp(e.ts)));
+        li.append(dot, body);
+        return li;
+      });
+      $("activity").replaceChildren(...(events.length ? events : [el("li", "empty",
+        "Nothing yet. Anything you ask ACME Assist to change appears here - including what you said no to.")]));
+      const requests = data.requests.map((r) => {
+        const li = el("li", "request"), top = el("div", "top");
+        top.append(el("span", "ref", r.ref), el("span", "open", r.status === "open" ? "Open" : r.status));
+        li.append(top, el("p", null, r.reason),
+                  el("small", null, `${r.pnr ? `Booking ${r.pnr} · ` : ""}${stamp(r.created_at)}`));
+        return li;
+      });
+      $("requests").replaceChildren(...(requests.length ? requests : [el("li", "empty",
+        "No open requests. Ask ACME Assist for a person at any time.")]));
+      $("n-activity").textContent = data.activity.length || "";
+      $("n-requests").textContent = data.requests.length || "";
+    } catch { $("activity").replaceChildren(el("li", "empty", "Couldn't load your activity.")); }
+  }
+
+  // Tabs (WAI-ARIA pattern): arrow keys move between tabs, only the selected one is in the tab order.
+  const tabs = ["trips", "activity", "requests"].map((n) => $(`tab-${n}`));
+  function select(tab) {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute("aria-controls")).hidden = !on;
+    }
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => select(t));
+    t.addEventListener("keydown", (e) => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      const next = tabs[(i + step + tabs.length) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
+
+  function loadQuickHelp() {
+    const tiles = QUICK[userSel.value].map(([kind, title, text]) => {
+      const b = el("button", "tile");
+      b.type = "button";
+      const ic = el("span", "icon");
+      ic.append(icon(kind));
+      b.append(ic, el("b", null, title), el("small", null, text));
+      b.addEventListener("click", () => { $("assist").scrollIntoView({ block: "nearest" }); ask(text); });
+      return b;
+    });
+    $("tiles").replaceChildren(...tiles);
+  }
+
+  function newConversation() {
+    session = crypto.randomUUID();
+    const name = userSel.options[userSel.selectedIndex].text;
+    $("initial").textContent = name[0];
+    $("greeting").textContent = `Namaste, ${name}. How can we help?`;
+    const [li] = message("bot", "A", `Hi ${name}, I'm ACME Assist. Ask me about any of your trips or our ` +
+                                     "policies - or pick one of the quick-help options above.");
+    log.replaceChildren(li);
+    select(tabs[0]);
+    loadBookings();
+    loadActivity();
+    loadQuickHelp();
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text || send.disabled) return;
+    input.value = "";
+    ask(text);
+  });
+  userSel.addEventListener("change", newConversation);
+  $("footer-activity").addEventListener("click", () => select(tabs[1]));
+
+  // Public demo only: visitors share one mock airline, so let anyone restore it.
+  const resetBtn = $("reset-demo");
+  fetch("/v1/demo").then((r) => r.json()).then((d) => { resetBtn.hidden = !d.demo_mode; })
+                   .catch(() => {});
+  resetBtn.addEventListener("click", async () => {
+    resetBtn.disabled = true;
+    try {
+      const res = await fetch("/v1/demo/reset", { method: "POST", headers: headers() });
+      if (!res.ok) throw new Error(res.status);
+      newConversation();
+      $("assist").scrollIntoView({ block: "nearest" });
+    } catch { addError("Couldn't reset the demo data."); }
+    finally { resetBtn.disabled = false; }
+  });
+
+  newConversation();
+}
+</script>
+</body>
+</html>
